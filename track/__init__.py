@@ -69,7 +69,7 @@ __all__ = ['load', 'new', 'convert']
 import os, sqlite3
 
 # Internal modules #
-from track.util import determine_format, convert
+from track.util import determine_format
 from track.common import check_path, empty_sql_file, temporary_path
 
 ################################################################################
