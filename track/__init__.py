@@ -63,13 +63,14 @@ To set the chromosome metadata or the track metadata you simply assign to that a
 """
 
 # Public variables #
+__version__ = '1.0.0'
 __all__ = ['load', 'new', 'convert']
 
 # Built-in modules #
 import os, sqlite3
 
 # Internal modules #
-from track.util import determine_format
+from track.util import determine_format, convert_format
 from track.common import check_path, empty_sql_file, temporary_path
 
 ################################################################################
@@ -159,6 +160,9 @@ def convert(source, destination):
     if isinstance(source, tuple):
         source_path   = source[0]
         source_format = source[1]
+    elif isinstance(source, Track):
+        source_path   = source.path
+        source_format = 'sql'
     else:
         source_path   = source
         source_format = determine_format(source)
@@ -166,15 +170,15 @@ def convert(source, destination):
     if isinstance(source, tuple):
         destination_path   = destination[0]
         destination_format = destination[1]
+    elif isinstance(destination, Track):
+        destination_path   = source.path
+        destination_format = 'sql'
     else:
         destination_path   = destination
         destination_format = os.path.splitext(destination)[1][1:]
+    # Check it is not taken #
     check_path(destination_path)
-    # Convert it from SQL #
 
-    # Convert it to SQL #
-
-    # All other cases #
 
 ################################################################################
 class Track(object):
@@ -284,28 +288,20 @@ class Track(object):
         self.connection.commit()
 
     #-----------------------------------------------------------------------------#
-    def save_as(self, path, format=None):
-        """Exports a track to a given location and format.
-
-           * *path* is the file path where the new track will be created
-
-           * *format* is the format into which the track will be converted.
+    def rollback(self):
+        """Reverts all changes to the track since the last call to ``save()``.
 
            Examples::
 
                import track
-               with track.load('tracks/rp_genes.sql') as t:
-                   t.save_as('tracks/rp_genes.bed')
+               with track.load('tracks/rp_genes.bed') as t:
+                   t.remove('chr19_gl000209_random')
+                   track.convert(t, 'tmp/clean.bed')
+                   t.rollback()
 
-           ``save_as`` returns nothing but a new file is created at the specified *path* with the specified format.
+           ``rollback`` returns nothing but the track is reverted.
         """
-        check_path(path)
-        if not format: format = os.path.splitext(path)[1][1:]
-        with new(path, format) as t:
-            t.chrmeta    = self.chrmeta
-            t.attributes = self.attributes
-            fields = self.fields
-            for chrom in self.all_chrs: t.write(chrom, self.read(chrom), fields)
+        self.connection.rollback()
 
     #-----------------------------------------------------------------------------#
     def read(self, selection=None, fields=None, order='start,end', cursor=False):
@@ -616,6 +612,96 @@ class Track(object):
             match = re.search('([a-zA-Z]*)([0-9]+)$', chrom)
             return match.group(1) + int_to_roman(int(match.group(2)))
         for chrom in self: self.rename(chrom, convert(chrom))
+
+    #--------------------------------------------------------------------------#
+    @property
+    def fields(self):
+        if self.chrs_from_tables: return self.get_fields_of_table(self.chrs_from_tables[0])
+        else:                     return []
+
+    @property
+    def all_tables(self):
+        self.cursor.execute("select name from sqlite_master where type='table'")
+        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+
+    @property
+    def chrs_from_names(self):
+        if 'chrNames' not in self.all_tables: return []
+        self.cursor.execute("select name from chrNames")
+        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+
+    @property
+    def chrs_from_tables(self):
+        self.all_chrs = [x for x in self.all_tables if x not in self.special_tables and not x.endswith('_idx')]
+        self.all_chrs.sort(key=natural_sort)
+        return self.all_chrs
+
+    def get_fields_of_table(self, table):
+        return [x[1] for x in self.cursor.execute('pragma table_info("' + table + '")').fetchall()]
+
+    #--------------------------------------------------------------------------#
+    def attributes_read(self):
+        if not 'attributes' in self.all_tables: return {}
+        self.cursor.execute("select key, value from attributes")
+        return dict(self.cursor.fetchall())
+
+    def attributes_write(self):
+        if self.readonly: return
+        self.cursor.execute('drop table IF EXISTS attributes')
+        if self.attributes:
+            self.cursor.execute('create table attributes (key text, value text)')
+            for k in self.attributes.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.attributes[k]))
+
+    def chrmeta_read(self):
+        if not 'chrNames' in self.all_tables: return {}
+        self.cursor.execute("pragma table_info(chrNames)")
+        column_names = [x[1] for x in self.cursor.fetchall()]
+        all_rows = self.cursor.execute("select * from chrNames").fetchall()
+        return column_names, all_rows
+
+    def chrmeta_write(self):
+        if self.readonly: return
+        self.cursor.execute('drop table IF EXISTS chrNames')
+        if self.chrmeta:
+            self.cursor.execute('create table chrNames (name text, length integer)')
+            for r in self.chrmeta.rows: self.cursor.execute('insert into chrNames (' + ','.join(r.keys()) + ') values (' + ','.join(['?' for x in r.keys()])+')', tuple(r.values()))
+
+    @property
+    def chrmeta(self):
+        return self._chrmeta
+
+    @chrmeta.setter
+    def chrmeta(self, value):
+        self._chrmeta(value)
+
+    @property
+    def attributes(self):
+        return self._attributes
+
+    @attributes.setter
+    def attributes(self, value):
+        self._attributes(value)
+
+    @property
+    def datatype(self):
+        # Next line is a hack to remove a new datatype introduced by GDV - remove at a later date #
+        if self.attributes.get('datatype') == 'QUALITATIVE_EXTENDED': return 'qualitative'
+        # End hack #
+        return self.attributes.get('datatype', '').lower()
+
+    @datatype.setter
+    def datatype(self, value):
+        if value not in ['quantitative', 'qualitative']:
+            raise Exception("The datatype you are trying to use is invalid: '" + str(value) + "'.")
+        self.attributes['datatype'] = value
+
+    @property
+    def name(self):
+        return self.attributes.get('name', 'Unnamed')
+
+    @name.setter
+    def name(self, value):
+        self.attributes['name'] = value
 
 #-----------------------------------#
 # This code was written by the BBCF #
