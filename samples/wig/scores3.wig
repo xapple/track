@@ -1,0 +1,6 @@
+fixedStep chrom=chr1 start=20 span=30
+20.0
+fixedStep chrom=chr1 start=50 span=30
+300.0
+fixedStep chrom=chr1 start=120 span=10
+0.0

@@ -1,0 +1,4 @@
+variableStep chrom=chr1 span=20
+0 10
+10 5
+20 10

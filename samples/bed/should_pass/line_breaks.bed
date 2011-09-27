@@ -1,0 +1,6 @@
+track name=HIVint type=bed description="HIV integration sites" \
+      db=hg19 visibility=3 url=http://bbcf.epfl.ch/ \
+      source="Bioinformatics and Biostatistics Core Facility"
+chr1	0	10	Name1	10
+chr1	2	8	Name2	0
+chr1	20	30	Name3	10

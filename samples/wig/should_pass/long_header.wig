@@ -1,0 +1,6 @@
+track name=HbVar type=wiggle_0 description="HbVar custom track" db=hg19 visibility=3 url="http://globin.bx.psu.edu/cgi-bin/hbvar/query_vars3?display_format=page&mode=output&id=$$"
+variableStep chrom=chr1
+1 10
+2 5
+3 10
+10 0

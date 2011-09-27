@@ -1,0 +1,4 @@
+track name=HbVar type=bed description="HbVar custom track" db=hg19 visibility=3 url="http://globin.bx.psu.edu/cgi-bin/hbvar/query_vars3?display_format=page&mode=output&id=$$"
+chr1	0	10	Name1	10
+chr1	2	8	Name2	0
+chr1	20	30	Name3	10

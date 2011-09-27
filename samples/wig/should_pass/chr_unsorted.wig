@@ -1,0 +1,18 @@
+variableStep chrom=chr1
+1 10
+2 5
+3 10
+4 0
+fixedStep chrom=chr2 start=50
+1
+2
+3
+variableStep chrom=chr1
+100 10
+101 5
+102 10
+103 0
+fixedStep chrom=chr2 start=100
+1
+2
+3

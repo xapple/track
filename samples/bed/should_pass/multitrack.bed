@@ -1,0 +1,12 @@
+track name=pairedReadsA description="Clone Paired Reads 1" useScore=1
+chr1	0	10	Validation	10
+chr1	2	8	Validation	0
+chr1	20	30	Validation	10
+track name=pairedReadsB description="Clone Paired Reads 2" useScore=1
+chr2	0	10	Validation	10
+chr2	2	8	Validation	0
+chr2	20	30	Validation	10
+track name=pairedReadsC description="Clone Paired Reads 3" useScore=1
+chr2	0	10	Validation	10
+chr2	2	8	Validation	0
+chr2	20	30	Validation	10

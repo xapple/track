@@ -1,0 +1,14 @@
+chr1	10	20	Name1	0.1	-
+chr1	30	40	Name2	0.2	+
+chr1	50	60	Name3	0.1	+
+chr1	70	80	Name4	0.2	+
+chr1	90	100	Name5	0.0	+
+chr1	110	120	Name6	0.4	+
+chr1	130	150	Name7	0.4	-
+chr1	180	190	Name8	0.1	+
+chr1	180	200	Name9	0.1	+
+chr1	210	220	Name10	0.2	+
+chr1	230	240	Name11	0.1	+
+chr1	250	260	Name12	0.2	+
+chr1	270	280	Name13	0.0	+
+chr1	290	300	Name14	0.7	-
