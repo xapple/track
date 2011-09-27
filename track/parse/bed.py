@@ -80,3 +80,9 @@ class ParserBED(Parser):
                 self.handler.newFeature(items)
             # Return the handler tracks #
             return self.handler.tracks
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

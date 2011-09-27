@@ -51,3 +51,9 @@ class SerializerSQL(Serializer):
 
     def flushBuffer(self):
         self.current_track.write(self.current_chrom, self.buffer, self.fields)
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

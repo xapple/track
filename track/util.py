@@ -102,3 +102,9 @@ def make_cond_from_sel(selection):
         if query: query += " and "
         query += 'score >= ' + str(selection['score'][0]) + ' and score <= ' + str(selection['score'][1])
     return query
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

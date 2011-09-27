@@ -53,3 +53,9 @@ class Serializer(object):
 
     def newFeature(feature):
         self.tracks[-1]['features'].append(feature)
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

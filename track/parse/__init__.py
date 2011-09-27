@@ -46,3 +46,9 @@ class Parser(object):
         self.parse()
         if len(self.handler.tracks) == 1: return self.handler.tracks[0]
         else: return self.handler.tracks
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#
