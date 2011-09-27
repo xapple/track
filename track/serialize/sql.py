@@ -9,13 +9,15 @@ from track.common import make_file_names
 
 ################################################################################
 class SerializerSQL(Serializer):
-    def __init__(self, path):
-        self.directory = directory
-        self.tracks = []
+    def __enter__(self):
         self.buffer = []
         self.current_track = None
         self.current_chrom = None
-        self.file_paths = make_file_names(path)
+        self.file_paths = make_file_names(self.path)
+        return self
+
+    def __exit__(self, errtype, value, traceback):
+        self.closeCurrentTrack()
 
     def defineFields(self, fields):
         self.fields = fields
@@ -37,9 +39,6 @@ class SerializerSQL(Serializer):
             self.flushBuffer()
             self.current_chrom = feature[0]
             self.buffer.append(feature[0:])
-
-    def endFile(feature):
-        self.closeCurrentTrack()
 
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):

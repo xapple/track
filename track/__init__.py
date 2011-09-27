@@ -70,7 +70,9 @@ __all__ = ['load', 'new', 'convert']
 import os, sqlite3
 
 # Internal modules #
-from track.util import determine_format, convert_format
+from track.parse import get_parser
+from track.serialize import get_serializer
+from track.util import determine_format
 from track.common import check_path, empty_sql_file, temporary_path
 
 ################################################################################
@@ -154,15 +156,12 @@ def convert(source, destination):
             track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
             track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
 
-        ``convert`` returns nothing.
+        ``convert`` returns the path to the track created or a list of track paths in the case of multi-track files.
     """
     # Parse the source parameter #
     if isinstance(source, tuple):
         source_path   = source[0]
         source_format = source[1]
-    elif isinstance(source, Track):
-        source_path   = source.path
-        source_format = 'sql'
     else:
         source_path   = source
         source_format = determine_format(source)
@@ -170,15 +169,17 @@ def convert(source, destination):
     if isinstance(source, tuple):
         destination_path   = destination[0]
         destination_format = destination[1]
-    elif isinstance(destination, Track):
-        destination_path   = source.path
-        destination_format = 'sql'
     else:
         destination_path   = destination
         destination_format = os.path.splitext(destination)[1][1:]
     # Check it is not taken #
     check_path(destination_path)
-
+    # Get a serializer #
+    serializer = get_serializer(destination_path, destination_format)
+    # Get a parser #
+    parser = get_parser(source_path, source_format, serializer)
+    # Do it #
+    return parser()
 
 ################################################################################
 class Track(object):
@@ -186,7 +187,6 @@ class Track(object):
 
            * *path* is the file system path to the underlying file.
            * *datatype* is either ``qualitative`` or ``quantitative``.
-           * *name* is given upon creation of the track.
            * *format* is always ``sql`` as, when loading a ``bed`` track for instance, a transparent underlying Bio SQLite track is sliently created.
            * *all_chrs* is a list of all available chromosome. For instance:
                 ``['chr1, 'chr2', 'chr3']``
@@ -206,8 +206,8 @@ class Track(object):
                 if len(genes) != 23: print 'Aneuploidy'
     """
 
-    default_fields = ['start', 'end',  'name', 'score', 'strand']
-    signal_fields    = ['start', 'end', 'score']
+    default_fields = ['start', 'end', 'name', 'score', 'strand']
+    signal_fields  = ['start', 'end', 'score']
     field_types = {
         'start':        'integer',
         'end':          'integer',
@@ -231,6 +231,7 @@ class Track(object):
         self.orig_path   = orig_path
         self.orig_format = orig_format
         # Other attributes #
+        self.format     = 'sql'
         self.chrmeta    = {}
         self.attributes = {}
         self.modified   = False
@@ -296,12 +297,37 @@ class Track(object):
                import track
                with track.load('tracks/rp_genes.bed') as t:
                    t.remove('chr19_gl000209_random')
-                   track.convert(t, 'tmp/clean.bed')
+                   t.export('tmp/clean.bed')
                    t.rollback()
 
            ``rollback`` returns nothing but the track is reverted.
         """
         self.connection.rollback()
+
+    #-----------------------------------------------------------------------------#
+    def export(self, path, format=None):
+        """Exports the current track to a given format.
+
+            * *path* is the path to track file to create.
+            * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+
+           Examples::
+
+               import track
+               with track.load('tracks/rp_genes.bed') as t:
+                   t.remove('chr19_gl000209_random')
+                   t.export('tmp/clean.gff')
+
+           ``export`` returns nothing but a new track is created at the specified path.
+        """
+        # Check it is not taken #
+        check_path(destination_path)
+        # Get a serializer #
+        serializer = get_serializer(destination_path, destination_format)
+        # Get a parser #
+        parser = get_parser(self, 'track', serializer)
+        # Do it #
+        return parser()
 
     #-----------------------------------------------------------------------------#
     def read(self, selection=None, fields=None, order='start,end', cursor=False):

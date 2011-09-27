@@ -17,7 +17,7 @@ class ParserBED(Parser):
     all_fields_possible = ['start', 'end', 'name', 'score', 'strand', 'thick_start', 'thick_end',
                            'item_rgb', 'block_count', 'block_sizes', 'block_starts']
 
-    def __call__(self):
+    def parse(self):
         fields = []
         for number, line in iterate_lines(self.path):
             # Ignored lines #
