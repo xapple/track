@@ -46,6 +46,8 @@ Using the Track object
 
     .. automethod:: Track.count
 
+    .. automethod:: Track.set_chrmeta
+
     .. automethod:: Track.get_score_vector
 
     .. automethod:: Track.ucsc_to_ensembl

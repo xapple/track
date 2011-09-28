@@ -57,6 +57,9 @@ class Serializer(object):
     def defineFields(self, fields):
         self.fields = fields
 
+    def defineChrmeta(self, chrmeta):
+        self.chrmeta = chrmeta
+
     def newTrack(self, attributes=None):
         self.tracks.append(collections.defaultdict(list))
 

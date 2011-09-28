@@ -5,10 +5,13 @@ Usefull stuff for the track package.
 # Built-in modules #
 import os
 
+# Internal modules #
+from track.common import iterate_lines
+
 ########################################################################################################
 def determine_format(path):
-    '''Try to guess the format of a track given its path.
-       Returns a three letter extension'''
+    """Try to guess the format of a track given its path.
+       Returns a three letter extension"""
     # Synonyms #
     known_synonyms = {
         'db': 'sql',
@@ -26,8 +29,8 @@ def determine_format(path):
 
 ###############################################################################
 def guess_file_format(path):
-    '''Try to guess the format of a track given its content.
-       Returns a three letter extension'''
+    """Try to guess the format of a track given its content.
+       Returns a three letter extension"""
     # Check SQLite #
     with open(path, 'r') as track_file:
         if track_file.read(15) == "SQLite format 3": return 'sql'
@@ -45,6 +48,25 @@ def guess_file_format(path):
                 except ValueError:
                     id = ''
                 return known_identifiers.get(id, id)
+
+###############################################################################
+def read_chr_file(self, path):
+    """Read a chromsome file and return a dictionary"""
+    chrmeta = {}
+    for number, line in iterate_lines(path):
+        items = line.split('\t')
+        if len(items) == 1: items = line.split()
+        if len(items) != 2:
+            raise Exception("The file '" + path + ":" + str(number) + "' does not seam to be a valid chromosome file.")
+        name = items[0]
+        try:
+            length = int(items[1])
+        except ValueError:
+            raise Exception("The file '" + path + ":" + str(number) + "' has non-integer as chromosome lengths.")
+        chrmeta[name] = dict([('length', length)])
+    if not chrmeta:
+        raise Exception("The file '" + path + "' does not seam to contain any information.")
+    return chrmeta
 
 ################################################################################
 def join_read_queries(track, selections, fields):

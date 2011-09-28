@@ -20,7 +20,8 @@ class SerializerSQL(Serializer):
         self.closeCurrentTrack()
 
     def defineFields(self, fields):
-        self.fields = fields
+        pass
+        #TODO
 
     def newTrack(self, attributes=None):
         # Close previous track #

@@ -72,28 +72,47 @@ import os, sqlite3
 # Internal modules #
 from track.parse import get_parser
 from track.serialize import get_serializer
-from track.util import determine_format
-from track.common import check_path, empty_sql_file, temporary_path, JournaledDict
+from track.util import determine_format, join_read_queries, read_chr_file
+from track.common import check_path, empty_file, empty_sql_file, temporary_path, JournaledDict, natural_sort
+
+# Constants #
+special_tables = ['attributes', 'chrNames', 'types']
+default_fields = ['start', 'end', 'name', 'score', 'strand']
+signal_fields  = ['start', 'end', 'score']
+field_types = {
+    'start':        'integer',
+    'end':          'integer',
+    'score':        'real',
+    'strand':       'integer',
+    'name':         'text',
+    'thick_start':  'integer',
+    'thick_end':    'integer',
+    'item_rgb':     'text',
+    'block_count':  'integer',
+    'block_sizes':  'text',
+    'block_starts': 'text',
+    'attributes':   'text',
+}
 
 ################################################################################
 def load(path, format=None, readonly=False):
     """Loads a track from disk, whatever the format is.
 
-            * *path* is the path to track file to load.
-            * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
-            * *readonly* is an optional boolean variable that defaults to ``False``. When set to ``True``, any operation attempting to write to the track will silently be ignored.
+        * *path* is the path to track file to load.
+        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+        * *readonly* is an optional boolean variable that defaults to ``False``. When set to ``True``, any operation attempting to write to the track will silently be ignored.
 
-        Examples::
+    Examples::
 
-            import track
-            with track.load('tracks/rp_genes.sql') as rpgenes:
-                data = rpgenes.read()
-            with track.load('tracks/yeast_data_01', 'sql', 'S. cer. genes') as yeast:
-                data = yeast.read()
-            with track.load('tracks/repeats.bed', readonly=True) as repeats:
-                data = repeats.read()
+        import track
+        with track.load('tracks/rp_genes.sql') as rpgenes:
+            data = rpgenes.read()
+        with track.load('tracks/yeast_data_01', 'sql', 'S. cer. genes') as yeast:
+            data = yeast.read()
+        with track.load('tracks/repeats.bed', readonly=True) as repeats:
+            data = repeats.read()
 
-        ``load`` returns a Track instance.
+    ``load`` returns a Track instance.
     """
     # Guess the format #
     if not format: format = determine_format(path)
@@ -110,20 +129,22 @@ def load(path, format=None, readonly=False):
 def new(path, format=None):
     """Creates a new empty track in preparation for writing to it.
 
-            * *path* is the path to track file to create.
-            * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+        * *path* is the path to track file to create.
+        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+        * *fields* is an optional
 
-        Examples::
+    Examples::
 
-            import track
-            with track.new('tmp/track.sql') as t:
-                t.write('chr1', [(10, 20, 'Gene A', 0.0, 1)])
-            with track.new('tracks/peaks.sql', 'sql', name='High affinity peaks') as t:
-                t.write('chr5', [(500, 1200, 'Peak1', 11.3, 0)])
-            with track.new('tracks/scores.sql', 'sql', chrmeta='sacCer2' datatype='quantitative',) as t:
-                t.write('chr1', [(10, 20, 500.0)])
+        import track
+        with track.new('tmp/track.sql') as t:
+            t.write('chr1', [(10, 20, 'Gene A', 0.0, 1)])
+            t.save()
+        with track.new('tracks/peaks.sql', 'sql', name='High affinity peaks') as t:
+            t.write('chr5', [(500, 1200, 'Peak1', 11.3, 0)])
+        with track.new('tracks/scores.sql', 'sql', chrmeta='sacCer2' datatype='quantitative',) as t:
+            t.write('chr1', [(10, 20, 500.0)])
 
-        ``new`` returns a Track instance.
+    ``new`` returns a Track instance.
     """
     # Guess the format #
     if not format: format = os.path.splitext(path)[1][1:]
@@ -135,28 +156,29 @@ def new(path, format=None):
         return Track(path)
     else:
         sql_path = temporary_path(".sql") or os.path.splitext(path)[0] + ".sql"
-        empty_sql_file(path)
+        empty_file(path)
+        empty_sql_file(sql_path)
         return Track(sql_path, orig_path=path, orig_format=format)
 
 #---------------------------------------------------------------------------------#
 def convert(source, destination):
     """Converts a track from one format to an other.
 
-            * *source* is the path to the original track to load.
-            * *destination* is the path to the track to be created.
+        * *source* is the path to the original track to load.
+        * *destination* is the path to the track to be created.
 
-        The *source* file should have a different format from the *destination* file.
-        If either the source or destination are missing a file extension, you can specify
-        their formats using a tuple. See examples below.
+    The *source* file should have a different format from the *destination* file.
+    If either the source or destination are missing a file extension, you can specify
+    their formats using a tuple. See examples below.
 
-        Examples::
+    Examples::
 
-            import track
-            track.convert('tracks/genes.bed', 'tracks/genes.sql')
-            track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
-            track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
+        import track
+        track.convert('tracks/genes.bed', 'tracks/genes.sql')
+        track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
+        track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
 
-        ``convert`` returns the path to the track created or a list of track paths in the case of multi-track files.
+    ``convert`` returns the path to the track created or a list of track paths in the case of multi-track files.
     """
     # Parse the source parameter #
     if isinstance(source, tuple):
@@ -185,42 +207,25 @@ def convert(source, destination):
 class Track(object):
     """Once a track is loaded you have access to the following attributes:
 
-           * *path* is the file system path to the underlying file.
-           * *datatype* is either ``qualitative`` or ``quantitative``.
-           * *all_chrs* is a list of all available chromosome. For instance:
-                ``['chr1, 'chr2', 'chr3']``
-           * *chrmeta* is a  dictionary of meta data associated to each chromosome (information like length, etc). For instance:
-                ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
-           * *attributes* is a dictionary of meta data associated to the track (information like the source, etc). For instance:
-                 ``{'datatype': 'quantitative', 'source': 'SGD'}``
+       * *fields* is a list the value types that each feature in the track will contain. For instance:
+            ``['start', 'end', 'name', 'score', 'strand']``
+       * *chromosomes* is a list of all available chromosome. For instance:
+            ``['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM']``
+       * *chrmeta* is a dictionary of meta data associated to each chromosome (information like length, etc). For instance:
+            ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
+       * *attributes* is a dictionary of meta data associated to the track (information like the source, etc). For instance:
+             ``{'datatype': 'signal', 'source': 'SGD'}``
 
-        The track object itself is iterable and will yield the name of all chromosomes.
+    The track object itself is iterable and will yield the name of all chromosomes.
 
-        Examples::
+    Examples::
 
-            import track
-            with track.load('tracks/all_genes.sql') as genes:
-                for chrom in genes: print chrom
-                if 'chrY' in genes: print 'Male'
-                if len(genes) != 23: print 'Aneuploidy'
+        import track
+        with track.load('tracks/all_genes.sql') as genes:
+            for chrom in genes: print chrom
+            if 'chrY' in genes: print 'Male'
+            if len(genes) != 23: print 'Aneuploidy'
     """
-
-    default_fields = ['start', 'end', 'name', 'score', 'strand']
-    signal_fields  = ['start', 'end', 'score']
-    field_types = {
-        'start':        'integer',
-        'end':          'integer',
-        'score':        'real',
-        'strand':       'integer',
-        'name':         'text',
-        'thick_start':  'integer',
-        'thick_end':    'integer',
-        'item_rgb':     'text',
-        'block_count':  'integer',
-        'block_sizes':  'text',
-        'block_starts': 'text',
-        'attributes':   'text',
-    }
 
     def __init__(self, path, readonly=False, autosave=False, orig_path=None, orig_format=None):
         # Passed attributes #
@@ -230,9 +235,10 @@ class Track(object):
         self.orig_path   = orig_path
         self.orig_format = orig_format
         # Other attributes #
-        self.chrmeta    = JournaledDict()
-        self.attributes = JournaledDict()
         self.modified   = False
+        # Stuff to do #
+        self._chrmeta    = JournaledDict()
+        self._attributes = JournaledDict()
 
     def __enter__(self):
         return self
@@ -249,18 +255,35 @@ class Track(object):
     def __contains__(self, key):
         return key in self.chromosomes
 
+    @property
+    def fields(self):
+        if self.chrs_from_tables: return self.get_fields_of_table(self.chrs_from_tables[0])
+        else:                     return []
+        return [x[1] for x in self.cursor.execute('pragma table_info("' + table + '")').fetchall()]
+
+    @property
+    def tables(self):
+        self.cursor.execute("select name from sqlite_master where type='table'")
+        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+
+    @property
+    def chromosomes(self):
+        chroms = [x for x in self.tables if x not in special_tables and not x.endswith('_idx')]
+        chroms.sort(key=natural_sort)
+        return chroms
+
     #-----------------------------------------------------------------------------#
     def save(self):
         """Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database.
 
-           Examples::
+       Examples::
 
-               import track
-               with track.load('tracks/rp_genes.bed') as t:
-                   t.remove('chr19_gl000209_random')
-                   t.save()
+           import track
+           with track.load('tracks/rp_genes.bed') as t:
+               t.remove('chr19_gl000209_random')
+               t.save()
 
-           ``save`` returns nothing but the original file on the disk is modified.
+       ``save`` returns nothing but the original file on the disk is modified.
         """
         if self.attributes.modified: self.attributes_write()
         if self.chrmeta.modified: self.chrmeta_write()
@@ -272,15 +295,15 @@ class Track(object):
     def rollback(self):
         """Reverts all changes to the track since the last call to ``save()``.
 
-           Examples::
+        Examples::
 
-               import track
-               with track.load('tracks/rp_genes.bed') as t:
-                   t.remove('chr19_gl000209_random')
-                   t.export('tmp/clean.bed')
-                   t.rollback()
+           import track
+           with track.load('tracks/rp_genes.bed') as t:
+               t.remove('chr19_gl000209_random')
+               t.export('tmp/clean.bed')
+               t.rollback()
 
-           ``rollback`` returns nothing but the track is reverted.
+       ``rollback`` returns nothing but the track is reverted.
         """
         self.connection.rollback()
 
@@ -288,15 +311,15 @@ class Track(object):
     def close(self):
         """Closes the current track. This method is useful when you are not using the 'with ... as' form for loading tracks.
 
-           Examples::
+        Examples::
 
-               import track
-               t = track.load('tracks/rp_genes.bed')
-               t.remove('chr19_gl000209_random')
-               t.save()
-               t.close()
+            import track
+            t = track.load('tracks/rp_genes.bed')
+            t.remove('chr19_gl000209_random')
+            t.save()
+            t.close()
 
-           ``close`` returns nothing but the track it is called on is closed.
+        ``close`` returns nothing but the track it is called on is closed.
         """
         if self.autosave: self.save()
         self.cursor.close()
@@ -306,17 +329,18 @@ class Track(object):
     def export(self, path, format=None):
         """Exports the current track to a given format.
 
-            * *path* is the path to track file to create.
-            * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+        * *path* is the path to track file to create.
+        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
 
-           Examples::
+        Examples::
 
-               import track
-               with track.load('tracks/rp_genes.bed') as t:
-                   t.remove('chr19_gl000209_random')
-                   t.export('tmp/clean.gff')
+            import track
+            with track.load('tracks/rp_genes.bed') as t:
+                t.remove('chr19_gl000209_random')
+                t.export('tmp/clean.bed')
+                t.rollback()
 
-           ``export`` returns nothing but a new file is created at the specified path. The current track object is unchanged.
+        ``export`` returns nothing but a new file is created at the specified path. The current track object is unchanged.
         """
         # Check it is not taken #
         check_path(path)
@@ -365,6 +389,7 @@ class Track(object):
             # Duplicate a chromosome
             with track.load('tracks/copychrs.sql') as t:
                 t.write('chrY', t.read('chrX', cursor=True))
+                t.save()
 
         ``read`` returns a generator object yielding tuples.
         """
@@ -411,6 +436,7 @@ class Track(object):
                     for i in xrange(5):
                         yield (10, 20, 'X', i, 1)
                 t.write('chr2', example_generator())
+                t.save()
 
         ``write`` returns nothing.
         """
@@ -445,10 +471,13 @@ class Track(object):
             import track
             with track.load('tracks/example.sql') as t:
                 t.remove('chr1')
+                t.save()
             with track.load('tracks/example.sql') as t:
                 t.remove(['chr1', 'chr2', 'chr3'])
+                t.save()
             with track.load('tracks/example.sql') as t:
                 t.remove()
+                t.save()
 
         ``remove`` returns nothing.
         """
@@ -466,13 +495,14 @@ class Track(object):
     def rename(self, previous_name, new_name):
         """Renames a chromosome from *previous_name* to *new_name*
 
-           Examples::
+        Examples::
 
-               import track
-               with track.load('tracks/rp_genes.bed') as t:
-                   t.rename('chr4', 'chrIV')
+            import track
+            with track.load('tracks/rp_genes.bed') as t:
+                t.rename('chr4', 'chrIV')
+                t.save()
 
-           ``rename`` returns nothing.
+        ``rename`` returns nothing.
         """
         self.modified = True
         if self.readonly: return
@@ -530,26 +560,26 @@ class Track(object):
     def ucsc_to_ensembl(self):
         """Converts all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.
 
-           Examples::
+       Examples::
 
-               import track
-               with track.load('tracks/example.sql') as t:
-                   t.ucsc_to_ensembl()
+           import track
+           with track.load('tracks/example.sql') as t:
+               t.ucsc_to_ensembl()
 
-           ``ucsc_to_ensembl`` returns nothing.
+       ``ucsc_to_ensembl`` returns nothing.
         """
         for chrom in self.chrs_from_tables: self.cursor.execute("update '" + chrom + "' set start=start+1")
 
     def ensembl_to_ucsc(self):
         """Converts all entries of a track from the Ensembl standard to the UCSC standard effectively subtracting one from every start position.
 
-           Examples::
+       Examples::
 
-               import track
-               with track.load('tracks/rp_genes.bed') as t:
-                   t.ensembl_to_ucsc()
+           import track
+           with track.load('tracks/rp_genes.bed') as t:
+               t.ensembl_to_ucsc()
 
-           ``ensembl_to_ucsc`` returns nothing.
+       ``ensembl_to_ucsc`` returns nothing.
         """
         for chrom in self.chrs_from_tables: self.cursor.execute("update '" + chrom + "' set start=start-1")
 
@@ -557,15 +587,15 @@ class Track(object):
     def get_score_vector(self, chrom):
         """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chrom* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
-                * *chrom* is the name of the chromosome on which one wants to create a score vector from.
+            * *chrom* is the name of the chromosome on which one wants to create a score vector from.
 
-            Examples::
+        Examples::
 
-                import track
-                with track.new('tmp/track.sql') as t:
-                    scores = t.vector('chr1')
+            import track
+            with track.new('tmp/track.sql') as t:
+                scores = t.vector('chr1')
 
-            ``get_score_vector`` returns an iterable yielding floats.
+        ``get_score_vector`` returns an iterable yielding floats.
         """
         # Conditions #
         if 'score' not in self.fields:
@@ -590,13 +620,13 @@ class Track(object):
     def roman_to_integer(self, names=None):
         """Converts the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, 'chrI' will become 'chr1' while 'chrII' will become 'chr2', etc.
 
-            Examples::
+        Examples::
 
-                import track
-                with track.new('tmp/track.sql') as t:
-                    scores = t.roman_to_integer()
+            import track
+            with track.new('tmp/track.sql') as t:
+                scores = t.roman_to_integer()
 
-            ``roman_to_integer`` returns nothing.
+        ``roman_to_integer`` returns nothing.
         """
         names = names or {'chrM':'chrQ', '2micron':'chrR'}
         def convert(chrom):
@@ -608,13 +638,13 @@ class Track(object):
     def integer_to_roman(self, names=None):
         """Converts the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, 'chr1' will become 'chrI' while 'chr2' will become 'chrII', etc.
 
-            Examples::
+        Examples::
 
-                import track
-                with track.new('tmp/track.sql') as t:
-                    scores = t.roman_to_integer()
+            import track
+            with track.new('tmp/track.sql') as t:
+                scores = t.roman_to_integer()
 
-            ``integer_to_roman`` returns nothing.
+        ``integer_to_roman`` returns nothing.
         """
         names = names or {'chrQ':'chrM', 'chrR':'2micron'}
         def convert(chrom):
@@ -623,53 +653,44 @@ class Track(object):
             return match.group(1) + int_to_roman(int(match.group(2)))
         for chrom in self: self.rename(chrom, convert(chrom))
 
-    #--------------------------------------------------------------------------#
-    @property
-    def fields(self):
-        if self.chrs_from_tables: return self.get_fields_of_table(self.chrs_from_tables[0])
-        else:                     return []
+    #-----------------------------------------------------------------------------#
+    def set_chrmeta(self, spiece=None, chrfile=None):
+        """Set the chromosome metadata of the track. This method can be called with no arguments, in which case the spiece name using information from the GenRep server. This method can also be called directly with a GenRep compatible spiece name. Finally, one can call this method by specifying a chromosome file, containing
 
-    @property
-    def all_tables(self):
-        self.cursor.execute("select name from sqlite_master where type='table'")
-        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+        * *spiece* is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method.
+        * *chrfile* is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method.
 
-    @property
-    def chrs_from_names(self):
-        if 'chrNames' not in self.all_tables: return []
-        self.cursor.execute("select name from chrNames")
-        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+        Of course, genomic formats such as ``bed`` cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed.
 
-    @property
-    def chrs_from_tables(self):
-        self.all_chrs = [x for x in self.all_tables if x not in self.special_tables and not x.endswith('_idx')]
-        self.all_chrs.sort(key=natural_sort)
-        return self.all_chrs
+        Examples::
 
-    def get_fields_of_table(self, table):
-        return [x[1] for x in self.cursor.execute('pragma table_info("' + table + '")').fetchall()]
+            import track
+            track.convert('tracks/genes.bed', 'tracks/genes.sql')
+            with track.load('tracks/genes.sql') as t:
+                t.set_chrmeta('sacCer')
+                t.save()
 
-    #--------------------------------------------------------------------------#
-    def attributes_read(self):
-        if not 'attributes' in self.all_tables: return {}
-        self.cursor.execute("select key, value from attributes")
-        return dict(self.cursor.fetchall())
+        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified.
+        """
+        if os.path.isfile(chrfile):
+            self.chrmeta = read_chr_file(chrfile)
+        if spiece:
+            self.chrmeta = genrep.get_chrmeta(spiece)
+        else:
+            spiece = genrep.guess_spiece(self.chromosomes)
+            self.chrmeta = genrep.get_chrmeta(spiece)
 
-    def attributes_write(self):
-        if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS attributes')
-        if self.attributes:
-            self.cursor.execute('create table attributes (key text, value text)')
-            for k in self.attributes.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.attributes[k]))
-
-    def chrmeta_read(self):
-        if not 'chrNames' in self.all_tables: return {}
+    def _chrmeta_read(self):
+        """Populates the self._chrmeta attribute with information found in the 'chrNames' table."""
+        self._chrmeta = JournaledDict()
+        if not 'chrNames' in self.tables: return
         self.cursor.execute("pragma table_info(chrNames)")
-        column_names = [x[1] for x in self.cursor.fetchall()]
+        column_names = [x[1].encode('ascii') for x in self.cursor.fetchall()]
         all_rows = self.cursor.execute("select * from chrNames").fetchall()
         return column_names, all_rows
 
-    def chrmeta_write(self):
+    def _chrmeta_write(self):
+        """Rewrites the 'chrNames' table so that it reflects the contents of the self._chrmeta attribute."""
         if self.readonly: return
         self.cursor.execute('drop table IF EXISTS chrNames')
         if self.chrmeta:
@@ -682,7 +703,20 @@ class Track(object):
 
     @chrmeta.setter
     def chrmeta(self, value):
-        self._chrmeta(value)
+        self._chrmeta.overwrite(value)
+
+    #--------------------------------------------------------------------------#
+    def _attributes_read(self):
+        if not 'attributes' in self.all_tables: return {}
+        self.cursor.execute("select key, value from attributes")
+        return dict(self.cursor.fetchall())
+
+    def _attributes_write(self):
+        if self.readonly: return
+        self.cursor.execute('drop table IF EXISTS attributes')
+        if self.attributes:
+            self.cursor.execute('create table attributes (key text, value text)')
+            for k in self.attributes.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.attributes[k]))
 
     @property
     def attributes(self):
@@ -690,8 +724,9 @@ class Track(object):
 
     @attributes.setter
     def attributes(self, value):
-        self._attributes(value)
+        self._attributes.overwrite(value)
 
+    #--------------------------------------------------------------------------#
     @property
     def datatype(self):
         # Next line is a hack to remove a new datatype introduced by GDV - remove at a later date #

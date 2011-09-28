@@ -131,6 +131,18 @@ def empty_sql_file(path):
     connection.close()
 
 ################################################################################
+def empty_sql_file(path):
+    """
+    Create an empty sql file at the path specified.
+    """
+    import sqlite3
+    connection = sqlite3.connect(path)
+    cursor = connection.cursor()
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+################################################################################
 def int_to_roman(input):
     """
     Convert an integer to a roman numeral.
@@ -231,13 +243,16 @@ class JournaledDict(object):
     """
     A dictionary like object that tracks modification to itself.
     It has an extra special boolean self.modified value that starts off with "False"
-    It has two extra special methods: self.save() and self.rollback()
+    It has three special methods: self.save(), self.rollback() and self.overwrite()
 
        * rollback() will reset the self.modified variable to False and restore
     the dictionary to it's previous state.
 
        * save()  will reset the self.modified variable to False and remember
     the dictionary current's state.
+
+       * overwrite(d) will reset the self.modified variable to True and repalce
+    the dictionary with the one passed to it.
     """
 
     def __init__(self, d=None):
@@ -325,3 +340,7 @@ class JournaledDict(object):
     def rollback(self):
         self.modified = False
         self.data = self.backup.copy()
+
+    def overwrite(self, d):
+        self.modified = True
+        self.data = d
