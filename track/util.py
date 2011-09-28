@@ -5,30 +5,7 @@ Usefull stuff for the track package.
 # Built-in modules #
 import os
 
-###############################################################################
-def convert_format(source_path, source_format, destination_path, destination_format):
-    pass
-
-###############################################################################
-def determine_format(path):
-    '''Try to guess the format of a track given its path.
-       Returns a three letter extension'''
-    # Synonyms #
-    known_synonyms = {
-        'db': 'sql',
-        'bw': 'bigWig',
-    }
-    # Try our own sniffing first #
-    file_format = guess_file_format(path)
-    # Then try the extension #
-    if not file_format: file_format = os.path.splitext(path)[1][1:]
-    # If still nothing, raise exception #
-    if not file_format:
-        raise Exception("The format of the path '" + path + "' cannot be determined. Please specify a format or add an extension.")
-    # Return the format #
-    return known_synonyms.get(file_format, file_format)
-
-###############################################################################
+########################################################################################################
 def determine_format(path):
     '''Try to guess the format of a track given its path.
        Returns a three letter extension'''

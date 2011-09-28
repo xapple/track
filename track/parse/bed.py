@@ -11,34 +11,40 @@ import shlex
 from track.parse import Parser
 from track.common import iterate_lines
 
+# Variables #
+all_fields_possible = ['chr', 'start', 'end', 'name', 'score', 'strand', 'thick_start',
+                       'thick_end', 'item_rgb', 'block_count', 'block_sizes', 'block_starts']
+
 ################################################################################
 class ParserBED(Parser):
-    format_identifier   = 'bed'
-    all_fields_possible = ['start', 'end', 'name', 'score', 'strand', 'thick_start', 'thick_end',
-                           'item_rgb', 'block_count', 'block_sizes', 'block_starts']
-
     def parse(self):
-        fields = []
+        # Initial variables #
+        fields     = []
+        attributes = {}
+        # Main loop #
         for number, line in iterate_lines(self.path):
             # Ignored lines #
             if line.startswith("browser "): continue
             # Track headers #
             if line.startswith("track "):
                 try:
-                    self.handler.newTrack(dict([p.split('=',1) for p in shlex.split(line[6:])]))
+                    attributes = dict([p.split('=',1) for p in shlex.split(line[6:])])
                 except ValueError:
                     self.handler.error(self.path, number, "The track%s seems to have an invalid <track> header line")
+                fields = []
                 continue
-            # Fields #
-            items = line.split()
+            # Split the lines #
+            items = line.split('\t')
+            if len(items) == 1: items = line.split()
+            # Have we started a track already ? #
             if not fields:
-                self.handler.defineFields(fields)
+                self.handler.newTrack(attributes)
+                self.handler.defineFields(all_fields_possible[1:len(line)])
             # Chromosome field #
             try:
-                if not item[0]:
-                    self.handler.error(self.path, number, "The track%s is missing a chromosome")
+                chrom = items[0]
             except IndexError:
-                self.handler.error(self.path, number, "The track%s has no columns")
+                self.handler.error(self.path, number, "The track%s is missing a chromosome")
             # Start and end fields #
             try:
                 items[1] = int(items[1])
@@ -77,9 +83,9 @@ class ParserBED(Parser):
             except IndexError:
                 pass
             finally:
-                self.handler.newFeature(items)
-            # Return the handler tracks #
-            return self.handler.tracks
+                self.handler.newFeature(chrom, items[1:])
+        # Return the handler tracks #
+        return self.handler.tracks
 
 #-----------------------------------#
 # This code was written by the BBCF #

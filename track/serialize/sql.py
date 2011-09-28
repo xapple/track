@@ -4,7 +4,7 @@ This module implements the sql serialization.
 
 # Internal modules #
 import track
-from track.seralize import Serializer
+from track.serialize import Serializer
 from track.common import make_file_names
 
 ################################################################################
@@ -32,13 +32,13 @@ class SerializerSQL(Serializer):
         # Create it #
         self.current_track = track.new(path)
 
-    def newFeature(self, feature):
-        if feature[0] == self.current_chrom and len(self.buffer) < 1000:
-            self.buffer.append(feature[0:])
+    def newFeature(self, chrom, feature):
+        if chrom == self.current_chrom and len(self.buffer) < 1000:
+            self.buffer.append(feature)
         else:
             self.flushBuffer()
-            self.current_chrom = feature[0]
-            self.buffer.append(feature[0:])
+            self.current_chrom = chrom
+            self.buffer.append(feature)
 
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):
@@ -50,7 +50,7 @@ class SerializerSQL(Serializer):
             self.current_chrom = None
 
     def flushBuffer(self):
-        self.current_track.write(self.current_chrom, self.buffer, self.fields)
+        if self.buffer: self.current_track.write(self.current_chrom, self.buffer, self.fields)
 
 #-----------------------------------#
 # This code was written by the BBCF #

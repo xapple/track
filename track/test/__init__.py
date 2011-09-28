@@ -15,7 +15,7 @@ import os
 ################################################################################
 # Tracks path #
 try:
-    project_path = os.path.abspath('/'.join(os.path.realpath(__file__).split('/')[:-1]) + '../../')
+    project_path = os.path.abspath('/'.join(os.path.realpath(__file__).split('/')[:-1]) + '../../../') + '/'
     samples_path = project_path + 'samples/'
 except NameError:
     samples_path = 'samples/'
@@ -29,46 +29,48 @@ if not samples_path.endswith('/'): samples_path += '/'
 
 # Chromosome files #
 chr_files = {
-    'yeast': samples_path + 'chrmeta/yeast.chr'
+    'yeast': samples_path + 'chrmeta/yeast.chr',
     'small': samples_path + 'chrmeta/yeast.chr'
 }
 
 # Tracks collection #
 samples = {
-  'features' {
-    1: {'name':'Validation features 1', 'filename': 'features1'}
-    2: {'name':'Validation features 2', 'filename': 'features2'}
-  }
+  'features': {
+    1: {'name':'Validation features 1', 'filename': 'features1'},
+    2: {'name':'Validation features 2', 'filename': 'features2'},
+  },
   'signals': {
-    1: {'name':'Signal track 1', 'filename': 'features1'}
-  }
-  'random' {
-    1: {'name':'Random features 1', 'filename': 'features1'}
-    2: {'name':'Random features 2', 'filename': 'features2'}
-  }
-  'yeast' {
+    1: {'name':'Signal track 1', 'filename': 'features1'},
+  },
+  'random': {
+    1: {'name':'Random features 1', 'filename': 'features1'},
+    2: {'name':'Random features 2', 'filename': 'features2'},
+  },
+  'yeast': {
     'All genes':  {'name':'All yeast genes',  'filename': 'yeast_genes'},
     'Ribi genes': {'name':'Yesat Ribi genes', 'filename': 'yeast_ribi_genes'},
     'RP genes':   {'name':'Yeast RP genes',   'filename': 'yeast_rp_genes'},
-    'Pol2':       {'name':'Pol2 signal',      'filename': 'yeast_pol2'}
-    'Rap1':       {'name':'Rap1 signal',      'filename': 'yeast_rap1'}
+    'Pol2':       {'name':'Pol2 signal',      'filename': 'yeast_pol2'},
+    'Rap1':       {'name':'Rap1 signal',      'filename': 'yeast_rap1'},
   }
+}
 
 # Add the path for every format #
 formats = ['sql', 'bed', 'wig', 'gff', 'bedGraph', 'bigWig']
 for group_key, group in sorted(samples.items()):
     for track_key, track in sorted(group.items()):
         for format in formats:
-            track[format] = samples_path + format + '/' + track[filename] + '.' + format
+            track[format] = samples_path + format + '/' + track['filename'] + '.' + format
 
 # Specially hard to parse tracks for testing #
-challanges = {}
+formats = ['bed', 'wig']
 outcomes = ['pass', 'fail']
+challanges = {}
 for format in formats:
     challanges[format] = {}
-    for outcome in outcomes
+    for outcome in outcomes:
         directory = samples_path + format + '/' + 'should_' + outcome + '/'
-        challanges[format][outcome] = [(directory + file for file in os.listdir(directory) if file.endswith('.' + format)]
+        challanges[format][outcome] = [directory + file for file in os.listdir(directory) if file.endswith('.' + format)]
 
 #-----------------------------------#
 # This code was written by the BBCF #

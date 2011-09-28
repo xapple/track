@@ -7,7 +7,8 @@ import os
 
 # Internal modules #
 import track
-from track.test import collection
+from track.common import temporary_path, sqlcmp
+from track.test import samples
 
 # Unittesting module #
 try:
@@ -21,21 +22,11 @@ __test__ = True
 ###################################################################################
 class Test_BED_to_SQL(unittest.TestCase):
     def runTest(self):
-        d = track_collections['Validation'][1]
-        with track.load(d['path_sql']) as t:
-            # Just the first feature #
-            data = t.read()
-            self.assertEqual(data.next(), ('chr1', 0, 10, 'Validation feature 1', 10.0, 0))
-            # Number of features #
-            data = t.read()
-            self.assertEqual(len(list(data)), 12)
-            # Different fields #
-            data = t.read('chr1', fields=['score'])
-            expected = [(10.0,), (0.0,), (10.0,), (0.0,), (0.0,), (10.0,), (10.0,), (10.0,), (10.0,), (10.0,), (10.0,), (5.0,)]
-            self.assertEqual(list(data), expected)
-            # Empty result #
-            data = t.read({'chr':'chr2','start':0,'end':10})
-            self.assertEqual(list(data), [])
+        in_path       = samples['features'][1]['bed']
+        expected_path = samples['features'][1]['sql']
+        out_path = temporary_path('.sql')
+        track.convert(in_path, out_path)
+        self.assertTrue(sqlcmp(expected_path, out_path))
 
 #-----------------------------------#
 # This code was written by the BBCF #

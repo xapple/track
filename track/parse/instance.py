@@ -2,6 +2,9 @@
 This module implements the parsing of the track object.
 """
 
+# Internal modules #
+from track.parse import Parser
+
 ################################################################################
 class ParserTrack(Parser):
     def parse(self):

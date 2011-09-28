@@ -3,47 +3,55 @@ This subpackage contains one python source file per format implemented for parsi
 """
 
 # Built-in modules #
-from track.seralize import Serializer
+import sys
 
 # Variables #
 parsers = {
-    'bed': {'module': 'track.parse.bed', 'class': 'ParserBED'},
+    'bed':   {'module': 'track.parse.bed',      'class': 'ParserBED'},
+    'track': {'module': 'track.parse.instance', 'class': 'ParserTrack'},
 }
 
 ################################################################################
-def get_parser(path, format, handler=None):
-    """Given a path, a format and a handler will return the appropriate parser.
+def get_parser(path, format):
+    """Given a path and a format will return the appropriate parser.
 
             * *path* is a string specifying the path of the track to parse.
             * *format* is a string specifying the format of the track to parse.
-            * *handler* is an instance on which the methods will be called.
 
         Examples::
 
             import track.parse
             import track.serialze
             serializer = track.serialize.get_serializer('tmp/test.sql', 'sql')
-            parser = track.parse.get_parser('tmp/test.bed', 'bed', serializer)
-            parser()
+            parser = track.parse.get_parser('tmp/test.bed', 'bed')
+            parser(serializer)
 
-        ``parse`` returns a Parser instance.
+        ``get_parser`` returns a Parser instance.
     """
     if not format in parsers: raise Exception("The format '" + format + "' is not supported.")
-    dct = parsers[format]
-    mod = __import__(dct['module'])
-    cls = getattr(mod, dct['class'])
-    ins = cls(path, handler)
-    return ins()
+    info = parsers[format]
+    # Import the objects #
+    base_module    = __import__(info['module'])
+    sub_module     = sys.modules[info['module']]
+    class_object   = getattr(sub_module, info['class'])
+    class_instance = class_object(path)
+    # Return an instance #
+    return class_instance
 
 ################################################################################
 class Parser(object):
-    def __init__(self, path, handler=None):
+    def __init__(self, path):
         self.path = path
-        if not handler: handler = Serializer()
-        self.handler = handler
 
-    def __call__(self):
-        self.parse()
+    def __call__(self, handler=None):
+        # Default handler #
+        if not handler:
+            from track.seralize import Serializer
+            handler = Serializer()
+        # Enter the handler #
+        with handler as self.handler:
+            self.parse()
+        # Return a list or a single element #
         if len(self.handler.tracks) == 1: return self.handler.tracks[0]
         else: return self.handler.tracks
 

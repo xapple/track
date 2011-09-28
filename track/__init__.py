@@ -177,9 +177,9 @@ def convert(source, destination):
     # Get a serializer #
     serializer = get_serializer(destination_path, destination_format)
     # Get a parser #
-    parser = get_parser(source_path, source_format, serializer)
+    parser = get_parser(source_path, source_format)
     # Do it #
-    return parser()
+    return parser(serializer)
 
 ################################################################################
 class Track(object):

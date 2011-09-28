@@ -4,7 +4,8 @@ Common stuff for python projects.
 
 ###############################################################################
 def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
-    """Iterates over the lines of a text file in an intelligent way.
+    """
+    Iterate over the lines of a text file in an intelligent way.
     1) Empty lines are skipped.
     3) Lines starting with comments characters such as '#' are skipped.
     2) Lines ending with line break characters such as '\\' are assembled.
@@ -25,12 +26,13 @@ def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
                 unit = unit.strip(linebreak_char)
                 unit += iterable.next()[1]
             yield number, unit
-    with open(path, 'r') as file: return lines(units(file))
+    with open(path, 'r') as file:
+        for line in lines(units(file)): yield line
 
 ################################################################################
 def make_file_names(path):
     """
-    Given a path to a file, will generate more filenames.
+    Given a path to a file, generate more filenames.
 
     >>> g = make_file_names('tmp/test.png')
     >>> g.next()
@@ -48,7 +50,7 @@ def make_file_names(path):
 ################################################################################
 def check_path(path):
     """
-    Raises an exception if the path *path* is already taken.
+    Raise an exception if the path *path* is already taken.
     """
     import os
     if os.path.exists(path): raise Exception("The location '" + path + "' is already taken")
@@ -67,7 +69,7 @@ def check_executable(tool_name):
 ################################################################################
 def natural_sort(item):
     """
-    Will sort strings that contain numbers correctly
+    Sort strings that contain numbers correctly.
 
     >>> l = ['v1.3.12', 'v1.3.3', 'v1.2.5', 'v1.2.15', 'v1.2.3', 'v1.2.1']
     >>> l.sort(key=natural_sort)
@@ -85,7 +87,7 @@ def temporary_path(suffix=''):
     """
     Often, one needs a new random and temporary file path
     instead of the random and temporary file object provided
-    by the 'tempfile' module
+    by the 'tempfile' module.
     """
     import tempfile
     file = tempfile.NamedTemporaryFile(suffix=suffix)
@@ -96,7 +98,7 @@ def temporary_path(suffix=''):
 ################################################################################
 def sentinelize(iterable, sentinel):
     """
-    Add an item to the end of an iterable
+    Add an item to the end of an iterable.
 
     >>> list(sentinelize(range(4), 99))
     [0, 1, 2, 3, 99]
@@ -107,7 +109,7 @@ def sentinelize(iterable, sentinel):
 ################################################################################
 def sqlcmp(file_a, file_b):
     """
-    Compare two two sqlite3 databases via their dumps
+    Compare two two sqlite3 databases via their dumps.
     """
     import itertools, sqlite3
     A = sqlite3.connect(file_a)
@@ -119,7 +121,7 @@ def sqlcmp(file_a, file_b):
 ################################################################################
 def empty_sql_file(path):
     """
-    Creates an empty sql file at the path specified
+    Create an empty sql file at the path specified.
     """
     import sqlite3
     connection = sqlite3.connect(path)
