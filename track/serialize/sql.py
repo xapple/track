@@ -22,7 +22,7 @@ class SerializerSQL(Serializer):
     def defineFields(self, fields):
         self.fields = fields
 
-    def newTrack(self, attributes):
+    def newTrack(self, attributes=None):
         # Close previous track #
         self.closeCurrentTrack()
         # Get a name #
@@ -31,6 +31,8 @@ class SerializerSQL(Serializer):
         self.tracks.append(path)
         # Create it #
         self.current_track = track.new(path)
+        # Add the metadata #
+        #TODO
 
     def newFeature(self, chrom, feature):
         if chrom == self.current_chrom and len(self.buffer) < 1000:
@@ -43,9 +45,14 @@ class SerializerSQL(Serializer):
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):
         if self.current_track:
+            # Empty buffer #
             self.flushBuffer()
+            # Add the chromosome metadata #
+            #TODO
+            # Commit changes #
             self.current_track.save()
             self.current_track.close()
+            # Reset varaibles #
             self.current_track = None
             self.current_chrom = None
 

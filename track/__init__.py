@@ -73,7 +73,7 @@ import os, sqlite3
 from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format
-from track.common import check_path, empty_sql_file, temporary_path
+from track.common import check_path, empty_sql_file, temporary_path, JournaledDict
 
 ################################################################################
 def load(path, format=None, readonly=False):
@@ -145,7 +145,7 @@ def convert(source, destination):
             * *source* is the path to the original track to load.
             * *destination* is the path to the track to be created.
 
-        The *source* file should have a different fromat from the *destination* file.
+        The *source* file should have a different format from the *destination* file.
         If either the source or destination are missing a file extension, you can specify
         their formats using a tuple. See examples below.
 
@@ -187,7 +187,6 @@ class Track(object):
 
            * *path* is the file system path to the underlying file.
            * *datatype* is either ``qualitative`` or ``quantitative``.
-           * *format* is always ``sql`` as, when loading a ``bed`` track for instance, a transparent underlying Bio SQLite track is sliently created.
            * *all_chrs* is a list of all available chromosome. For instance:
                 ``['chr1, 'chr2', 'chr3']``
            * *chrmeta* is a  dictionary of meta data associated to each chromosome (information like length, etc). For instance:
@@ -231,9 +230,8 @@ class Track(object):
         self.orig_path   = orig_path
         self.orig_format = orig_format
         # Other attributes #
-        self.format     = 'sql'
-        self.chrmeta    = {}
-        self.attributes = {}
+        self.chrmeta    = JournaledDict()
+        self.attributes = JournaledDict()
         self.modified   = False
 
     def __enter__(self):
@@ -250,24 +248,6 @@ class Track(object):
 
     def __contains__(self, key):
         return key in self.chromosomes
-
-    #-----------------------------------------------------------------------------#
-    def close(self):
-        """Closes the current track. This method is usefull when you are not using the 'with ... as' form for loading tracks.
-
-           Examples::
-
-               import track
-               t = track.load('tracks/rp_genes.bed')
-               t.remove('chr19_gl000209_random')
-               t.save()
-               t.close()
-
-           ``close`` returns nothing but the track it is called on is closed.
-        """
-        if self.autosave: self.save()
-        self.cursor.close()
-        self.connection.close()
 
     #-----------------------------------------------------------------------------#
     def save(self):
@@ -305,6 +285,24 @@ class Track(object):
         self.connection.rollback()
 
     #-----------------------------------------------------------------------------#
+    def close(self):
+        """Closes the current track. This method is useful when you are not using the 'with ... as' form for loading tracks.
+
+           Examples::
+
+               import track
+               t = track.load('tracks/rp_genes.bed')
+               t.remove('chr19_gl000209_random')
+               t.save()
+               t.close()
+
+           ``close`` returns nothing but the track it is called on is closed.
+        """
+        if self.autosave: self.save()
+        self.cursor.close()
+        self.connection.close()
+
+    #-----------------------------------------------------------------------------#
     def export(self, path, format=None):
         """Exports the current track to a given format.
 
@@ -318,16 +316,16 @@ class Track(object):
                    t.remove('chr19_gl000209_random')
                    t.export('tmp/clean.gff')
 
-           ``export`` returns nothing but a new track is created at the specified path.
+           ``export`` returns nothing but a new file is created at the specified path. The current track object is unchanged.
         """
         # Check it is not taken #
-        check_path(destination_path)
+        check_path(path)
         # Get a serializer #
-        serializer = get_serializer(destination_path, destination_format)
+        serializer = get_serializer(path, format)
         # Get a parser #
-        parser = get_parser(self, 'track', serializer)
+        parser = get_parser(self, 'track')
         # Do it #
-        return parser()
+        return parser(serializer)
 
     #-----------------------------------------------------------------------------#
     def read(self, selection=None, fields=None, order='start,end', cursor=False):
@@ -362,7 +360,7 @@ class Track(object):
                 data = t.read({'chr':'chr1', 'start':10000, 'end':15000, 'inclusion':'strict'})
                 data = t.read({'chr':'chr1', 'strand':1})
                 data = t.read({'chr':'chr1', 'score':(10,100)})
-                data = t.read({'chr':'chr1', 'start':10000, 'end':15000 'strand':-1 'score':(10,100)})
+                data = t.read({'chr':'chr1', 'start':10000, 'end':15000, 'strand':-1, 'score':(10,100)})
                 data = t.read({'chr':'chr5', 'start':0, 'end':200}, ['strand', 'start', 'score'])
             # Duplicate a chromosome
             with track.load('tracks/copychrs.sql') as t:
@@ -589,21 +587,7 @@ class Track(object):
             for i in xrange(x[1], self.chrmeta[chrom]['length']): yield 0.0
 
     #-----------------------------------------------------------------------------#
-    def get_data_dict(self):
-        """Returns a dictionary containing all features of every chromosome contained in a dictionary. Contrary to most of the alogrithms in this package, this method will load everying into memory. Becarefull when using this method on large tracks.
-
-            Examples::
-
-                import track
-                with track.new('tmp/track.sql') as t:
-                     data = t.get_data_dict()
-
-            ``score_vector`` returns a dictionary, the keys are the chromosome name.
-        """
-        return dict([(chrom, list(self.read(chrom))) for chrom in self])
-
-    #-----------------------------------------------------------------------------#
-    def roman_to_integer(self):
+    def roman_to_integer(self, names=None):
         """Converts the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, 'chrI' will become 'chr1' while 'chrII' will become 'chr2', etc.
 
             Examples::
@@ -621,7 +605,7 @@ class Track(object):
             return match.group(1) + str(roman_to_int(match.group(2)))
         for chrom in self: self.rename(chrom, convert(chrom))
 
-    def integer_to_roman(self):
+    def integer_to_roman(self, names=None):
         """Converts the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, 'chr1' will become 'chrI' while 'chr2' will become 'chrII', etc.
 
             Examples::

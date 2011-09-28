@@ -7,8 +7,9 @@ import sys
 
 # Variables #
 parsers = {
-    'bed':   {'module': 'track.parse.bed',      'class': 'ParserBED'},
-    'track': {'module': 'track.parse.instance', 'class': 'ParserTrack'},
+    'memory': {'module': 'track.parse',          'class': 'Parser'},
+    'track':  {'module': 'track.parse.instance', 'class': 'ParserTrack'},
+    'bed':    {'module': 'track.parse.bed',      'class': 'ParserBED'},
 }
 
 ################################################################################
@@ -54,6 +55,13 @@ class Parser(object):
         # Return a list or a single element #
         if len(self.handler.tracks) == 1: return self.handler.tracks[0]
         else: return self.handler.tracks
+
+    def parse(self):
+        self.handler.newTrack()
+        for chrom in self.path:
+            for feature in self.path[chrom]:
+                self.handler.newFeature((chrom,) + feature)
+        return self.handler.tracks
 
 #-----------------------------------#
 # This code was written by the BBCF #

@@ -34,13 +34,13 @@ def make_file_names(path):
     """
     Given a path to a file, generate more filenames.
 
-    >>> g = make_file_names('tmp/test.png')
+    >>> g = make_file_names("tmp/test.png")
     >>> g.next()
-    "tmp/test.png"
+    'tmp/test.png'
     >>> g.next()
-    "tmp/test_1.png"
+    'tmp/test_1.png'
     >>> g.next()
-    "tmp/test_2.png"
+    'tmp/test_2.png'
     """
     yield path
     import sys, os
@@ -229,13 +229,24 @@ terminal_colors = {
 ################################################################################
 class JournaledDict(object):
     """
-    A dictionary like object that tracks modification
-    and has a special boolean self.modified value
+    A dictionary like object that tracks modification to itself.
+    It has an extra special boolean self.modified value that starts off with "False"
+    It has two extra special methods: self.save() and self.rollback()
+
+       * rollback() will reset the self.modified variable to False and restore
+    the dictionary to it's previous state.
+
+       * save()  will reset the self.modified variable to False and remember
+    the dictionary current's state.
     """
 
     def __init__(self, d=None):
-        self.data = {}
-        if d is not None: self.update(d)
+        # The dictionary itself #
+        if d: self.data = d
+        else: self.data = {}
+        # The remembered state #
+        self.backup = self.data.copy()
+        # The boolean value #
         self.modified = False
 
     def __cmp__(self, d):
@@ -266,11 +277,9 @@ class JournaledDict(object):
     def itervalues(self): return self.data.itervalues()
     def values(self): return self.data.values()
     def has_key(self, key): return key in self.data
+    def get(self, key, d=None): return self.data.get(key, d)
 
-    def get(self, key, failobj=None):
-        if key not in self: return failobj
-        return self[key]
-
+    #-----------------------------------------------------------------------------#
     def clear(self):
         self.modified = True
         self.data.clear()
@@ -296,7 +305,7 @@ class JournaledDict(object):
         if d is None: return
         self.modified = True
         if isinstance(d, JournaledDict): self.data.update(d.data)
-        elif isinstance(d, type({})) or not hasattr(d, 'items'): self.data.update(d)
+        elif isinstance(d, dict) or not hasattr(d, 'items'): self.data.update(d)
         else:
             for k, v in d.items(): self[k] = v
         if len(kwargs): self.data.update(kwargs)
@@ -306,3 +315,13 @@ class JournaledDict(object):
         d = cls()
         for key in iterable: d[key] = value
         return d
+
+    #-----------------------------------------------------------------------------#
+
+    def save(self):
+        self.modified = False
+        self.backup = self.data.copy()
+
+    def rollback(self):
+        self.modified = False
+        self.data = self.backup.copy()

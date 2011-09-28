@@ -3,11 +3,12 @@ This subpackage contains one python source file per format implemented for seria
 """
 
 # Built-in modules #
-import sys
+import sys, collections
 
 # Variables #
 serializers = {
-    'sql': {'module': 'track.serialize.sql', 'class': 'SerializerSQL'},
+    'memory': {'module': 'track.parse',         'class': 'Serializer'},
+    'sql':    {'module': 'track.serialize.sql', 'class': 'SerializerSQL'},
 }
 
 ################################################################################
@@ -53,14 +54,14 @@ class Serializer(object):
         location = " '" + path + ":" + str(line_number) + "'"
         raise Exception(message % location)
 
-    def defineFields(fields):
+    def defineFields(self, fields):
         self.fields = fields
 
-    def newTrack(attributes):
-        self.tracks.append({'info': attributes, 'features': []})
+    def newTrack(self, attributes=None):
+        self.tracks.append(collections.defaultdict(list))
 
-    def newFeature(feature):
-        self.tracks[-1]['features'].append(feature)
+    def newFeature(self, chrom, feature):
+        self.tracks[-1]['chrom'].append(feature)
 
 #-----------------------------------#
 # This code was written by the BBCF #
