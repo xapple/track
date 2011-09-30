@@ -39,7 +39,8 @@ class ParserBED(Parser):
             # Have we started a track already ? #
             if not fields:
                 self.handler.newTrack(attributes)
-                self.handler.defineFields(all_fields_possible[1:len(line)])
+                fields = all_fields_possible[1:len(line)]
+                self.handler.defineFields(fields)
             # Chromosome field #
             try:
                 chrom = items[0]

@@ -236,6 +236,8 @@ class Track(object):
         self.orig_format = orig_format
         # Other attributes #
         self.modified   = False
+        self.connection = sqlite3.connect(self.path)
+        self.cursor     = self.connection.cursor()
         # Stuff to do #
         self._chrmeta    = JournaledDict()
         self._attributes = JournaledDict()

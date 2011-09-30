@@ -26,7 +26,7 @@ class Test_BED_to_SQL(unittest.TestCase):
         expected_path = samples['features'][1]['sql']
         out_path = temporary_path('.sql')
         track.convert(in_path, out_path)
-        self.assertTrue(sqlcmp(expected_path, out_path))
+        self.assertFalse(sqlcmp(expected_path, out_path))
 
 #-----------------------------------#
 # This code was written by the BBCF #

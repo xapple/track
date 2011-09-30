@@ -3,22 +3,7 @@ This subpackage contains functions to access the GenRep server.
 
 Example usage:
 
-    >>> import genrep
-    >>> print genrep.assemblies
-    [{u'source_name': u'UCSC', u'name': u'ce6', u'created_at': u'2010-12-19T20:52:31Z', u'updated_at': u'2011-01-05T14:58:43Z', u'bbcf_valid': True, u'nr_assembly_id': 106, u'source_id': 4, u'genome_id': 8, u'id': 14, u'md5': u'fd56 ......
-
-    >>> print genrep.assemblies.by('name')
-    ['ce6', 'danRer7', 'dm3', 'GRCh37', 'hg19', 'MLeprae_TN', ......
-
-    >>> print genrep.assemblies.get('hg19')
-    {u'bbcf_valid': True, u'created_at': u'2010-12-16T16:08:13Z', u'genome_id': 5, u'id': 11, ......
-
-    >>> print genrep.assemblies.filter('genome_id', 5)
-    [{u'bbcf_valid': False, u'created_at': u'2011-03-25T01:56:41Z', u'genome_id': 5, u'id': 22, ......
-
-    >>> print genrep.assemblies.hg19.id
-    11
-
+    >>> from track.genrep import Assembly
     >>> a = Assembly('hg19')
     >>> print a.created_at
     '2010-12-16T16:08:13Z'
@@ -29,9 +14,6 @@ Example usage:
 
 # Built-in modules #
 import urllib2, json
-
-# Internal modules #
-from track.common import JsonJit
 
 # Constants #
 url = "http://bbcftools.vital-it.ch/genrep/"
@@ -54,6 +36,8 @@ class Assembly(object):
     """
 
     def __init__(self, assembly):
+        # Called must check if success is true #
+        self.success = True
         # Can be string or URL #
         if isinstance(assembly, int):          suffix = "id=%s"  % assembly
         elif isinstance(assembly, basestring): suffix = "name=%s"  % assembly
@@ -63,11 +47,11 @@ class Assembly(object):
         try:
             info  = json.loads(urllib2.urlopen(url + "assemblies.json?assembly_"  + suffix).read())
             chrom = json.loads(urllib2.urlopen(url + "chromosomes.json?assembly_" + suffix).read())
-        except urllib2.URLError as err:
-            self. = err
-            return
-        # Update the self attributes with info data #
-        self.__dict__.update(info[0]['assembly'])
+        except urllib2.URLError:
+            self.success = False
+        # Is empty if assembly not available #
+        if not info: self.success = False
+        else: self.__dict__.update(info[0]['assembly'])
         # Update the self.chromosome with chromosome data #
         self.chromosomes = [item['chromosome'] for item in chrom]
 
@@ -81,11 +65,3 @@ class Assembly(object):
 
         """
         return dict([(v['name'].encode('ascii'), dict([('length', v['length'])])) for v in self.chromosomes])
-
-################################################################################
-# Expose base resources #
-organisms     = JsonJit(url + "organisms.json",     'organism')
-genomes       = JsonJit(url + "genomes.json",       'genome')
-nr_assemblies = JsonJit(url + "nr_assemblies.json", 'nr_assembly')
-assemblies    = JsonJit(url + "assemblies.json",    'assembly')
-sources       = JsonJit(url + "sources.json",       'source')
