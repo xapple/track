@@ -17,15 +17,15 @@ class SerializerSQL(Serializer):
         return self
 
     def __exit__(self, errtype, value, traceback):
-        self.closeCurrentTrack()
+        if self.current_track: self.closeCurrentTrack()
 
     def defineFields(self, fields):
-        pass
+        self.fields = fields
         #TODO
 
     def newTrack(self, attributes=None):
         # Close previous track #
-        self.closeCurrentTrack()
+        if self.current_track: self.closeCurrentTrack()
         # Get a name #
         path = self.file_paths.next()
         # Add it to the result #
@@ -45,17 +45,16 @@ class SerializerSQL(Serializer):
 
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):
-        if self.current_track:
-            # Empty buffer #
-            self.flushBuffer()
-            # Add the chromosome metadata #
-            #TODO
-            # Commit changes #
-            self.current_track.save()
-            self.current_track.close()
-            # Reset varaibles #
-            self.current_track = None
-            self.current_chrom = None
+        # Empty buffer #
+        self.flushBuffer()
+        # Add the chromosome metadata #
+        #TODO
+        # Commit changes #
+        self.current_track.save()
+        self.current_track.close()
+        # Reset varaibles #
+        self.current_track = None
+        self.current_chrom = None
 
     def flushBuffer(self):
         if self.buffer: self.current_track.write(self.current_chrom, self.buffer, self.fields)

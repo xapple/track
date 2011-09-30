@@ -85,8 +85,6 @@ class ParserBED(Parser):
                 pass
             finally:
                 self.handler.newFeature(chrom, items[1:])
-        # Return the handler tracks #
-        return self.handler.tracks
 
 #-----------------------------------#
 # This code was written by the BBCF #

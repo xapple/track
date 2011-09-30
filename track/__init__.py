@@ -70,10 +70,12 @@ __all__ = ['load', 'new', 'convert']
 import os, sqlite3
 
 # Internal modules #
+from track import genrep
 from track.parse import get_parser
 from track.serialize import get_serializer
-from track.util import determine_format, join_read_queries, read_chr_file
-from track.common import check_path, empty_file, empty_sql_file, temporary_path, JournaledDict, natural_sort
+from track.util import determine_format, join_read_queries, parse_chr_file
+from track.common import check_path, empty_file, empty_sql_file, temporary_path
+from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 
 # Constants #
 special_tables = ['attributes', 'chrNames', 'types']
@@ -254,12 +256,15 @@ class Track(object):
     def __len__(self):
         return len(self.chromosomes)
 
+    def __nonzero__(self):
+        return True
+
     def __contains__(self, key):
         return key in self.chromosomes
 
     @property
     def fields(self):
-        if self.chrs_from_tables: return self.get_fields_of_table(self.chrs_from_tables[0])
+        if self.chromosomes: return self.get_fields_of_table(self.chromosomes[0])
         else:                     return []
         return [x[1] for x in self.cursor.execute('pragma table_info("' + table + '")').fetchall()]
 
@@ -273,6 +278,24 @@ class Track(object):
         chroms = [x for x in self.tables if x not in special_tables and not x.endswith('_idx')]
         chroms.sort(key=natural_sort)
         return chroms
+
+    @property
+    def datatype(self):
+        return self.attributes.get('datatype', '')
+
+    @datatype.setter
+    def datatype(self, value):
+        if value not in ['features', 'signal', 'relational']:
+            raise Exception("The datatype you are trying to use is invalid: '" + str(value) + "'.")
+        self.attributes['datatype'] = value
+
+    @property
+    def name(self):
+        return self.attributes.get('name', 'Unnamed')
+
+    @name.setter
+    def name(self, value):
+        self.attributes['name'] = value
 
     #-----------------------------------------------------------------------------#
     def save(self):
@@ -396,7 +419,7 @@ class Track(object):
         ``read`` returns a generator object yielding tuples.
         """
         # Default selection #
-        if not selection: selection = self.chrs_from_tables
+        if not selection: selection = self.chromosomes
         # Case list of things #
         if isinstance(selection, (list, tuple)):
             return join_read_queries(self, selection, fields)
@@ -407,7 +430,7 @@ class Track(object):
         # Other cases #
         else: raise TypeError, 'The following selection parameter: "' + selection + '" was not understood'
         # Empty chromosome case #
-        if chrom not in self.chrs_from_tables: return ()
+        if chrom not in self.chromosomes: return ()
         # Default columns #
         columns = fields and fields[:] or self.get_fields_of_table(chrom)
         # Make the query #
@@ -442,13 +465,13 @@ class Track(object):
 
         ``write`` returns nothing.
         """
-        self.modified = True
+        # Check track attributes #
         if self.readonly: return
+        self.modified = True
         # Default fields #
-        if self.datatype == 'quantitative': fields = Track.quantitative_fields
-        if not fields:                      fields = Track.qualitative_fields
+        if not fields: fields = self.fields
         # Maybe create the table #
-        if chrom not in self.chrs_from_tables:
+        if chrom not in self.chromosomes:
             columns = ','.join([field + ' ' + Track.field_types.get(field, 'text') for field in fields])
             self.cursor.execute('create table "' + chrom + '" (' + columns + ')')
         # Execute the insertion
@@ -461,12 +484,10 @@ class Track(object):
                 '\n    ' + 'You gave: ' + str(data))
 
     #-----------------------------------------------------------------------------#
-    def remove(self, chrom=None):
+    def remove(self, chromosome):
         """Removes data from a given chromosome.
 
         * *chrom* is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.
-
-        Called with no arguments, will remove every chromosome.
 
         Examples::
 
@@ -477,21 +498,18 @@ class Track(object):
             with track.load('tracks/example.sql') as t:
                 t.remove(['chr1', 'chr2', 'chr3'])
                 t.save()
-            with track.load('tracks/example.sql') as t:
-                t.remove()
-                t.save()
 
         ``remove`` returns nothing.
         """
+        # Check track attributes #
         self.modified = True
         if self.readonly: return
-        if not chrom:
-            chrom = self.chrs_from_tables
-        if isinstance(chrom, list):
-            for ch in chrom: self.remove(ch)
+        # Can be a list or a string #
+        if isinstance(chromosome, list):
+            for x in chromosome: self.remove(x)
         else:
-            self.cursor.execute("DROP table '" + chrom + "'")
-            if chrom in self.chrmeta: self.chrmeta.pop(chrom)
+            self.cursor.execute("DROP table '" + chromosome + "'")
+            if chromosome in self.chrmeta: self.chrmeta.pop(chromosome)
 
     #-----------------------------------------------------------------------------#
     def rename(self, previous_name, new_name):
@@ -506,9 +524,11 @@ class Track(object):
 
         ``rename`` returns nothing.
         """
+        # Check track attributes #
         self.modified = True
         if self.readonly: return
-        if previous_name not in self.chrs_from_tables: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
+        # Check existance #
+        if previous_name not in self.chromosomes: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
         self.cursor.execute("ALTER TABLE '" + previous_name + "' RENAME TO '" + new_name + "'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
@@ -516,7 +536,6 @@ class Track(object):
         if previous_name in self.chrmeta:
             self.chrmeta[new_name] = self.chrmeta[previous_name]
             self.chrmeta.pop(previous_name)
-        self.chrs_from_tables
 
     #-----------------------------------------------------------------------------#
     def count(self, selection=None):
@@ -540,18 +559,18 @@ class Track(object):
         """
         # Default selection #
         if not selection:
-            selection = self.chrs_from_tables
+            selection = self.chromosomes
         # Case several chromosome #
         if isinstance(selection, list) or isinstance(selection, tuple):
             return sum([self.count(s) for s in selection])
         # Case chromosome name #
         elif isinstance(selection, basestring):
-            if selection not in self.chrs_from_tables: return 0
+            if selection not in self.chromosomes: return 0
             sql_request = "select COUNT(*) from '" + selection + "'"
         # Case span dictionary #
         elif isinstance(selection, dict):
             chrom = selection['chr']
-            if chrom not in self.chrs_from_tables: return 0
+            if chrom not in self.chromosomes: return 0
             sql_request = "select COUNT(*) from '" + chrom + "' where " + make_cond_from_sel(selection)
         # Other cases #
         else: raise TypeError, 'The following selection parameter: "' + selection + '" was not understood'
@@ -570,7 +589,7 @@ class Track(object):
 
        ``ucsc_to_ensembl`` returns nothing.
         """
-        for chrom in self.chrs_from_tables: self.cursor.execute("update '" + chrom + "' set start=start+1")
+        for chrom in self.chromosomes: self.cursor.execute("update '" + chrom + "' set start=start+1")
 
     def ensembl_to_ucsc(self):
         """Converts all entries of a track from the Ensembl standard to the UCSC standard effectively subtracting one from every start position.
@@ -583,7 +602,7 @@ class Track(object):
 
        ``ensembl_to_ucsc`` returns nothing.
         """
-        for chrom in self.chrs_from_tables: self.cursor.execute("update '" + chrom + "' set start=start-1")
+        for chrom in self.chromosomes: self.cursor.execute("update '" + chrom + "' set start=start-1")
 
     #-----------------------------------------------------------------------------#
     def get_score_vector(self, chrom):
@@ -656,11 +675,11 @@ class Track(object):
         for chrom in self: self.rename(chrom, convert(chrom))
 
     #-----------------------------------------------------------------------------#
-    def set_chrmeta(self, spiece=None, chrfile=None):
-        """Set the chromosome metadata of the track. This method can be called with no arguments, in which case the spiece name using information from the GenRep server. This method can also be called directly with a GenRep compatible spiece name. Finally, one can call this method by specifying a chromosome file, containing
+    def set_chrmeta(self, specie=None, chrfile=None):
+        """Set the chromosome metadata of the track. This method can be called with no arguments, in which case an attempt at guessing the specie name will be made using the names of the chromosomes and information from the GenRep server. If a speice is found, the chromosomes will be renamed to the their cannoncial names. This method can also be called directly with a GenRep compatible specie name. Finally, one can also call this method by specifying a chromosome file, containing the chromosome meta data.
 
-        * *spiece* is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method.
-        * *chrfile* is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method.
+        * *specie* is optionally the name of the specie. This will trigger the download of the correct metadata from GenRep.
+        * *chrfile* is optionally the name of a chromosome file. This will trigger the parsing of that file.
 
         Of course, genomic formats such as ``bed`` cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed.
 
@@ -669,21 +688,24 @@ class Track(object):
             import track
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
-                t.set_chrmeta('sacCer')
+                t.set_chrmeta('hg19')
                 t.save()
 
-        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified.
+        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified (as well as the name of the chromosomes).
         """
-        if os.path.isfile(chrfile):
-            self.chrmeta = read_chr_file(chrfile)
-        if spiece:
-            self.chrmeta = genrep.get_chrmeta(spiece)
+        if chrfile:
+            if not os.path.isfile(chrfile): return
+            self.chrmeta = parse_chr_file(chrfile)
+        if specie:
+            assembly = genrep.get_assembly(specie)
+            if assembly: self.chrmeta = assembly.chrmeta
         else:
-            spiece = genrep.guess_spiece(self.chromosomes)
-            self.chrmeta = genrep.get_chrmeta(spiece)
+            guessed_specie = genrep.guess_specie(self.chromosomes)
+            if guessed_specie: self.set_chrmeta(guessed_specie)
+        #TODO chromosome renaming
 
     def _chrmeta_read(self):
-        """Populates the self._chrmeta attribute with information found in the 'chrNames' table."""
+        """Populates the self.chrmeta attribute with information found in the 'chrNames' table."""
         self._chrmeta = JournaledDict()
         if not 'chrNames' in self.tables: return
         self.cursor.execute("pragma table_info(chrNames)")
@@ -692,7 +714,7 @@ class Track(object):
         return column_names, all_rows
 
     def _chrmeta_write(self):
-        """Rewrites the 'chrNames' table so that it reflects the contents of the self._chrmeta attribute."""
+        """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
         self.cursor.execute('drop table IF EXISTS chrNames')
         if self.chrmeta:
@@ -727,28 +749,6 @@ class Track(object):
     @attributes.setter
     def attributes(self, value):
         self._attributes.overwrite(value)
-
-    #--------------------------------------------------------------------------#
-    @property
-    def datatype(self):
-        # Next line is a hack to remove a new datatype introduced by GDV - remove at a later date #
-        if self.attributes.get('datatype') == 'QUALITATIVE_EXTENDED': return 'qualitative'
-        # End hack #
-        return self.attributes.get('datatype', '').lower()
-
-    @datatype.setter
-    def datatype(self, value):
-        if value not in ['quantitative', 'qualitative']:
-            raise Exception("The datatype you are trying to use is invalid: '" + str(value) + "'.")
-        self.attributes['datatype'] = value
-
-    @property
-    def name(self):
-        return self.attributes.get('name', 'Unnamed')
-
-    @name.setter
-    def name(self, value):
-        self.attributes['name'] = value
 
 #-----------------------------------#
 # This code was written by the BBCF #

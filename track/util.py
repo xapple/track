@@ -50,7 +50,7 @@ def guess_file_format(path):
                 return known_identifiers.get(id, id)
 
 ###############################################################################
-def read_chr_file(self, path):
+def parse_chr_file(self, path):
     """Read a chromsome file and return a dictionary"""
     chrmeta = {}
     for number, line in iterate_lines(path):

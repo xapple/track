@@ -339,3 +339,105 @@ class JournaledDict(object):
     def overwrite(self, d):
         self.modified = True
         self.data = d
+
+################################################################################
+class JsonJit(object):
+    """
+    JsonJit is a class for Just In Time instantiation of JSON resources.
+    __lazy__ is called only when the first attribute is either get or set.
+    You can use it like this:
+
+        assemblies = JsonJit('http://bbcftools.vital-it.ch/genrep/assemblies.json', 'assembly')
+    """
+
+    def __init__(self, url, list_key=None):
+        """
+        *url*: Location of the JSON to load.
+        *list_key*: Optional dictionary key to unpack the elements of JSON with.
+        """
+        self.__dict__['url'] = url
+        self.__dict__['list_key'] = list_key
+        self.__dict__['obj'] = None
+
+    def __lazy__(self):
+        """Fetch resource and instantiate object."""
+        import json, urllib2
+        try:
+            content = urllib2.urlopen(self.url).read()
+            # Create the child object #
+            self.__dict__['obj'] = json.loads(content)
+        except urllib2.URLError as err:
+            self.__dict__['obj'] = err
+        # Unpack the child object #
+        if self.list_key:
+            for num, item in enumerate(self.obj):
+                self.obj[num] = item[self.list_key]
+
+    def get(self, value):
+        """Retrieve an item from the JSON
+           by searching all attributes of all items
+           for *name*"""
+        for x in self.obj:
+            if [k for k,v in x.items() if v == value]: return x
+
+    def filter(self, key, value):
+        """Retrieve an item from the JSON
+           by search a key that is equal to value in
+           all elements"""
+        return [x for x in self.obj for k,v in x.items() if v == value and k == key]
+
+    def by(self, name):
+        """Return a list of attributes present
+           in every element of the JSON"""
+        return [x.get(name).encode('ascii') for x in self.obj]
+
+    def make(self, name):
+        """Return an object whoes attributes are the
+           keys of the element's dictionary"""
+        class JsonObject(object): pass
+        obj = JsonObject()
+        obj.__dict__.update(self.get(name))
+        return obj
+
+    def __getattr__(self, name):
+        """Method called when an attribute is
+           not found in __dict__."""
+        if not self.obj: self.__lazy__()
+        # Search in the child object #
+        try: return getattr(self.obj, name)
+        except AttributeError as err:
+            # Search in the parent object #
+            if name in self.__dict__: return self.__dict__[name]
+            else: return self.make(name)
+
+    def __setattr__(self, name, value):
+        """Method called when an attribute is
+           assigned to."""
+        if not self.obj: self.__lazy__()
+        try: setattr(self.obj, name, value)
+        except AttributeError:
+            self.__dict__[name] = value
+
+    def __len__(self):
+        if not self.obj: self.__lazy__()
+        return self.obj.__len__()
+
+    def __iter__(self):
+        if not self.obj: self.__lazy__()
+        return self.obj.__iter__()
+
+    def __repr__(self):
+        if not self.obj: self.__lazy__()
+        return self.obj.__repr__()
+
+    def __getitem__(self, key):
+        if not self.obj: self.__lazy__()
+        return self.obj[key]
+
+    def __setitem__(self, key, item):
+        if not self.obj: self.__lazy__()
+        self.obj[key] = item
+
+    def __delitem__(self, key):
+        if not self.obj: self.__lazy__()
+        del self.obj[key]

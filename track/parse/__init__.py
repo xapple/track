@@ -50,8 +50,7 @@ class Parser(object):
             from track.seralize import Serializer
             handler = Serializer()
         # Enter the handler #
-        with handler as self.handler:
-            self.parse()
+        with handler as self.handler: self.parse()
         # Return a list or a single element #
         if len(self.handler.tracks) == 1: return self.handler.tracks[0]
         else: return self.handler.tracks
