@@ -7,6 +7,9 @@ import track
 from track.serialize import Serializer
 from track.common import make_file_names
 
+# Constants #
+BUFFER_SIZE = 1024
+
 ################################################################################
 class SerializerSQL(Serializer):
     def __enter__(self):
@@ -36,7 +39,7 @@ class SerializerSQL(Serializer):
         #TODO
 
     def newFeature(self, chrom, feature):
-        if chrom == self.current_chrom and len(self.buffer) < 1000:
+        if chrom == self.current_chrom and len(self.buffer) < BUFFER_SIZE:
             self.buffer.append(feature)
         else:
             self.flushBuffer()
