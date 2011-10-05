@@ -409,7 +409,7 @@ class Track(object):
 
         To combine multiple selections you can specify a list including chromosome names and region dictionaries. As expected, if such is the case, the joined data from those selections will be returned with an added 'chr' field in front since the results may span several chromosomes. When *selection* is left empty, the data from all chromosome is returned.
 
-        * *fields* is a list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome.
+        * *fields* is a list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the *track.fields* attribute is set, that will be used.
 
         * *order* is a sublist of *fields* which will influence the order in which the tuples are yielded. By default results are sorted by ``start`` and, secondly, by ``end``.
 
@@ -454,11 +454,10 @@ class Track(object):
         if chrom not in self.chromosomes: return ()
         ### FIELDS ###
         available_fields = self._get_columns_of_table(chrom)
-        # Read variable set #
-        if fields:
-            columns = [f or "'" + py_field_types(f) + "'" for f in fields if ]
-        # Track variable set #
-        elif self._fields:
+        # Function variable is set #
+        if fields: columns = [f in available_fields and f or str(py_field_types[f]()) for f in fields]
+        # Track attribute is set #
+        elif self._fields: columns = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
         # Nothing set #
         else: columns = available_fields
         ### QUERY ###
@@ -474,43 +473,65 @@ class Track(object):
         return FeatureStream(data, columns)
 
     #-----------------------------------------------------------------------------#
-    def write(self, chrom, data, fields=None):
-        """Writes data to a genomic file.
+    def write(self, chromosome, data, fields=None):
+        """Writes data to a genomic file. Will write many feature at once into a given chromosome.
 
-        * *chrom* is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.
+        * *chromosome* is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.
 
-        * *data* must be an iterable object that yields tuples of the correct length. As an example, the ``read`` function of this class produces such objects.
+        * *data* must be an iterable object that yields tuples of the correct length. As an example, the ``read`` function of this class produces such objects. *data* can have a *fields* attribute describing what the different elements of the tuple represent.
 
-        * *fields* is a list of fields which will influence the number of columns for every feature in the file and hence the length of the tuples to be generated. The value of *fields* should not change within the same track.
+        * *fields* is a list of fields describing what the different elements in data represent. It is optional and used only if *data* doens't already have a ``fields`` attribute.
 
         Examples::
 
             import track
             with track.load('tracks/example.sql') as t:
                 t.write('chr1', [(10, 20, 'A', 0.0, 1), (40, 50, 'B', 0.0, -1)])
+                t.save()
+            with track.load('tracks/example.sql') as t:
                 def example_generator():
                     for i in xrange(5):
-                        yield (10, 20, 'X', i, 1)
-                t.write('chr2', example_generator())
+                        yield (10, 20, 'X')
+                t.write('chr2', example_generator(), fields=['start','end','name'])
                 t.save()
+            with track.load('tracks/new.sql') as t2:
+                with track.load('tracks/orig.sql') as t1:
+                    t1.write('chr1', t2.read('chr1'))
+                    t1.save()
 
         ``write`` returns nothing.
         """
         # Check track attributes #
         if self.readonly: return
         self.modified = True
-        # Is it a feature stream or an iterator #
-        if isinstance(data, FeatureStream):
-            fields = data.fields
-            data   = data.data
-        # Default fields #
-        if not fields: fields = self.fields
+        ### FIELDS ###
+        # Is it a feature stream or a simple iterator ? #
+        if hasattr(data, 'fields'): incoming_fields = data.fields
+        else:                       incoming_fields = fields
+        # Track attribute is set or table exists ? #
+        if self._fields:                     outgoing_fields = self._fields
+        elif chromosome in self.chromosomes: outgoing_fields = self._get_columns_of_table(chromosome)
+        else:                                outgoing_fields = None
+        # We don't have anything: assume a default #
+        if not incoming_fields and not outgoing_fields:
+            incoming_fields = default_fields
+            raise Exception('The write operation could not complete because of missing fields description')
+        # We have the incoming but no outgoing: create table #
+        if not outgoing_fields: outgoing_fields = incoming_fields
+        # We have the outgoing but no incoming: assume same size #
+        if not incoming_fields: incoming_fields = outgoing_fields
+        ### CREATION ###
         # Maybe create the table #
-        if chrom not in self.chromosomes:
-            columns = ','.join([field + ' ' + sql_field_types.get(field, 'text') for field in fields])
-            self.cursor.execute('create table "' + chrom + '" (' + columns + ')')
+        if chromosome not in self.chromosomes:
+            columns = ','.join([field + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
+            self.cursor.execute('create table "' + chromosome + '" (' + columns + ')')
+        # Maybe create columns #
+        else:
+            current_fields = self._get_columns_of_table(chromosome)
+        ### QUERY ###
+        columns = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
         # Create the SQL statement #
-        sql_command = 'insert into "' + chrom + '" (' + ','.join(fields) + ') values (' + ','.join(['?' for x in range(len(fields))])+')'
+        sql_command = 'insert into "' + chrom + '" (' + ','.join(fields) + ') values (' + ','.join(['?' for x in xrange(len(fields))])+')'
         # Execute the insertion #
         try:
             self.cursor.executemany(sql_command, data)
@@ -518,6 +539,26 @@ class Track(object):
             raise Exception("The command '" + sql_command + "' on the database '" + self.path + "' failed with error: '" + str(err) + "'" + \
                 '\n    ' + 'The bindings: ' + str(fields) + \
                 '\n    ' + 'You gave: ' + str(data))
+
+    #-----------------------------------------------------------------------------#
+    def insert(self, chrom, feature):
+        """Inserts one feature into an existing chromosome.
+
+        * *chrom* is the name of the chromosome into which one wants to insert.
+
+        * *feature* must be a tuple of the right size to fit into the chromosome table.
+
+        Examples::
+
+            import track
+            with track.load('tracks/example.sql') as t:
+                t.insert('chr1', (10, 20, 'A')
+                t.save()
+
+        ``insert`` returns nothing.
+        """
+        question_marks = '(' + ','.join(['?' for x in xrange(len(feature))]) + ')'
+        self.cursor.execute('insert into "' + chrom + '" values ' + question_marks, feature)
 
     #-----------------------------------------------------------------------------#
     def remove(self, chromosome):
