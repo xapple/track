@@ -32,51 +32,31 @@ Track attributes
 """"""""""""""""
 
 .. autoattribute:: Track.fields
-
 .. autoattribute:: Track.chromosomes
-
 .. autoattribute:: Track.info
-
 .. autoattribute:: Track.name
-
 .. autoattribute:: Track.datatype
-
 .. autoattribute:: Track.specie
-
 .. autoattribute:: Track.chrmeta
-
 
 Track methods
 """""""""""""
 
-.. automethod:: Track.save
-
-.. automethod:: Track.rollback
-
-.. automethod:: Track.close
-
-.. automethod:: Track.export
-
 .. automethod:: Track.read
-
 .. automethod:: Track.write
-
+.. automethod:: Track.save
+.. automethod:: Track.rollback
+.. automethod:: Track.close
+.. automethod:: Track.export
 .. automethod:: Track.remove
-
 .. automethod:: Track.rename
-
 .. automethod:: Track.count
-
-.. automethod:: Track.set_chrmeta
-
+.. automethod:: Track.guess_specie
+.. automethod:: Track.load_chr_file
 .. automethod:: Track.get_score_vector
-
 .. automethod:: Track.ucsc_to_ensembl
-
 .. automethod:: Track.ensembl_to_ucsc
-
 .. automethod:: Track.roman_to_integer
-
 .. automethod:: Track.integer_to_roman
 
 ###################
@@ -84,10 +64,8 @@ Loading into memory
 ###################
 
 .. automodule:: track.memory
-
-    .. autofunction:: read
-
-    .. autofunction:: write
+.. autofunction:: track.memory.read
+.. autofunction:: track.memory.write
 
 ########
 Comments
@@ -97,4 +75,11 @@ It is important to note that the general numbering convention of features on a c
 #######################
 Developer documentation
 #######################
-A full `developer documentation <http://xapple.github.com/track/>`_ detailing all methods and classes is available.
+A full `developer documentation <http://bbcf.github.com/track/>`_ detailing all methods and classes is available.
+
+######################
+Running the test suite
+######################
+To run the test suite on the package, in the distribution directory, run::
+
+    $ nosetests

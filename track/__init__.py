@@ -1,64 +1,95 @@
 """
-Provides easy read/write access to genomic tracks in a fashion that is independent from the underlying format.
+Provides easy read/write access to genomic tracks in a fashion that is independent from the underlying format. Requires Python 2.6 or higher.
 Currently the following formats are implemented:
 
-* Bio SQLite (http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite)
-* BED        (http://genome.ucsc.edu/FAQ/FAQformat.html#format1)
-* WIG        (http://genome.ucsc.edu/goldenPath/help/wiggle.html)
-* bedGraph   (http://genome.ucsc.edu/goldenPath/help/bedgraph.html)
-* bigWig     (http://genome.ucsc.edu/goldenPath/help/bigWig.html)
+* `BioSQLite <http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite>`_
+* `BED <http://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_
+* `WIG <http://genome.ucsc.edu/goldenPath/help/wiggle.html>`_
+* `GFF <http://genome.ucsc.edu/FAQ/FAQformat.html#format3>`_
+* `GTF <http://genome.ucsc.edu/FAQ/FAQformat.html#format4>`_
+* `bedGraph <http://genome.ucsc.edu/goldenPath/help/bedgraph.html>`_
+* `bigWig <http://genome.ucsc.edu/goldenPath/help/bigWig.html>`_
 
 More formats can be added easily.
 
+############
+Installation
+############
+
+To install you should download the latest source code from GitHub, either by going to::
+
+    http://github.com/bbcf/track
+
+and clicking on "Downloads", or by cloning the git repository with::
+
+    $ git clone https://github.com/bbcf/track.git
+
+Once you have the source code, run::
+
+    $ sudo python setup.py build
+
+to install it. If you need to install it in a particular directory, use::
+
+    $ python setup.py install --prefix=/prefix/path
+
+Then the modules will go in ``/prefix/path/lib/pythonX.Y/site-packages``
+where X.Y is the version of Python you run it with.
+
+###########
+Quick start
+###########
 To get access to the information contained inside already existing tracks, you would do the following whatever the format of the track is::
 
     import track
     with track.load('tracks/rp_genes.bed') as rpgenes:
         data = rpgenes.read('chr3')
 
-If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file::
-
-    import track
-    with track.load('tracks/yeast_genes.bed', chrmeta='sacCer2') as saccer:
-        data = saccer.read('chr4')
-    with track.load('tracks/yeast_genes.bed', chrmeta='tracks/chrs/yeast.chr') as saccer:
-        data = saccer.read('chr4')
-
 For instance, the cumulative base coverage of features on chromosome two can be calculated like this::
 
     import track
-    with track.load('tracks/yeast_genes.sql') as genes:
-        # f[1] is the end coordinate and f[0] is the start coordinate
-        base_coverage = sum([f[1] - f[0] for f in genes.read('chr2')])
+    with track.load('tracks/rp_genes.bed.gff') as rpgenes:
+        all_genes = rpgenes.read('chr3')
+        # gene[1] is the end coordinate and gene[0] is the start coordinate
+        base_coverage = sum([gene[1] - gene[0] for gene in all_genes])
 
 To create a new track and then write to it, you would do the following::
 
     import track
-    with track.new('tracks/rap1_peaks.sql', 'sql', name='Rap1 Peaks') as mypeaks:
+    with track.new('tracks/rap1_peaks.sql') as mypeaks:
         mypeaks.write('chr1', [(10, 20, 'A', 0.0, 1)])
 
 For instance, to make a new track from an old one, and invert the strand of every feature::
 
     import track
     def invert_strands(data):
-        for feature in data:
-            yield (feature[0], feature[1], feature[2], feature[3], feature[4] == 1 and -1 or 1)
-    with track.load('tracks/orig.sql', name='Normal strands') as a:
-        with track.new('tracks/inverted.sql', name='Inverted strands') as b:
-            for chrom in a:
-                b.write(chrom, invert_strands(a.read(chrom)))
+        for gene in data:
+            yield (gene[0], gene[1], gene[2], gene[3], gene[4] == 1 and -1 or 1)
+    with track.load('tracks/orig.sql', name='Normal strands') as orig:
+        with track.new('tracks/inverted.sql', name='Inverted strands') as inverted:
+            for chrom in orig:
+                inverted.write(chrom, invert_strands(orig.read(chrom)))
 
-To convert a track from a format (e.g. BED) to an other format (e.g. SQL) you first load the track and call the save_as method on it::
+To convert a track from a format (e.g. BED) to an other format (e.g. SQL) you call the `track.convert` function::
 
     import track
-    with track.load('tracks/rp_genes.bed') as rpgenes:
-        rpgenes.save_as('tracks/rp_genes.sql')
+    track.convert('tracks/rp_genes.bed', 'tracks/rp_genes.sql')
 
-To set the chromosome metadata or the track metadata you simply assign to that attribute::
+If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file. You can even try to guess the specie::
+
+    import track
+    with track.load('tracks/yeast_genes.sql') as t:
+        # Try to guess using chromosome names
+        t.guess_specie()
+        # Or specily the assembly
+        t.specie = 'hg19'
+        # Or load a tab delimited file
+        t.load_chr_file('info/yeast.chr')
+
+To set the chromosome metadata  or the track metadata you simply assign to that attribute::
 
     import track
     with track.load('tracks/scores.sql') as t:
-        t.chrmeta    = ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
+        t.chrmeta = ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
         t.info = {'datatype': 'signal', 'source': 'UCSC'}
 """
 
@@ -114,21 +145,23 @@ py_field_types     = {'start':        int,
 def load(path, format=None, readonly=False):
     """Loads a track from disk, whatever the format is.
 
-        * *path* is the path to track file to load.
-        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
-        * *readonly* is an optional boolean variable that defaults to ``False``. When set to ``True``, any operation attempting to write to the track will silently be ignored.
+       :param path: is the path to track file to load.
+       :type  path: string
+       :param format: is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.
+       :type  format: string
+       :param readonly: is an optional parameter that defaults to ``False``. When set to ``True``, any operation attempting to write to the track will silently be ignored
+       :type  readonly: bool
+       :returns: a Track instance
 
-    Examples::
+       ::
 
-        import track
-        with track.load('tracks/rp_genes.sql') as rpgenes:
-            data = rpgenes.read()
-        with track.load('tracks/yeast_data_01', 'sql', 'S. cer. genes') as yeast:
-            data = yeast.read()
-        with track.load('tracks/repeats.bed', readonly=True) as repeats:
-            data = repeats.read()
-
-    ``load`` returns a Track instance.
+            import track
+            with track.load('tracks/rp_genes.sql') as rpgenes:
+                data = rpgenes.read()
+            with track.load('tracks/yeast_data_01', 'sql', 'S. cer. genes') as yeast:
+                data = yeast.read()
+            with track.load('tracks/repeats.bed', readonly=True) as repeats:
+                data = repeats.read()
     """
     # Guess the format #
     if not format: format = determine_format(path)
@@ -145,20 +178,21 @@ def load(path, format=None, readonly=False):
 def new(path, format=None):
     """Creates a new empty track in preparation for writing to it.
 
-        * *path* is the path to track file to create.
-        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+       :param path: is the path to track file to create.
+       :type  path: string
+       :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.
+       :type  format: string
+       :returns: a Track instance
 
-    Examples::
+       ::
 
-        import track
-        with track.new('tmp/track.sql') as t:
-            t.write('chr1', [(10, 20, 'Gene A', 0.0, 1)])
-            t.set_chrmeta('hg19')
-        with track.new('tracks/peaks.sql', 'sql') as t:
-            t.fields = ['start', 'end', 'name', 'score']
-            t.write('chr5', [(500, 1200, 'Peak1', 11.3)])
-
-    ``new`` returns a Track instance.
+           import track
+           with track.new('tmp/track.sql') as t:
+               t.write('chr1', [(10, 20, 'Gene A', 0.0, 1)])
+               t.set_chrmeta('hg19')
+           with track.new('tracks/peaks.sql', 'sql') as t:
+               t.fields = ['start', 'end', 'name', 'score']
+               t.write('chr5', [(500, 1200, 'Peak1', 11.3)])
     """
     # Guess the format #
     if not format: format = os.path.splitext(path)[1][1:]
@@ -176,23 +210,20 @@ def new(path, format=None):
 
 #---------------------------------------------------------------------------------#
 def convert(source, destination):
-    """Converts a track from one format to an other.
+    """Converts a track from one format to an other. The *source* file should have a different format from the *destination* file. If either the source or destination are missing a file extension, you can specify their formats using a tuple. See examples below.
 
-        * *source* is the path to the original track to load.
-        * *destination* is the path to the track to be created.
+       :param source: is the path to the original track to load.
+       :type  source: string
+       :param destination: is the path to the track to be created.
+       :type  destination: string
+       :returns: the path to the track created (or a list of track paths in the case of multi-track files).
 
-    The *source* file should have a different format from the *destination* file.
-    If either the source or destination are missing a file extension, you can specify
-    their formats using a tuple. See examples below.
+       ::
 
-    Examples::
-
-        import track
-        track.convert('tracks/genes.bed', 'tracks/genes.sql')
-        track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
-        track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
-
-    ``convert`` returns the path to the track created or a list of track paths in the case of multi-track files.
+           import track
+           track.convert('tracks/genes.bed', 'tracks/genes.sql')
+           track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
+           track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
     """
     # Parse the source parameter #
     if isinstance(source, tuple):
@@ -227,8 +258,7 @@ def convert(source, destination):
 ################################################################################
 class Track(object):
     """The track object itself is iterable and will yield the name of all chromosomes.
-
-    Examples::
+    ::
 
         import track
         with track.load('tracks/all_genes.sql') as genes:
@@ -251,9 +281,12 @@ class Track(object):
         self.connection = sqlite3.connect(self.path)
         self.cursor     = self.connection.cursor()
         # Hidden attributes #
+        self._fields  = []
         self._chrmeta = JournaledDict()
         self._info    = JournaledDict()
-        self._fields  = []
+        # Load some tables #
+        self._chrmeta_read()
+        self._info_read()
 
     def __enter__(self):
         """Called when evaluating the 'with' statement."""
@@ -328,14 +361,14 @@ class Track(object):
     def save(self):
         """Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database.
 
-       Examples::
+        :returns: None
+
+        ::
 
            import track
            with track.load('tracks/rp_genes.bed') as t:
                t.remove('chr19_gl000209_random')
                t.save()
-
-       ``save`` returns nothing but the original file on the disk is modified.
         """
         if self._info.modified:    self._info_write()
         if self._chrmeta.modified: self._chrmeta_write()
@@ -363,7 +396,9 @@ class Track(object):
     def rollback(self):
         """Reverts all changes to the track since the last call to ``save()``.
 
-        Examples::
+        :returns: None
+
+        ::
 
            import track
            with track.load('tracks/rp_genes.bed') as t:
@@ -371,7 +406,6 @@ class Track(object):
                t.export('tmp/clean.bed')
                t.rollback()
 
-       ``rollback`` returns nothing but the track is reverted.
         """
         self.connection.rollback()
 
@@ -379,15 +413,15 @@ class Track(object):
     def close(self):
         """Closes the current track. This method is useful when you are not using the 'with ... as' form for loading tracks.
 
-        Examples::
+        :returns: None
+
+        ::
 
             import track
             t = track.load('tracks/rp_genes.bed')
             t.remove('chr19_gl000209_random')
             t.save()
             t.close()
-
-        ``close`` returns nothing but the track it is called on is closed.
         """
         if self.autosave: self.save()
         self.cursor.close()
@@ -395,20 +429,21 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def export(self, path, format=None):
-        """Exports the current track to a given format.
+        """Exports the current track to a given format. A new file is created at the specified path. The current track object is unchanged
 
-        * *path* is the path to track file to create.
-        * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
+        :param path: is the path to track file to create.
+        :type  path: string
+        :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.
+        :type  format: string
+        :returns: None
 
-        Examples::
+        ::
 
             import track
             with track.load('tracks/rp_genes.bed') as t:
                 t.remove('chr19_gl000209_random')
                 t.export('tmp/clean.bed')
                 t.rollback()
-
-        ``export`` returns nothing but a new file is created at the specified path. The current track object is unchanged.
         """
         # Check it is not taken #
         check_path(path)
@@ -796,11 +831,13 @@ class Track(object):
         self._info.overwrite(value)
 
     def _info_read(self):
+        """Populates the *self.info* attribute with information found in the 'attributes' table."""
         if not 'attributes' in self.all_tables: return {}
         self.cursor.execute("select key, value from attributes")
         return dict(self.cursor.fetchall())
 
     def _info_write(self):
+        """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
         self.cursor.execute('drop table IF EXISTS attributes')
         if self.info:
@@ -872,7 +909,16 @@ class Track(object):
 
     @property
     def specie(self):
-        """Giving a datatype to your track is optional. However, if you set this variable for your track, you must input with a GenRep compatible specie name. Doing so,. You can also call self.guess_specie()."""
+        """Giving a datatype to your track is optional. However, if you set this variable for your track, you must input with a GenRep compatible assembly name. Doing so, will download the revelent information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondance is found. You can also call *guess_specie()*.
+
+        Examples::
+
+            import track
+            track.convert('tracks/genes.bed', 'tracks/genes.sql')
+            with track.load('tracks/genes.sql') as t:
+                t.specie = 'hg19'
+                t.save()
+        """
         return self._chrmeta
 
     @specie.setter
@@ -891,19 +937,19 @@ class Track(object):
         self._chrmeta.overwrite(value)
 
     def guess_specie(self):
-        """An attempt at guessing the specie name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a siutable speice is found, the chromosomes will be renamed to the their cannoncial names.
-
+        """An attempt at guessing the specie name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a siutable speice is found, the *specie* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their cannoncial names.
 
         Examples::
 
             import track
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
-                t.set_chrmeta('hg19')
+                t.guess_specie()
                 t.save()
 
-        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified (as well as the name of the chromosomes).
+        ``guess_specie`` returns nothing but the self.chrmeta variable is modified (as well as the names of the chromosomes).
         """
+        pass
 
 ################################################################################
 class FeatureStream(object):
