@@ -64,7 +64,7 @@ def check_executable(tool_name):
     try:
         subprocess.Popen([tool_name], stderr=subprocess.PIPE)
     except OSError:
-         raise Exception("The executable '" + tool_name + "' cannot be found")
+        raise Exception("The executable '" + tool_name + "' cannot be found")
 
 ################################################################################
 def natural_sort(item):
@@ -107,15 +107,32 @@ def sentinelize(iterable, sentinel):
     yield sentinel
 
 ################################################################################
-def sqlcmp(file_a, file_b):
+def pick_iterator_elements(iterable, indices):
+    """
+    Return a new iterator, yielding only those elements
+    of the original iterator.
+
+    >>> list(pick_iterator_elements(iter([('a','b','c'),(10,20,30)]), (0,2)))
+    [('a','c'), (10,30)]
+    """
+    for item in iterable: yield [item[i] for i in indices]
+
+################################################################################
+def assert_sql_equal(file_a, file_b):
     """
     Compare two two sqlite3 databases via their dumps.
+    Raise an exception if they are not equal, otherwise
+    return True.
     """
     import itertools, sqlite3
     A = sqlite3.connect(file_a)
     B = sqlite3.connect(file_b)
     for a,b in itertools.izip_longest(A.iterdump(), B.iterdump()):
-        if a != b: return "A: " + a + "\nB:" + b
+        if a != b:
+            intro  = Colors.ylw + "First difference in dump follows" + Colors.end
+            A_line = Colors.b_ylw + "A: " + Colors.end + a
+            B_line = Colors.b_ylw + "B: " + Colors.end + b
+            raise AssertionError(intro + "\n" + A_line + "\n" + B_line)
     return True
 
 ################################################################################
@@ -188,50 +205,58 @@ def roman_to_int(input):
     else: raise ValueError, 'Input is not a valid roman numeral: "%s."' % input
 
 ################################################################################
-terminal_colors = {
-    'end':    '\033[0m',    # Text Reset
-    'blink':  '\033[5m',    # Blink
-    'txtblk': '\033[0;30m', # Black - Regular
-    'txtred': '\033[0;31m', # Red
-    'txtgrn': '\033[0;32m', # Green
-    'txtylw': '\033[0;33m', # Yellow
-    'txtblu': '\033[0;34m', # Blue
-    'txtpur': '\033[0;35m', # Purple
-    'txtcyn': '\033[0;36m', # Cyan
-    'txtwht': '\033[0;37m', # White
-    'bldblk': '\033[1;30m', # Black - Bold
-    'bldred': '\033[1;31m', # Red
-    'bldgrn': '\033[1;32m', # Green
-    'bldylw': '\033[1;33m', # Yellow
-    'bldblu': '\033[1;34m', # Blue
-    'bldpur': '\033[1;35m', # Purple
-    'bldcyn': '\033[1;36m', # Cyan
-    'bldwht': '\033[1;37m', # White
-    'unkblk': '\033[4;30m', # Black - Underline
-    'undred': '\033[4;31m', # Red
-    'undgrn': '\033[4;32m', # Green
-    'undylw': '\033[4;33m', # Yellow
-    'undblu': '\033[4;34m', # Blue
-    'undpur': '\033[4;35m', # Purple
-    'undcyn': '\033[4;36m', # Cyan
-    'undwht': '\033[4;37m', # White
-    'bnkblk': '\033[5;30m', # Black - Blinking
-    'bnkred': '\033[5;31m', # Red
-    'bnkgrn': '\033[5;32m', # Green
-    'bnkylw': '\033[5;33m', # Yellow
-    'bnkblu': '\033[5;34m', # Blue
-    'bnkpur': '\033[5;35m', # Purple
-    'bnkcyn': '\033[5;36m', # Cyan
-    'bnkwht': '\033[5;37m', # White
-    'bakblk': '\033[40m',   # Black - Background
-    'bakred': '\033[41m',   # Red
-    'bakgrn': '\033[42m',   # Green
-    'bakylw': '\033[43m',   # Yellow
-    'bakblu': '\033[44m',   # Blue
-    'bakpur': '\033[45m',   # Purple
-    'bakcyn': '\033[46m',   # Cyan
-    'bakwht': '\033[47m',   # White
-}
+class Colors:
+    """Shortcuts for the ANSI escape sequences to control
+       formatting, color, etc. on text terminals"""
+    # Special #
+    end =  '\033[0m'
+    underline = '\033[4m'
+    # Regular #
+    blk   = '\033[0;30m' # Black
+    red   = '\033[0;31m' # Red
+    grn   = '\033[0;32m' # Green
+    ylw   = '\033[0;33m' # Yellow
+    blu   = '\033[0;34m' # Blue
+    pur   = '\033[0;35m' # Purple
+    cyn   = '\033[0;36m' # Cyan
+    wht   = '\033[0;37m' # White
+    # Bold #
+    bold  = '\033[1m'
+    b_blk = '\033[1;30m' # Black
+    b_red = '\033[1;31m' # Red
+    b_grn = '\033[1;32m' # Green
+    b_ylw = '\033[1;33m' # Yellow
+    b_blu = '\033[1;34m' # Blue
+    b_pur = '\033[1;35m' # Purple
+    b_cyn = '\033[1;36m' # Cyan
+    b_wht = '\033[1;37m' # White
+    # Underline #
+    u_blk = '\033[4;30m' # Black
+    u_red = '\033[4;31m' # Red
+    u_grn = '\033[4;32m' # Green
+    u_ylw = '\033[4;33m' # Yellow
+    u_blu = '\033[4;34m' # Blue
+    u_pur = '\033[4;35m' # Purple
+    u_cyn = '\033[4;36m' # Cyan
+    u_wht = '\033[4;37m' # White
+    # Glitter #
+    g_blk = '\033[5;30m' # Black
+    g_red = '\033[5;31m' # Red
+    g_grn = '\033[5;32m' # Green
+    g_ylw = '\033[5;33m' # Yellow
+    g_blu = '\033[5;34m' # Blue
+    g_pur = '\033[5;35m' # Purple
+    g_cyn = '\033[5;36m' # Cyan
+    g_wht = '\033[5;37m' # White
+    # Fill #
+    f_blk = '\033[40m'   # Black
+    f_red = '\033[41m'   # Red
+    f_grn = '\033[42m'   # Green
+    f_ylw = '\033[43m'   # Yellow
+    f_blu = '\033[44m'   # Blue
+    f_pur = '\033[45m'   # Purple
+    f_cyn = '\033[46m'   # Cyan
+    f_wht = '\033[47m'   # White
 
 ################################################################################
 class JournaledDict(object):

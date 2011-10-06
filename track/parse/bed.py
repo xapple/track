@@ -19,8 +19,8 @@ all_fields_possible = ['chr', 'start', 'end', 'name', 'score', 'strand', 'thick_
 class ParserBED(Parser):
     def parse(self):
         # Initial variables #
-        fields     = []
-        attributes = {}
+        fields = []
+        info   = {}
         # Main loop #
         for number, line in iterate_lines(self.path):
             # Ignored lines #
@@ -28,7 +28,7 @@ class ParserBED(Parser):
             # Track headers #
             if line.startswith("track "):
                 try:
-                    attributes = dict([p.split('=',1) for p in shlex.split(line[6:])])
+                    info = dict([p.split('=',1) for p in shlex.split(line[6:])])
                 except ValueError:
                     self.handler.error(self.path, number, "The track%s seems to have an invalid <track> header line")
                 fields = []
@@ -38,8 +38,8 @@ class ParserBED(Parser):
             if len(items) == 1: items = line.split()
             # Have we started a track already ? #
             if not fields:
-                self.handler.newTrack(attributes)
-                fields = all_fields_possible[1:len(line)]
+                self.handler.newTrack(self.name, info)
+                fields = all_fields_possible[1:len(items)]
                 self.handler.defineFields(fields)
             # Chromosome field #
             try:

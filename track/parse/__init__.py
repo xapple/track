@@ -3,7 +3,7 @@ This subpackage contains one python source file per format implemented for parsi
 """
 
 # Built-in modules #
-import sys
+import os, sys
 
 # Variables #
 parsers = {
@@ -43,6 +43,7 @@ def get_parser(path, format):
 class Parser(object):
     def __init__(self, path):
         self.path = path
+        self.name = os.path.basename(path)
 
     def __call__(self, handler=None):
         # Default handler #
@@ -51,16 +52,15 @@ class Parser(object):
             handler = Serializer()
         # Enter the handler #
         with handler as self.handler: self.parse()
-        # Return a list or a single element #
+        # Return a list of paths or a single path #
         if len(self.handler.tracks) == 1: return self.handler.tracks[0]
         else: return self.handler.tracks
 
     def parse(self):
-        self.handler.newTrack()
+        self.handler.newTrack(self.name)
         for chrom in self.path:
             for feature in self.path[chrom]:
                 self.handler.newFeature((chrom,) + feature)
-        return self.handler.tracks
 
 #-----------------------------------#
 # This code was written by the BBCF #

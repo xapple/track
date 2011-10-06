@@ -16,9 +16,9 @@ Creating a new track
 
 .. autofunction:: new
 
-##################
-Converting formats
-##################
+#################
+Converting tracks
+#################
 
 .. autofunction:: convert
 
@@ -28,35 +28,56 @@ Using the Track object
 
 .. autoclass:: Track
 
-    .. automethod:: Track.save
+Track attributes
+""""""""""""""""
 
-    .. automethod:: Track.rollback
+.. autoattribute:: Track.fields
 
-    .. automethod:: Track.close
+.. autoattribute:: Track.chromosomes
 
-    .. automethod:: Track.export
+.. autoattribute:: Track.info
 
-    .. automethod:: Track.read
+.. autoattribute:: Track.name
 
-    .. automethod:: Track.write
+.. autoattribute:: Track.datatype
 
-    .. automethod:: Track.remove
+.. autoattribute:: Track.specie
 
-    .. automethod:: Track.rename
+.. autoattribute:: Track.chrmeta
 
-    .. automethod:: Track.count
 
-    .. automethod:: Track.set_chrmeta
+Track methods
+"""""""""""""
 
-    .. automethod:: Track.get_score_vector
+.. automethod:: Track.save
 
-    .. automethod:: Track.ucsc_to_ensembl
+.. automethod:: Track.rollback
 
-    .. automethod:: Track.ensembl_to_ucsc
+.. automethod:: Track.close
 
-    .. automethod:: Track.roman_to_integer
+.. automethod:: Track.export
 
-    .. automethod:: Track.integer_to_roman
+.. automethod:: Track.read
+
+.. automethod:: Track.write
+
+.. automethod:: Track.remove
+
+.. automethod:: Track.rename
+
+.. automethod:: Track.count
+
+.. automethod:: Track.set_chrmeta
+
+.. automethod:: Track.get_score_vector
+
+.. automethod:: Track.ucsc_to_ensembl
+
+.. automethod:: Track.ensembl_to_ucsc
+
+.. automethod:: Track.roman_to_integer
+
+.. automethod:: Track.integer_to_roman
 
 ###################
 Loading into memory

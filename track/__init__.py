@@ -59,7 +59,7 @@ To set the chromosome metadata or the track metadata you simply assign to that a
     import track
     with track.load('tracks/scores.sql') as t:
         t.chrmeta    = ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
-        t.attributes = {'datatype': 'signal', 'source': 'UCSC'}
+        t.info = {'datatype': 'signal', 'source': 'UCSC'}
 """
 
 # Public variables #
@@ -67,7 +67,7 @@ __version__ = '1.0.0'
 __all__ = ['load', 'new', 'convert']
 
 # Built-in modules #
-import os, sqlite3
+import os, re, sqlite3
 
 # Internal modules #
 from track import genrep
@@ -76,6 +76,7 @@ from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.common import check_path, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
+from track.common import pick_iterator_elements
 
 # Constants #
 special_tables = ['attributes', 'chrNames', 'types']
@@ -146,7 +147,6 @@ def new(path, format=None):
 
         * *path* is the path to track file to create.
         * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
-        * *fields* is an optional
 
     Examples::
 
@@ -215,22 +215,18 @@ def convert(source, destination):
     # Get a parser #
     parser = get_parser(source_path, source_format)
     # Do it #
-    return parser(serializer)
+    paths = parser(serializer)
+    # Maybe add some metadata #
+    if destination_format == 'sql':
+        with load(destination_path, destination_format) as t:
+            t.info['orig_name'] = source_path
+            t.info['orig_name'] = source_path
+    # Return a track path #
+    return paths
 
 ################################################################################
 class Track(object):
-    """Once a track is loaded you have access to the following attributes:
-
-       * *fields* is a list the value types that each feature in the track will contain. For instance:
-            ``['start', 'end', 'name', 'score', 'strand']``
-       * *chromosomes* is a list of all available chromosome. For instance:
-            ``['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM']``
-       * *chrmeta* is a dictionary of meta data associated to each chromosome (information like length, etc). For instance:
-            ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
-       * *attributes* is a dictionary of meta data associated to the track (information like the source, etc). For instance:
-             ``{'datatype': 'signal', 'source': 'SGD'}``
-
-    The track object itself is iterable and will yield the name of all chromosomes.
+    """The track object itself is iterable and will yield the name of all chromosomes.
 
     Examples::
 
@@ -242,6 +238,8 @@ class Track(object):
     """
 
     def __init__(self, path, readonly=False, autosave=False, orig_path=None, orig_format=None):
+        """The track package is designed to use the 'load()' and 'new()' functions to create Track objects.
+           Usually, the constructor is not called directly."""
         # Passed attributes #
         self.path        = path
         self.readonly    = readonly
@@ -253,9 +251,9 @@ class Track(object):
         self.connection = sqlite3.connect(self.path)
         self.cursor     = self.connection.cursor()
         # Hidden attributes #
-        self._chrmeta    = JournaledDict()
-        self._attributes = JournaledDict()
-        self._fields     = []
+        self._chrmeta = JournaledDict()
+        self._info    = JournaledDict()
+        self._fields  = []
 
     def __enter__(self):
         """Called when evaluating the 'with' statement."""
@@ -266,7 +264,7 @@ class Track(object):
         self.close()
 
     def __iter__(self):
-        """Iterates on the list of chromosomes"""
+        """Iterates on the list of chromosomes."""
         return iter(self.chromosomes)
 
     def __contains__(self, key):
@@ -283,18 +281,23 @@ class Track(object):
 
     @property
     def fields(self):
-        """Checks the user set self._fields attributes. If it is empty,
-           it gets the column names of the first chromosome table
-           it finds."""
+        """*fields* is a list the value types that each feature in the track will contain. For instance:
+
+               ``['start', 'end', 'name', 'score', 'strand']``
+
+           Setting this attribute will influence the behaviour of all future read() and write() calls."""
+        # Checks the user set self._fields attribute. If it is empty,
+        # it gets the field names of the first chromosome table
+        # it finds.
         if self._fields: return self._fields
-        elif self.chromosomes: return self._get_columns_of_table(self.chromosomes[0])
+        elif self.chromosomes: return self._get_fields_of_table(self.chromosomes[0])
         else: return []
 
     @fields.setter
     def fields(self, value):
         """Set the fields globally for the track.
-           This value is then used by read() and write() to
-           get the columns in the right order."""
+        This value is then used by read() and write() to
+        get the fields in the right order."""
         self._fields = value
 
     @property
@@ -305,14 +308,19 @@ class Track(object):
 
     @property
     def chromosomes(self):
-        """Filters the list of SQL tables to retrieve the list of chromosomes."""
+        """*chromosomes* is a list of all available chromosome. For instance:
+
+               ``['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM']``
+
+           You cannot set this attribute. To add new chromosomes, just write() to them."""
+        # Filters the list of SQL tables to retrieve the list of chromosomes.
         chroms = [x for x in self.tables if x not in special_tables and not x.endswith('_idx')]
         chroms.sort(key=natural_sort)
         return chroms
 
-    def _get_columns_of_table(self, chrom):
+    def _get_fields_of_table(self, chrom):
         """Returns the list of fields for a particular chromosome
-           by querying the SQL for the complete list of columns"""
+        by querying the SQL for the complete list of column names"""
         if not chrom in self.chromosomes: return []
         return [x[1].encode('ascii') for x in self.cursor.execute('pragma table_info("' + chrom + '")').fetchall()]
 
@@ -329,11 +337,27 @@ class Track(object):
 
        ``save`` returns nothing but the original file on the disk is modified.
         """
-        if self.attributes.modified: self.attributes_write()
-        if self.chrmeta.modified: self.chrmeta_write()
-        self.make_missing_tables()
-        self.make_missing_indexes()
+        if self._info.modified:    self._info_write()
+        if self._chrmeta.modified: self._chrmeta_write()
+        self._make_missing_indexes()
         self.connection.commit()
+
+    def _make_missing_indexes(self):
+        """For every chromosomes present in the track, will create an index on the following fields if they exist:
+                * start, end --> chr1_range_idx
+                * score      --> chr1_score_idx
+                * name       --> chr1_name_idx
+        """
+        if self.readonly: return
+        try:
+            for ch in self:
+                self.cursor.execute(    "CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
+                if 'score' in self._get_fields_of_table(ch):
+                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
+                if 'name' in self._get_fields_of_table(ch):
+                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
+        except sqlite3.OperationalError as err:
+            raise Exception("The index creation on the track '" + self.path + "' failed with error: " + str(err))
 
     #-----------------------------------------------------------------------------#
     def rollback(self):
@@ -445,7 +469,7 @@ class Track(object):
         # Case selection dictionary #
         elif isinstance(selection, dict):
             chrom = selection['chr']
-            where = " where " + make_cond_from_sel(selection)
+            where = " WHERE " + make_cond_from_sel(selection)
         # Case chromosome name #
         elif isinstance(selection, basestring): chrom = selection
         # Other cases #
@@ -453,15 +477,15 @@ class Track(object):
         # Empty chromosome case #
         if chrom not in self.chromosomes: return ()
         ### FIELDS ###
-        available_fields = self._get_columns_of_table(chrom)
+        available_fields = self._get_fields_of_table(chrom)
         # Function variable is set #
-        if fields: columns = [f in available_fields and f or str(py_field_types[f]()) for f in fields]
+        if fields:         query_fields = [f in available_fields and f or str(py_field_types[f]()) for f in fields]
         # Track attribute is set #
-        elif self._fields: columns = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
+        elif self._fields: query_fields = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
         # Nothing set #
-        else: columns = available_fields
+        else:              query_fields = available_fields
         ### QUERY ###
-        sql_request = "select " + ','.join(columns) + " from '" + chrom + "'"
+        sql_request = "SELECT " + ','.join(query_fields) + " from '" + chrom + "'"
         if 'where' in locals(): sql_request += where
         # Sorting results #
         order_by = 'order by ' + order
@@ -470,7 +494,7 @@ class Track(object):
         else:      cur = self.cursor
         # Make a feature stream #
         data = cur.execute(sql_request + ' ' + order_by)
-        return FeatureStream(data, columns)
+        return FeatureStream(data, query_fields)
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
@@ -504,39 +528,46 @@ class Track(object):
         # Check track attributes #
         if self.readonly: return
         self.modified = True
-        ### FIELDS ###
-        # Is it a feature stream or a simple iterator ? #
+        chrom_exists = chromosome in self.chromosomes
+        # Current fields present in table #
+        if chrom_exists:            current_fields = self._get_fields_of_table(chromosome)
+        else:                       current_fields = None
+        # The fields we are getting #
         if hasattr(data, 'fields'): incoming_fields = data.fields
-        else:                       incoming_fields = fields
-        # Track attribute is set or table exists ? #
-        if self._fields:                     outgoing_fields = self._fields
-        elif chromosome in self.chromosomes: outgoing_fields = self._get_columns_of_table(chromosome)
-        else:                                outgoing_fields = None
-        # We don't have anything: assume a default #
-        if not incoming_fields and not outgoing_fields:
-            incoming_fields = default_fields
-            raise Exception('The write operation could not complete because of missing fields description')
-        # We have the incoming but no outgoing: create table #
-        if not outgoing_fields: outgoing_fields = incoming_fields
-        # We have the outgoing but no incoming: assume same size #
-        if not incoming_fields: incoming_fields = outgoing_fields
-        ### CREATION ###
+        elif fields:                incoming_fields = fields
+        elif self._fields:          incoming_fields = self._fields
+        elif chrom_exists:          incoming_fields = current_fields
+        else:                       incoming_fields = default_fields
+        # The fields we want to write #
+        if self._fields:            outgoing_fields = self._fields
+        elif chrom_exists:          outgoing_fields = current_fields
+        else:                       outgoing_fields = incoming_fields
         # Maybe create the table #
-        if chromosome not in self.chromosomes:
-            columns = ','.join([field + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
-            self.cursor.execute('create table "' + chromosome + '" (' + columns + ')')
-        # Maybe create columns #
-        else:
-            current_fields = self._get_columns_of_table(chromosome)
-        ### QUERY ###
-        columns = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
+        if not chrom_exists:
+            fields = ','.join([field + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
+            self.cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
+            current_fields = outgoing_fields
+        # Make them sets #
+        outgoing_set = set(outgoing_fields)
+        incoming_set = set(incoming_fields)
+        current_set  = set(current_fields)
+        # Maybe create fields #
+        for field in outgoing_set - current_set:
+            self.cursor.execute('ALTER table "' + chromosome + '" ADD "' + field + '" ' + sql_field_types.get(field, 'text'))
+        # Adjust size #
+        if outgoing_set > incoming_set:
+            outgoing_fields = incoming_fields
+        if outgoing_set < incoming_set:
+            indicies = tuple([incoming_fields.index(f) for f in outgoing_fields])
+            data = pick_iterator_elements(data, indicies)
         # Create the SQL statement #
-        sql_command = 'insert into "' + chrom + '" (' + ','.join(fields) + ') values (' + ','.join(['?' for x in xrange(len(fields))])+')'
+        question_marks = '(' + ','.join(['?' for x in xrange(len(outgoing_fields))]) + ')'
+        sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
         # Execute the insertion #
         try:
             self.cursor.executemany(sql_command, data)
         except (sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
-            raise Exception("The command '" + sql_command + "' on the database '" + self.path + "' failed with error: '" + str(err) + "'" + \
+            raise Exception("The command '" + sql_command + "' on the track '" + self.path + "' failed with error: '" + str(err) + "'" + \
                 '\n    ' + 'The bindings: ' + str(fields) + \
                 '\n    ' + 'You gave: ' + str(data))
 
@@ -682,10 +713,10 @@ class Track(object):
         for chrom in self.chromosomes: self.cursor.execute("update '" + chrom + "' set start=start-1")
 
     #-----------------------------------------------------------------------------#
-    def get_score_vector(self, chrom):
+    def get_score_vector(self, chromosome):
         """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chrom* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
-            * *chrom* is the name of the chromosome on which one wants to create a score vector from.
+            * *chromosome* is the name of the chromosome on which one wants to create a score vector from.
 
         Examples::
 
@@ -699,9 +730,9 @@ class Track(object):
         if 'score' not in self.fields:
             def add_ones(X):
                 for x in X: yield x + (1.0,)
-            data = add_ones(self.read(chrom, ['start','end']))
+            data = add_ones(self.read(chromosome, ['start','end']))
         else:
-            data = self.read(chrom, ['start','end','score'])
+            data = self.read(chromosome, ['start','end','score'])
         # Initialization #
         last_end = 0
         x = (-1,0)
@@ -711,8 +742,8 @@ class Track(object):
             for i in xrange(x[0],     x[1]): yield x[2]
             last_end = x[1]
         # End piece #
-        if self.chrmeta.get(chrom):
-            for i in xrange(x[1], self.chrmeta[chrom]['length']): yield 0.0
+        if self.chrmeta.get(chromosome):
+            for i in xrange(x[1], self.chrmeta[chromosome]['length']): yield 0.0
 
     #-----------------------------------------------------------------------------#
     def roman_to_integer(self, names=None):
@@ -751,43 +782,67 @@ class Track(object):
             return match.group(1) + int_to_roman(int(match.group(2)))
         for chrom in self: self.rename(chrom, convert(chrom))
 
+    #--------------------------------------------------------------------------#
+    @property
+    def info(self):
+        """*info* is a dictionary of meta data associated to the track (information like the source, etc). For instance:
+
+              ``{'datatype': 'signal', 'source': 'SGD', 'orig_name': 'splice_sites.bed'}``
+        """
+        return self._info
+
+    @info.setter
+    def info(self, value):
+        self._info.overwrite(value)
+
+    def _info_read(self):
+        if not 'attributes' in self.all_tables: return {}
+        self.cursor.execute("select key, value from attributes")
+        return dict(self.cursor.fetchall())
+
+    def _info_write(self):
+        if self.readonly: return
+        self.cursor.execute('drop table IF EXISTS attributes')
+        if self.info:
+            self.cursor.execute('create table attributes (key text, value text)')
+            for k in self.info.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.info[k]))
+
+    @property
+    def datatype(self):
+        """Giving a datatype to your track is optional. The default datatype is 'features'. Other possible datatypes are 'signal' or 'relational'. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary."""
+        new_names_to_old_names = {'features'  : 'qualitative',
+                                  'signal'    : 'quantitative',
+                                  'relational': 'qualitative_extended',}
+        return self.info.get('datatype', 'features')
+
+    @datatype.setter
+    def datatype(self, value):
+        if value not in ['features', 'signal', 'relational']:
+            raise Exception("The datatype you are trying to use is invalid: '" + str(value) + "'.")
+        self.info['datatype'] = value
+
+    @property
+    def name(self):
+        """Giving a name to your track is optional. The default name is 'Unnamed'. This attribute is stored inside the *info* dictionary."""
+        return self.info.get('name', 'Unnamed')
+
+    @name.setter
+    def name(self, value):
+        self.info['name'] = value
+
     #-----------------------------------------------------------------------------#
     @property
     def chrmeta(self):
+        """*chrmeta* is an attribute containing extra chromosomal meta data such chromosome length information. *chrmeta* is a dictionary where each key is a chromosome names. For instance:
+
+             ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
+
+        Of course, genomic formats such as ``bed`` cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed."""
         return self._chrmeta
 
     @chrmeta.setter
     def chrmeta(self, value):
         self._chrmeta.overwrite(value)
-
-    def set_chrmeta(self, specie=None, chrfile=None):
-        """Set the chromosome metadata of the track. This method can be called with no arguments, in which case an attempt at guessing the specie name will be made using the names of the chromosomes and information from the GenRep server. If a speice is found, the chromosomes will be renamed to the their cannoncial names. This method can also be called directly with a GenRep compatible specie name. Finally, one can also call this method by specifying a chromosome file, containing the chromosome meta data.
-
-        * *specie* is optionally the name of the specie. This will trigger the download of the correct metadata from GenRep.
-        * *chrfile* is optionally the name of a chromosome file. This will trigger the parsing of that file.
-
-        Of course, genomic formats such as ``bed`` cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed.
-
-        Examples::
-
-            import track
-            track.convert('tracks/genes.bed', 'tracks/genes.sql')
-            with track.load('tracks/genes.sql') as t:
-                t.set_chrmeta('hg19')
-                t.save()
-
-        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified (as well as the name of the chromosomes).
-        """
-        if chrfile:
-            if not os.path.isfile(chrfile): return
-            self.chrmeta = parse_chr_file(chrfile)
-        if specie:
-            assembly = genrep.get_assembly(specie)
-            if assembly: self.chrmeta = assembly.chrmeta
-        else:
-            guessed_specie = genrep.guess_specie(self.chromosomes)
-            if guessed_specie: self.set_chrmeta(guessed_specie)
-        #TODO chromosome renaming
 
     def _chrmeta_read(self):
         """Populates the self.chrmeta attribute with information found in the 'chrNames' table."""
@@ -806,48 +861,49 @@ class Track(object):
             self.cursor.execute('create table chrNames (name text, length integer)')
             for r in self.chrmeta.rows: self.cursor.execute('insert into chrNames (' + ','.join(r.keys()) + ') values (' + ','.join(['?' for x in r.keys()])+')', tuple(r.values()))
 
+    def load_chr_file(self, path):
+        """Set the chromosome metadata of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer
 
-    #--------------------------------------------------------------------------#
-    @property
-    def attributes(self):
-        return self._attributes
+        * *path* is the file path to the chromosome file. This will trigger the parsing of that file.
 
-    @attributes.setter
-    def attributes(self, value):
-        self._attributes.overwrite(value)
-
-    def _attributes_read(self):
-        if not 'attributes' in self.all_tables: return {}
-        self.cursor.execute("select key, value from attributes")
-        return dict(self.cursor.fetchall())
-
-    def _attributes_write(self):
-        if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS attributes')
-        if self.attributes:
-            self.cursor.execute('create table attributes (key text, value text)')
-            for k in self.attributes.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.attributes[k]))
+        ``load_chr_file`` returns nothing but the self.chrmeta variable is modified.
+        """
+        self.chrmeta = parse_chr_file(path)
 
     @property
-    def datatype(self):
-        """The default datatype is 'features'."""
-        return self.attributes.get('datatype', 'features')
+    def specie(self):
+        """Giving a datatype to your track is optional. However, if you set this variable for your track, you must input with a GenRep compatible specie name. Doing so,. You can also call self.guess_specie()."""
+        return self._chrmeta
 
-    @datatype.setter
-    def datatype(self, value):
-        """Changing the datatype imposes some conditions on the
-           features that the track contains."""
-        if value not in ['features', 'signal', 'relational']:
-            raise Exception("The datatype you are trying to use is invalid: '" + str(value) + "'.")
-        self.attributes['datatype'] = value
+    @specie.setter
+    def specie(self, value):
+        if chrfile:
+            if not os.path.isfile(chrfile): return
+            self.chrmeta = parse_chr_file(chrfile)
+        if specie:
+            assembly = genrep.get_assembly(specie)
+            if assembly: self.chrmeta = assembly.chrmeta
 
-    @property
-    def name(self):
-        return self.attributes.get('name', 'Unnamed')
+        assembly = genrep.get_assembly(specie)
+        if assembly: self.chrmeta = assembly.chrmeta
+        #TODO chromosome renaming
 
-    @name.setter
-    def name(self, value):
-        self.attributes['name'] = value
+        self._chrmeta.overwrite(value)
+
+    def guess_specie(self):
+        """An attempt at guessing the specie name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a siutable speice is found, the chromosomes will be renamed to the their cannoncial names.
+
+
+        Examples::
+
+            import track
+            track.convert('tracks/genes.bed', 'tracks/genes.sql')
+            with track.load('tracks/genes.sql') as t:
+                t.set_chrmeta('hg19')
+                t.save()
+
+        ``set_chrmeta`` returns nothing but the self.chrmeta variable is modified (as well as the name of the chromosomes).
+        """
 
 ################################################################################
 class FeatureStream(object):

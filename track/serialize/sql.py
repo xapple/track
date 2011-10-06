@@ -2,6 +2,9 @@
 This module implements the sql serialization.
 """
 
+# Built-in modules #
+import time
+
 # Internal modules #
 import track
 from track.serialize import Serializer
@@ -26,7 +29,7 @@ class SerializerSQL(Serializer):
         self.fields = fields
         #TODO
 
-    def newTrack(self, attributes=None):
+    def newTrack(self, name=None, info=None):
         # Close previous track #
         if self.current_track: self.closeCurrentTrack()
         # Get a name #
@@ -36,7 +39,13 @@ class SerializerSQL(Serializer):
         # Create it #
         self.current_track = track.new(path)
         # Add the metadata #
-        #TODO
+        if info: self.current_track.info.update(info)
+        # Add the tags #
+        if name: self.current_track.info['converted_from'] = name
+        self.current_track.info['converted_by'] = 'track package'
+        self.current_track.info['converted_at'] = time.asctime()
+        # Benchmark it #
+        self.start_time = time.time()
 
     def newFeature(self, chrom, feature):
         if chrom == self.current_chrom and len(self.buffer) < BUFFER_SIZE:
@@ -50,6 +59,8 @@ class SerializerSQL(Serializer):
     def closeCurrentTrack(self):
         # Empty buffer #
         self.flushBuffer()
+        # Add the benchmark #
+        self.current_track.info['converted_in'] = time.time() - self.start_time
         # Add the chromosome metadata #
         #TODO
         # Commit changes #

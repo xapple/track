@@ -1,5 +1,5 @@
 """
-Contains format conversion unittests.
+Contains field unittests.
 """
 
 # Built-in modules #
@@ -7,7 +7,7 @@ import os
 
 # Internal modules #
 import track
-from track.common import temporary_path, assert_sql_equal
+from track.common import temporary_path, sqlcmp
 from track.test import samples
 
 # Unittesting module #
@@ -20,13 +20,14 @@ except ImportError:
 __test__ = True
 
 ###################################################################################
-class Test_BED_to_SQL(unittest.TestCase):
+class Test_ExtraFields(unittest.TestCase):
     def runTest(self):
-        in_path       = samples['features'][1]['bed']
-        expected_path = samples['features'][1]['sql']
-        out_path = temporary_path('.sql')
-        track.convert(in_path, out_path)
-        self.assertFalse(assert_sql_equal(expected_path, out_path))
+        in_path = samples['features'][1]['sql']
+        with track.load(in_path) as t:
+            data = t.read('chr1', fields=['start','end','attributes'])
+            got = list(data)
+        expected = []
+        self.assertEqual(got, expected)
 
 #-----------------------------------#
 # This code was written by the BBCF #

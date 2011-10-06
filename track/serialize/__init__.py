@@ -60,7 +60,7 @@ class Serializer(object):
     def defineChrmeta(self, chrmeta):
         self.chrmeta = chrmeta
 
-    def newTrack(self, attributes=None):
+    def newTrack(self, name=None, attributes=None):
         self.tracks.append(collections.defaultdict(list))
 
     def newFeature(self, chrom, feature):
