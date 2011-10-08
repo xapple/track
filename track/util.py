@@ -6,7 +6,7 @@ Usefull stuff for the track package.
 import os
 
 # Internal modules #
-from track.common import iterate_lines
+from track.common import temporary_path, iterate_lines
 
 ########################################################################################################
 def determine_format(path):
@@ -67,6 +67,14 @@ def parse_chr_file(self, path):
     if not chrmeta:
         raise Exception("The file '" + path + "' does not seam to contain any information.")
     return chrmeta
+
+###############################################################################
+def serialize_chr_file(self, chrmeta, path=None, seperator='\t'):
+    """Read a dictionary and create a plain text file"""
+    if not path: path = temporary_path()
+    def lines():
+        for k,v in chrmeta.items(): yield k + seperator + str(v['length']) + '\n'
+    with open(path, 'w') as f: f.writelines(lines())
 
 ################################################################################
 def join_read_queries(track, selections, fields):

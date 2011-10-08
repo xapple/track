@@ -150,7 +150,7 @@ def empty_sql_file(path):
 ################################################################################
 def empty_file(path):
     """
-    Create an empty sql file at the path specified.
+    Create an empty file at the path specified.
     """
     with open(path, 'w') as f: pass
 
@@ -207,7 +207,11 @@ def roman_to_int(input):
 ################################################################################
 class Colors:
     """Shortcuts for the ANSI escape sequences to control
-       formatting, color, etc. on text terminals"""
+       formatting, color, etc. on text terminals. Use it like this:
+
+        print Colors.red + "Hello world" + Colors.end
+
+    """
     # Special #
     end =  '\033[0m'
     underline = '\033[4m'
@@ -369,17 +373,18 @@ class JournaledDict(object):
 class JsonJit(object):
     """
     JsonJit is a class for Just In Time instantiation of JSON resources.
-    __lazy__ is called only when the first attribute is either get or set.
+    The __lazy__ method downloads the JSON resource from the server.
+    But the __lazy__ method is called only when the first attribute is either get or set.
     You can use it like this:
 
         assemblies = JsonJit('http://bbcftools.vital-it.ch/genrep/assemblies.json', 'assembly')
+
+    :param url: Location of the JSON to load
+    :param list_key: Optional dictionary key to unpack the elements of JSON with
     """
 
     def __init__(self, url, list_key=None):
-        """
-        *url*: Location of the JSON to load.
-        *list_key*: Optional dictionary key to unpack the elements of JSON with.
-        """
+        """Save the passed parameters"""
         self.__dict__['url'] = url
         self.__dict__['list_key'] = list_key
         self.__dict__['obj'] = None

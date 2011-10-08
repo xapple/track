@@ -111,6 +111,7 @@ from track import genrep
 from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
+from track.util import serialize_chr_file
 from track.common import check_path, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import pick_iterator_elements
@@ -844,17 +845,22 @@ class Track(object):
 
     def _info_read(self):
         """Populates the *self.info* attribute with information found in the 'attributes' table."""
-        if not 'attributes' in self.all_tables: return {}
-        self.cursor.execute("select key, value from attributes")
-        return dict(self.cursor.fetchall())
+        if not 'attributes' in self.all_tables: return
+        # Make a dictionary directly from the table #
+        query = self.cursor.execute("select key, value from attributes")
+        self.info = dict(query.fetchall())
+        # Freshly loaded, so not modified #
+        self.info.modified = False
 
     def _info_write(self):
         """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
         self.cursor.execute('drop table IF EXISTS attributes')
-        if self.info:
-            self.cursor.execute('create table attributes (key text, value text)')
-            for k in self.info.keys(): self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.info[k]))
+        if not self.info: return
+        # Write every dictionary entry #
+        self.cursor.execute('create table attributes (key text, value text)')
+        for k in self.info.keys():
+            self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.info[k]))
 
     @property
     def datatype(self):
@@ -895,30 +901,56 @@ class Track(object):
 
     def _chrmeta_read(self):
         """Populates the self.chrmeta attribute with information found in the 'chrNames' table."""
-        self._chrmeta = JournaledDict()
         if not 'chrNames' in self.tables: return
-        self.cursor.execute("pragma table_info(chrNames)")
-        column_names = [x[1].encode('ascii') for x in self.cursor.fetchall()]
-        all_rows = self.cursor.execute("select * from chrNames").fetchall()
-        return column_names, all_rows
+        # Columns are the chromosome attributes #
+        # ['name', 'length']
+        query = self.cursor.execute("pragma table_info(chrNames)")
+        columns = [x[1].encode('ascii') for x in query]
+        # Rows are the chromosome names #
+        # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
+        query = self.cursor.execute("select * from chrNames").fetchall()
+        rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
+        # Make a pretty dictionary of dictionaries #
+        # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
+        dictionary = dict([(r['name'], dict([(k, r[k]) for k in columns if k != 'name'])) for r in rows])
+        self.chrmeta = dictionary
+        # Freshly loaded, so not modified #
+        self.info.modified = False
 
     def _chrmeta_write(self):
         """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
         self.cursor.execute('drop table IF EXISTS chrNames')
-        if self.chrmeta:
-            self.cursor.execute('create table chrNames (name text, length integer)')
-            for r in self.chrmeta.rows: self.cursor.execute('insert into chrNames (' + ','.join(r.keys()) + ') values (' + ','.join(['?' for x in r.keys()])+')', tuple(r.values()))
+        if not self.chrmeta: return
+        # Rows are the chromosome names #
+        # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
+        rows = [dict([['name', chrom]] + [(k,v) for k,v in self[chrom].items()]) for chrom in self.chrmeta]
+        self.cursor.execute('create table chrNames (name text, length integer)')
+        for r in rows:
+            question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
+            column_names   = '(' + ','.join(r.keys()) + ')'
+            cell_values    = tuple(r.values())
+            self.cursor.execute('insert into chrNames ' + column_names + ' values ' + question_marks, cell_values)
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.
 
-        :param names: is the file path to the chromosome file.
-        :type  names: string
+        :param path: is the file path to the chromosome file to load.
+        :type  path: string
 
         :returns: None.
         """
         self.chrmeta = parse_chr_file(path)
+
+    def export_chr_file(self, path):
+        """Output the information contained in the *chrmeta* attribute into a plain text file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer
+
+        :param path: is the file path to the chromosome file to create.
+        :type  path: string
+
+        :returns: None.
+        """
+        serialize_chr_file(self.chrmeta, path)
 
     @property
     def specie(self):
@@ -932,22 +964,16 @@ class Track(object):
                 t.specie = 'hg19'
                 t.save()
         """
-        return self._chrmeta
+        return self._specie
 
     @specie.setter
     def specie(self, value):
-        if chrfile:
-            if not os.path.isfile(chrfile): return
-            self.chrmeta = parse_chr_file(chrfile)
-        if specie:
-            assembly = genrep.get_assembly(specie)
-            if assembly: self.chrmeta = assembly.chrmeta
+        # Check it is valid #
 
-        assembly = genrep.get_assembly(specie)
-        if assembly: self.chrmeta = assembly.chrmeta
-        #TODO chromosome renaming
+        # Check if the tables need renaming #
 
-        self._chrmeta.overwrite(value)
+        # Set the attribute #
+        self._specie = value
 
     def guess_specie(self):
         """An attempt at guessing the specie name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable specie is found, the *specie* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
@@ -962,7 +988,13 @@ class Track(object):
                 t.guess_specie()
                 t.save()
         """
-        pass
+        # Iterate through every known specie #
+
+        # Build the chromosome synoym list #
+        match = None
+
+        # Change the speice #
+        if match: self.speice = match
 
 ################################################################################
 class FeatureStream(object):
