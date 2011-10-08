@@ -1,6 +1,6 @@
-=============================
-Package 'track' documentation
-=============================
+===============================
+Package *'track'* documentation
+===============================
 
 .. automodule:: track
 
@@ -36,7 +36,7 @@ Track attributes
 .. autoattribute:: Track.info
 .. autoattribute:: Track.name
 .. autoattribute:: Track.datatype
-.. autoattribute:: Track.specie
+.. autoattribute:: Track.assembly
 .. autoattribute:: Track.chrmeta
 
 Track methods
@@ -51,7 +51,7 @@ Track methods
 .. automethod:: Track.remove
 .. automethod:: Track.rename
 .. automethod:: Track.count
-.. automethod:: Track.guess_specie
+.. automethod:: Track.guess_assembly
 .. automethod:: Track.load_chr_file
 .. automethod:: Track.export_chr_file
 .. automethod:: Track.get_score_vector

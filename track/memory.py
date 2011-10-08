@@ -15,14 +15,11 @@ from track.serialize import get_serializer
 def read(path, format=None):
     """Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks
 
-            * *path* is the path to track file to load.
-            * *format* is an optional string specifying the format of the track to load when it cannot be guessed from the file extension.
-
        :param path: is the path to track file to create.
        :type  path: string
        :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.
        :type  format: string
-       :returns: returns a dictionary containing all features of every chromosome contained in a track
+       :returns: a dictionary containing all features of every chromosome contained in a track
 
        ::
 
@@ -63,3 +60,9 @@ def write(dictionary, path, format=None):
     serializer = get_serializer(path, format)
     parser     = get_parser(dictionary, 'memory')
     return parser(serializer)
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

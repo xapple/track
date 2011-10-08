@@ -56,14 +56,15 @@ def get_assembly(name):
     try: assembly = Assembly(name)
     except urllib2.URLError: return None
     # Check for empty JSON #
-    if not assembly.json: return None
+    if not hasattr(assembly, 'json'): return None
     # Return the assembly #
     return assembly
 
-def guess_specie(list_of_chr_names):
-    """Takes a list of chromosome names
-       and tries to guess the specie."""
-    #TODO
+def find_possible_genome(chromosome_name):
+    """Returns a list of genome ids that the
+       given chromosome can be found in."""
+    info = json.loads(urllib2.urlopen(url + "chromosomes.json?identifier=" + chromosome_name).read())
+    return [chrom['chromosome']['genome_id'] for chrom in info]
 
 ################################################################################
 class Assembly(object):
@@ -85,21 +86,47 @@ class Assembly(object):
         info  = json.loads(urllib2.urlopen(url + "assemblies.json?assembly_"  + suffix).read())
         chrom = json.loads(urllib2.urlopen(url + "chromosomes.json?assembly_" + suffix).read())
         # Update the self attributes with info data #
-        self.json = info[0]['assembly']
-        self.__dict__.update(self.json)
+        if info:
+            self.json = info[0]['assembly']
+            self.__dict__.update(self.json)
         # Update the self.chromosome with chromosome data #
-        self.chromosomes = [item['chromosome'] for item in chrom]
+        if chrom:
+            self.chromosomes = [item['chromosome'] for item in chrom]
+        # Extra attributes #
+        self._chrmeta = None
+        self._synonyms = None
+
+    @property
+    def synonyms(self):
+        """Returns a dictionary of chromosome synonyms looking something like:
+
+            {'3': ['3', 'III', 'chrIII'],
+             '4': ['chrIV', 'IV'],
+             '5': ['V', 'chrV', 'chr5'],
+             'M': ['MT', 'chrM', 'chrM']
+             '2-micron': ['2-micron', '2micron']}
+
+        """
+        if self._synonyms: return self._synonyms
+        # Build it only once #
+        self._synonyms = {}
+        for chrom in self.chromosomes:
+            self._synonyms[chrom['name'].encode('ascii')] = [synonym['chr_name']['value'].encode('ascii') for synonym in chrom['chr_names']]
+        return self._synonyms
 
     @property
     def chrmeta(self):
-        """ Returns a dictionary of chromosome meta data looking something like:
+        """Returns a dictionary of chromosome metadata looking something like:
 
             {'chr1': {'length': 249250621},
              'chr2': {'length': 135534747},
              'chr3': {'length': 135006516},
 
         """
-        return dict([(v['name'].encode('ascii'), dict([('length', v['length'])])) for v in self.chromosomes])
+        if self._chrmeta: return self._chrmeta
+        # Build it only once #
+        self._chrmeta = dict([(chrom['name'].encode('ascii'), dict([('length', chrom['length'])])) for chrom in self.chromosomes])
+        return self._chrmeta
 
 ################################################################################
 # Expose base resources #
@@ -108,3 +135,9 @@ genomes       = JsonJit(url + "genomes.json",       'genome')
 nr_assemblies = JsonJit(url + "nr_assemblies.json", 'nr_assembly')
 assemblies    = JsonJit(url + "assemblies.json",    'assembly')
 sources       = JsonJit(url + "sources.json",       'source')
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

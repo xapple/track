@@ -27,6 +27,7 @@ class Test_BED_to_SQL(unittest.TestCase):
         out_path = temporary_path('.sql')
         track.convert(in_path, out_path)
         self.assertFalse(assert_sql_equal(expected_path, out_path))
+        os.remove(out_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

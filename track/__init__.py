@@ -80,14 +80,14 @@ To convert a track from a format (e.g. BED) to an other format (e.g. SQL) you ca
     import track
     track.convert('tracks/rp_genes.bed', 'tracks/rp_genes.sql')
 
-If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file. You can even try to guess the specie::
+If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file. You can even try to guess the assembly::
 
     import track
     with track.load('tracks/yeast_genes.sql') as t:
         # Try to guess using chromosome names
-        t.guess_specie()
+        t.guess_assembly()
         # Or specily the assembly
-        t.specie = 'hg19'
+        t.assembly = 'hg19'
         # Or load a tab delimited file
         t.load_chr_file('info/yeast.chr')
 
@@ -116,37 +116,37 @@ from track.common import check_path, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import pick_iterator_elements
 
-# Constants #
+# Lists #
 special_tables = ['attributes', 'chrNames', 'types']
 default_fields = ['start', 'end', 'name', 'score', 'strand']
 signal_fields  = ['start', 'end', 'score']
 
 # Dictionairies #
-sql_field_types    = {'start':        'integer',
-                      'end':          'integer',
-                      'score':        'real',
-                      'strand':       'integer',
-                      'name':         'text',
-                      'thick_start':  'integer',
-                      'thick_end':    'integer',
-                      'item_rgb':     'text',
-                      'block_count':  'integer',
-                      'block_sizes':  'text',
-                      'block_starts': 'text',
-                      'attributes':   'text',}
+sql_field_types = {'start':        'integer',
+                   'end':          'integer',
+                   'score':        'real',
+                   'strand':       'integer',
+                   'name':         'text',
+                   'thick_start':  'integer',
+                   'thick_end':    'integer',
+                   'item_rgb':     'text',
+                   'block_count':  'integer',
+                   'block_sizes':  'text',
+                   'block_starts': 'text',
+                   'attributes':   'text',}
 
-py_field_types     = {'start':        int,
-                      'end':          int,
-                      'score':        float,
-                      'strand':       int,
-                      'name':         str,
-                      'thick_start':  int,
-                      'thick_end':    int,
-                      'item_rgb':     str,
-                      'block_count':  int,
-                      'block_sizes':  str,
-                      'block_starts': str,
-                      'attributes':   str,}
+py_field_types  = {'start':        int,
+                   'end':          int,
+                   'score':        float,
+                   'strand':       int,
+                   'name':         str,
+                   'thick_start':  int,
+                   'thick_end':    int,
+                   'item_rgb':     str,
+                   'block_count':  int,
+                   'block_sizes':  str,
+                   'block_starts': str,
+                   'attributes':   str,}
 
 ################################################################################
 def load(path, format=None, readonly=False):
@@ -953,30 +953,36 @@ class Track(object):
         serialize_chr_file(self.chrmeta, path)
 
     @property
-    def specie(self):
-        """Giving a datatype to your track is optional. However, if you set this variable for your track, you must input with a GenRep compatible assembly name. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call *guess_specie()*.
+    def assembly(self):
+        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call *guess_assembly()*. This attribute is also stored inside the *info* dictionary.
 
-        Examples::
+        ::
 
             import track
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
-                t.specie = 'hg19'
+                t.assembly = 'hg19'
                 t.save()
         """
-        return self._specie
+        return self.info.get('assembly', 'Unnamed')
 
-    @specie.setter
-    def specie(self, value):
-        # Check it is valid #
-
-        # Check if the tables need renaming #
-
+    @assembly.setter
+    def assembly(self, value):
         # Set the attribute #
-        self._specie = value
+        self.info['assembly'] = value
+        # Check it is valid #
+        if value not in genrep.assemblies.by('name'): return
+        # Downlaod the info #
+        assembly = genrep.get_assembly(value)
+        # Check if the tables need renaming #
+        for orig_name in set(self.chromosomes) - set(assembly.chromsomes):
+            for cannonical_name, list_of_synonyms in assembly.synonyms.items():
+                if orig_name in list_of_synonyms:
+                    self.rename(orig_name, cannonical_name)
+                    assembly.synonyms.pop(cannonical_name)
 
-    def guess_specie(self):
-        """An attempt at guessing the specie name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable specie is found, the *specie* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
+    def guess_assembly1(self):
+        """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
 
         :returns: None.
 
@@ -985,16 +991,40 @@ class Track(object):
             import track
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
-                t.guess_specie()
+                t.guess_assembly()
                 t.save()
         """
-        # Iterate through every known specie #
+        genomes = set.intersection(*map(set, [genrep.find_possible_assembly(chrom) for chrom in self]))
+        if len(genomes) != 1: return
+        genome_id = genomes.pop()
 
-        # Build the chromosome synoym list #
-        match = None
+    def guess_assembly2(self):
+        """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
 
-        # Change the speice #
-        if match: self.speice = match
+        :returns: None.
+
+        ::
+
+            import track
+            track.convert('tracks/genes.bed', 'tracks/genes.sql')
+            with track.load('tracks/genes.sql') as t:
+                t.guess_assembly()
+                t.save()
+        """
+        # Iterate through every known assembly #
+        for assembly in genrep.assemblies.by('name'):
+            match = True
+            # Iterate through every chromosome name of the track #
+            for orig_name in self.chromosomes:
+                # Iterate through every chromosome name of the assembly #
+                for canonical_name in assembly.chromosomes:
+                    if orig_name == canonical_name: break
+                    if orig_name in assembly.synonyms[canonical_name] + [canonical_name]: break
+                else: match = False
+                if not match: break
+            else:
+                self.assembly = assembly
+                break
 
 ################################################################################
 class FeatureStream(object):
