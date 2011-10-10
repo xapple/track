@@ -27,7 +27,9 @@ class SerializerSQL(Serializer):
 
     def defineFields(self, fields):
         self.fields = fields
-        #TODO
+
+    def defineChrmeta(self, chrmeta):
+        self.current_track.chrmeta = chrmeta
 
     def newTrack(self, name=None, info=None):
         # Close previous track #
@@ -41,11 +43,11 @@ class SerializerSQL(Serializer):
         # Add the metadata #
         if info: self.current_track.info.update(info)
         # Add the tags #
-        if name: self.current_track.info['converted_from'] = name
-        self.current_track.info['converted_by'] = 'track package'
-        self.current_track.info['converted_at'] = time.asctime()
+        #if name: self.current_track.info['converted_from'] = name
+        #self.current_track.info['converted_by'] = 'track package'
+        #self.current_track.info['converted_at'] = time.asctime()
         # Benchmark it #
-        self.start_time = time.time()
+        #self.start_time = time.time()
 
     def newFeature(self, chrom, feature):
         if chrom == self.current_chrom and len(self.buffer) < BUFFER_SIZE:
@@ -60,7 +62,7 @@ class SerializerSQL(Serializer):
         # Empty buffer #
         self.flushBuffer()
         # Add the benchmark #
-        self.current_track.info['converted_in'] = time.time() - self.start_time
+        #self.current_track.info['converted_in'] = time.time() - self.start_time
         # Add the chromosome metadata #
         #TODO
         # Commit changes #

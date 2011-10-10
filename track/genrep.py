@@ -28,10 +28,6 @@ Example usage:
 
     >>> print [c['name'] for c in a.chromosomes]
     [u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u'10', u'11', u'12', ......
-
-    >>> from track.genrep import guess_specie
-    >>> print guess_specie(['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM'])
-    arabidopsis
 """
 
 # Built-in modules #
@@ -44,9 +40,9 @@ from track.common import JsonJit
 url = "http://bbcftools.vital-it.ch/genrep/"
 
 ################################################################################
-def is_up(self):
+def is_up():
     """Check if GenRep webservice is available"""
-    try: urllib2.urlopen(self.url + "/nr_assemblies.json", timeout=2)
+    try: urllib2.urlopen(url + "nr_assemblies.json", timeout=2)
     except urllib2.URLError: return False
     return True
 
@@ -60,7 +56,7 @@ def get_assembly(name):
     # Return the assembly #
     return assembly
 
-def find_possible_genome(chromosome_name):
+def find_possible_assemblies(chromosome_name):
     """Returns a list of genome ids that the
        given chromosome can be found in."""
     info = json.loads(urllib2.urlopen(url + "chromosomes.json?identifier=" + chromosome_name).read())
@@ -94,25 +90,16 @@ class Assembly(object):
             self.chromosomes = [item['chromosome'] for item in chrom]
         # Extra attributes #
         self._chrmeta = None
-        self._synonyms = None
 
-    @property
-    def synonyms(self):
-        """Returns a dictionary of chromosome synonyms looking something like:
-
-            {'3': ['3', 'III', 'chrIII'],
-             '4': ['chrIV', 'IV'],
-             '5': ['V', 'chrV', 'chr5'],
-             'M': ['MT', 'chrM', 'chrM']
-             '2-micron': ['2-micron', '2micron']}
-
+    def guess_chromosome_name(self, chromosome_name):
+        """Searches the assembly for chromosome synoyn names,
+           and return the cannoncial name of the chromosome.
+           Returns None if the chromosome is not known about.
         """
-        if self._synonyms: return self._synonyms
-        # Build it only once #
-        self._synonyms = {}
-        for chrom in self.chromosomes:
-            self._synonyms[chrom['name'].encode('ascii')] = [synonym['chr_name']['value'].encode('ascii') for synonym in chrom['chr_names']]
-        return self._synonyms
+        address = url + "chromosomes.json?assembly_id=" + str(self.id) + "&identifier=" + chromosome_name
+        info = json.loads(urllib2.urlopen(address).read())
+        if len(info) != 1: return None
+        return info[0]['chromosome']['name']
 
     @property
     def chrmeta(self):
@@ -123,9 +110,8 @@ class Assembly(object):
              'chr3': {'length': 135006516},
 
         """
-        if self._chrmeta: return self._chrmeta
-        # Build it only once #
-        self._chrmeta = dict([(chrom['name'].encode('ascii'), dict([('length', chrom['length'])])) for chrom in self.chromosomes])
+        if not self._chrmeta:
+            self._chrmeta = dict([(chrom['name'].encode('ascii'), dict([('length', chrom['length'])])) for chrom in self.chromosomes])
         return self._chrmeta
 
 ################################################################################

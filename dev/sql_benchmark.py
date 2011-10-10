@@ -1,31 +1,28 @@
 # Modules #
-import sqlite3
-from inspect import getfile, currentframe
-from functools import partial
-import os, timeit, random, tempfile
+import sqlite3, os, timeit, random, tempfile
 
 # Variables #
 global num_entries
 num_entries = 1000000
 
-###############################################################################
+################################################################################
 # General Functions #
-def setup_database(db_path, auto_commit=None):
+def setup_database(path, auto_commit=None):
     global connection, cursor
-    if auto_commit: connection = sqlite3.connect(db_path, isolation_level=None) # commit all the time
-    else:           connection = sqlite3.connect(db_path)                       # no commits ever (default)
+    if auto_commit: connection = sqlite3.connect(path, isolation_level=None) # commit all the time
+    else:           connection = sqlite3.connect(path)                       # no commits ever (default)
     cursor = connection.cursor()
     cursor.execute('create table dummy (one text, two text, three integer)')
     connection.commit()
 
-def destroy_database(db_path):
-    os.remove(db_path)
+def destroy_database(path):
+    os.remove(path)
 
-def reopen_database(db_path):
+def reopen_database(path):
     global connection, cursor
     cursor.close()
     connection.close()
-    connection = sqlite3.connect(db_path)
+    connection = sqlite3.connect(path)
     cursor = connection.cursor()
 
 def generate_data():
@@ -33,6 +30,24 @@ def generate_data():
     name_gen = tempfile._RandomNameSequence()
     for i in range(num_entries):
         yield (name_gen.next(), name_gen.next(), random.randint(1,1000))
+
+class Timer:
+    def __init__(self, name, entries):
+        self.name = name
+        self.timer = timeit.default_timer
+        self.start = self.end = self.interval = None
+
+    def __enter__(self):
+        self.start = self.timer()
+        return self
+
+    def __exit__(self, *args):
+        self.end = self.timer()
+        total_time = self.end - self.start
+        entry_time = (1000000*total_time / num_entries)
+        line1 = "%.6f seconds for " % total_time + self.name
+        line2 = "(%.3f usec per entry)" % entry_time
+        print line1, line2
 
 def time_the_execution(command):
     global num_entries
@@ -42,7 +57,7 @@ def time_the_execution(command):
     string = "%.6f sec for " % sec + command.func.__name__
     print string.ljust(40) + "(%.3f usec per entry)" % (1000000*sec / num_entries)
 
-###############################################################################
+################################################################################
 # Write Fonctions #
 def simple_execute(iterable):
     global connection, cursor
@@ -94,7 +109,7 @@ def bad_bad_execute(iterable):
     connection.commit()
     connection.close()
 
-###############################################################################
+################################################################################
 # Read functions #
 def read_one_by_one(command):
     cursor.execute(command)
@@ -118,56 +133,50 @@ def read_iterator(command):
     cursor.execute(command)
     sum([x[2] for x in cursor])
 
-###############################################################################
+################################################################################
 # Write #
-if __name__=='__main__':
-    this_dir = '/'.join(os.path.abspath(getfile(currentframe())).split('/')[:-1])+'/'
-    db_path = this_dir + "test_database.sql"
+path = "test_database.sql"
+data = list(generate_data())
 
-    data = list(generate_data())
+print "--- Write ---"
+setup_database(path)
+with Timer('simple_execute'): simple_execute(data)
+destroy_database(path)
 
-    print "--write--"
-    setup_database(db_path)
-    time_the_execution(partial(simple_execute, data))
-    destroy_database(db_path)
+setup_database(path)
+with Timer('batch_execute'): batch_execute(data)
+destroy_database(path)
 
-    setup_database(db_path)
-    time_the_execution(partial(batch_execute, data))
-    destroy_database(db_path)
+setup_database(path)
+with Timer('simple_variable_table'): simple_variable_table(data)
+destroy_database(path)
 
-    setup_database(db_path)
-    time_the_execution(partial(simple_variable_table, data))
-    destroy_database(db_path)
+setup_database(path)
+with Timer('batch_variable_table'): batch_variable_table(data)
+destroy_database(path)
 
-    setup_database(db_path)
-    time_the_execution(partial(batch_variable_table, data))
-    destroy_database(db_path)
+setup_database(path)
+with Timer('variable_fields'): variable_fields(data)
+destroy_database(path)
 
-    setup_database(db_path)
-    time_the_execution(partial(variable_fields, data))
-    destroy_database(db_path)
+setup_database(path)
+with Timer('bad_bad_execute'): bad_bad_execute(data)
 
-    setup_database(db_path)
-    time_the_execution(partial(bad_bad_execute, data))
-
-###############################################################################
 # Read #
-    print "--read--"
-    connection = sqlite3.connect(db_path)
-    cursor = connection.cursor()
-    command = "select * from dummy"
+print "--- Read ---"
+connection = sqlite3.connect(path)
+cursor = connection.cursor()
+command = "select * from dummy"
 
-    reopen_database(db_path)
-    time_the_execution(partial(read_one_by_one, command))
+reopen_database(path)
+with Timer('read_one_by_one'): read_one_by_one(data)
 
-    reopen_database(db_path)
-    time_the_execution(partial(read_all, command))
+reopen_database(path)
+with Timer('read_all'): read_all(data)
 
-    reopen_database(db_path)
-    time_the_execution(partial(read_iterator, command))
+reopen_database(path)
+with Timer('read_iterator'): read_iterator(data)
 
-
-###############################################################################
-    cursor.close()
-    connection.close()
-    destroy_database(db_path)
+cursor.close()
+connection.close()
+destroy_database(path)

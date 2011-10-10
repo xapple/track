@@ -1,6 +1,7 @@
-// gcc sql_readwrite.c -lsqlite3 -o c_readwrite 
-// time c_readwrite 
- 
+// Execute in your terminal:
+// $ gcc sql_readwrite.c -lsqlite3 -o c_readwrite
+// $ time c_readwrite
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
@@ -50,14 +51,14 @@ int main(void){
             r = sqlite3_step(stmR);
             if (r == SQLITE_DONE) {break;}
             if (r != SQLITE_ROW) {printf("Can't step read statement (%d): %s\n", r, sqlite3_errmsg(conR)); exit(1);}
-            
+
             r = sqlite3_bind_text(stmW, 1, sqlite3_column_text(stmR, 0), 6, 0);
             if(r!=SQLITE_OK) {printf("Row %d, can't bind first var of write statement (%d): %s\n",  j, r, sqlite3_errmsg(conW)); exit(1);}
-            r = sqlite3_bind_text(stmW, 2, sqlite3_column_text(stmR, 1), 6, 0); 
+            r = sqlite3_bind_text(stmW, 2, sqlite3_column_text(stmR, 1), 6, 0);
             if(r!=SQLITE_OK) {printf("Row %d, can't bind second var of write statement (%d): %s\n", j, r, sqlite3_errmsg(conW)); exit(1);}
-            r = sqlite3_bind_int( stmW, 3, sqlite3_column_int( stmR, 2) +1); 
+            r = sqlite3_bind_int( stmW, 3, sqlite3_column_int( stmR, 2) +1);
             if(r!=SQLITE_OK) {printf("Row %d, can't bind third var of write statement (%d): %s\n",  j, r, sqlite3_errmsg(conW)); exit(1);}
-            
+
             r = sqlite3_step(stmW);
             if(r!=SQLITE_DONE) {printf("Can't step on write statement (%d): %s\n", r, sqlite3_errmsg(conW)); exit(1);}
             r = sqlite3_reset(stmW);
@@ -65,5 +66,5 @@ int main(void){
      sqlite3_close(conR);
      r = sqlite3_exec(conW, "COMMIT", 0, 0, &errmsg);
      if(r!=SQLITE_OK) {printf("Can't commit transaction: %s\n", errmsg); exit(1);}
-     sqlite3_close(conW); 
+     sqlite3_close(conW);
      return 0;}

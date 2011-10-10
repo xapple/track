@@ -407,6 +407,7 @@ class JsonJit(object):
         """Retrieve an item from the JSON
            by searching all attributes of all items
            for *name*"""
+        if not self.obj: self.__lazy__()
         for x in self.obj:
             if [k for k,v in x.items() if v == value]: return x
 
@@ -414,16 +415,19 @@ class JsonJit(object):
         """Retrieve an item from the JSON
            by search a key that is equal to value in
            all elements"""
+        if not self.obj: self.__lazy__()
         return [x for x in self.obj for k,v in x.items() if v == value and k == key]
 
     def by(self, name):
         """Return a list of attributes present
            in every element of the JSON"""
+        if not self.obj: self.__lazy__()
         return [x.get(name).encode('ascii') for x in self.obj]
 
     def make(self, name):
         """Return an object whoes attributes are the
            keys of the element's dictionary"""
+        if not self.obj: self.__lazy__()
         class JsonObject(object): pass
         obj = JsonObject()
         obj.__dict__.update(self.get(name))

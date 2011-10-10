@@ -3,7 +3,7 @@ Usefull stuff for the track package.
 """
 
 # Built-in modules #
-import os
+import os, shlex
 
 # Internal modules #
 from track.common import temporary_path, iterate_lines

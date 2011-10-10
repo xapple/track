@@ -82,10 +82,3 @@ Our `issue tracking system <https://github.com/bbcf/track/issues>`_  is found in
 Developer documentation
 #######################
 A full `developer documentation <http://bbcf.github.com/track/>`_ detailing all methods and classes is available.
-
-######################
-Running the test suite
-######################
-To run the test suite on the package, in the distribution directory, run::
-
-    $ nosetests

@@ -26,7 +26,8 @@ class Test_BED_to_SQL(unittest.TestCase):
         expected_path = samples['features'][1]['sql']
         out_path = temporary_path('.sql')
         track.convert(in_path, out_path)
-        self.assertFalse(assert_sql_equal(expected_path, out_path))
+        with track.load(out_path) as t: t.assembly = 'sacCer2'
+        self.assertTrue(assert_sql_equal(expected_path, out_path))
         os.remove(out_path)
 
 #-----------------------------------#

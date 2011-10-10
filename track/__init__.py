@@ -680,6 +680,9 @@ class Track(object):
         if self.readonly: return
         # Check existance #
         if previous_name not in self.chromosomes: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
+        # Check different #
+        if new_name == previous_name: return
+        # SQL query #
         self.cursor.execute("ALTER TABLE '" + previous_name + "' RENAME TO '" + new_name + "'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
@@ -845,7 +848,7 @@ class Track(object):
 
     def _info_read(self):
         """Populates the *self.info* attribute with information found in the 'attributes' table."""
-        if not 'attributes' in self.all_tables: return
+        if not 'attributes' in self.tables: return
         # Make a dictionary directly from the table #
         query = self.cursor.execute("select key, value from attributes")
         self.info = dict(query.fetchall())
@@ -974,14 +977,16 @@ class Track(object):
         if value not in genrep.assemblies.by('name'): return
         # Downlaod the info #
         assembly = genrep.get_assembly(value)
-        # Check if the tables need renaming #
-        for orig_name in set(self.chromosomes) - set(assembly.chromsomes):
-            for cannonical_name, list_of_synonyms in assembly.synonyms.items():
-                if orig_name in list_of_synonyms:
-                    self.rename(orig_name, cannonical_name)
-                    assembly.synonyms.pop(cannonical_name)
+        if not assembly: return
+        # Check if the tables need renaming or deleting #
+        for orig_name in self.chromosomes:
+            cannonical_name = assembly.guess_chromosome_name(orig_name)
+            if cannonical_name: self.rename(orig_name, cannonical_name)
+            else: self.remove(orig_name)
+        # Add the chrmeta #
+        self.chrmeta = assembly.chrmeta
 
-    def guess_assembly1(self):
+    def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
 
         :returns: None.
@@ -994,37 +999,11 @@ class Track(object):
                 t.guess_assembly()
                 t.save()
         """
-        genomes = set.intersection(*map(set, [genrep.find_possible_assembly(chrom) for chrom in self]))
+        genomes = set.intersection(*map(set, [genrep.find_possible_assemblies(chrom) for chrom in self]))
         if len(genomes) != 1: return
         genome_id = genomes.pop()
-
-    def guess_assembly2(self):
-        """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
-
-        :returns: None.
-
-        ::
-
-            import track
-            track.convert('tracks/genes.bed', 'tracks/genes.sql')
-            with track.load('tracks/genes.sql') as t:
-                t.guess_assembly()
-                t.save()
-        """
-        # Iterate through every known assembly #
-        for assembly in genrep.assemblies.by('name'):
-            match = True
-            # Iterate through every chromosome name of the track #
-            for orig_name in self.chromosomes:
-                # Iterate through every chromosome name of the assembly #
-                for canonical_name in assembly.chromosomes:
-                    if orig_name == canonical_name: break
-                    if orig_name in assembly.synonyms[canonical_name] + [canonical_name]: break
-                else: match = False
-                if not match: break
-            else:
-                self.assembly = assembly
-                break
+        return genome_id
+        #TODO
 
 ################################################################################
 class FeatureStream(object):

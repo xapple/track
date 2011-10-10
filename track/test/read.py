@@ -20,7 +20,7 @@ except ImportError:
 __test__ = True
 
 ###################################################################################
-class Test_MissingColumns(unittest.TestCase):
+class Test_Read(unittest.TestCase):
     def runTest(self):
         in_path = samples['features'][1]['sql']
         with track.load(in_path) as t:
