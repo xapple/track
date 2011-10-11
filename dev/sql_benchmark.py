@@ -1,5 +1,6 @@
 # Modules #
 import sqlite3, os, timeit, random, tempfile
+from track.common import Timer
 
 # Variables #
 global num_entries
@@ -30,24 +31,6 @@ def generate_data():
     name_gen = tempfile._RandomNameSequence()
     for i in range(num_entries):
         yield (name_gen.next(), name_gen.next(), random.randint(1,1000))
-
-class Timer:
-    def __init__(self, name, entries):
-        self.name = name
-        self.timer = timeit.default_timer
-        self.start = self.end = self.interval = None
-
-    def __enter__(self):
-        self.start = self.timer()
-        return self
-
-    def __exit__(self, *args):
-        self.end = self.timer()
-        total_time = self.end - self.start
-        entry_time = (1000000*total_time / num_entries)
-        line1 = "%.6f seconds for " % total_time + self.name
-        line2 = "(%.3f usec per entry)" % entry_time
-        print line1, line2
 
 def time_the_execution(command):
     global num_entries

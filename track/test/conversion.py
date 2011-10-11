@@ -22,13 +22,15 @@ __test__ = True
 ###################################################################################
 class Test_BED_to_SQL(unittest.TestCase):
     def runTest(self):
-        in_path       = samples['features'][1]['bed']
-        expected_path = samples['features'][1]['sql']
-        out_path = temporary_path('.sql')
-        track.convert(in_path, out_path)
-        with track.load(out_path) as t: t.assembly = 'sacCer2'
-        self.assertTrue(assert_sql_equal(expected_path, out_path))
-        os.remove(out_path)
+        for info in samples['small_features'].values() + samples['yeast_features'].values():
+            in_path       = info['bed']
+            expected_path = info['sql']
+            out_path      = temporary_path('.sql')
+            track.convert(in_path, out_path)
+            with track.load(out_path) as t: t.assembly = 'sacCer2'
+            self.assertTrue(assert_sql_equal(expected_path, out_path))
+            os.remove(out_path)
+
 
 #-----------------------------------#
 # This code was written by the BBCF #

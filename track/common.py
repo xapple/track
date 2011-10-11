@@ -475,3 +475,48 @@ class JsonJit(object):
     def __delitem__(self, key):
         if not self.obj: self.__lazy__()
         del self.obj[key]
+
+################################################################################
+class Timer:
+    """Times a given code block. Use it like this:
+
+            with Timer('my batch process'): batch_benchmark(args)
+
+    """
+
+    def __init__(self, name, entries):
+        import timeit
+        self.name = name
+        self.entries = entries
+        self.timer = timeit.default_timer
+
+    def __enter__(self):
+        self.start = self.timer()
+        return self
+
+    def __exit__(self, *args):
+        self.end = self.timer()
+        total_time = self.end - self.start
+        entry_time = (1000000*total_time / self.entries)
+        line1 = "%.6f seconds for " % total_time + self.name
+        line2 = "(%.3f usec per entry)" % entry_time
+        print line1, line2
+
+################################################################################
+def profile_it(command):
+    """Profiles a given command and returns a pstat object.
+       Use it like this:
+
+            r = profile_it('batch_benchmark(args)')
+            r.sort_stats('time', 'cum')
+            r.print_stats(10)
+
+    """
+    import os, cProfile, pstats
+    result_file = temporary_path('.profile')
+    cProfile.run(command, result_file)
+    results = pstats.Stats(result_file)
+    results.sort_stats('time', 'cum')
+    results.print_stats(20)
+    os.remove(result_file)
+    return results

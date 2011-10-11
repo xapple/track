@@ -35,13 +35,13 @@ chr_files = {
 
 # Tracks collection #
 samples = {
-  'features': {
+  'small_features': {
     1: {'name':'Validation features 1', 'filename': 'features1'},
     2: {'name':'Validation features 2', 'filename': 'features2'},
     3: {'name':'Validation features 3', 'filename': 'features3'},
     4: {'name':'Validation features 4', 'filename': 'features4'},
   },
-  'signals': {
+  'small_signals': {
     1: {'name':'Signal track 1', 'filename': 'scores1'},
     2: {'name':'Signal track 2', 'filename': 'scores1'},
     3: {'name':'Signal track 3', 'filename': 'scores1'},

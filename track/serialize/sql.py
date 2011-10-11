@@ -73,7 +73,9 @@ class SerializerSQL(Serializer):
         self.current_chrom = None
 
     def flushBuffer(self):
-        if self.buffer: self.current_track.write(self.current_chrom, self.buffer, self.fields)
+        if self.buffer:
+            self.current_track.write(self.current_chrom, self.buffer, self.fields)
+            self.buffer = []
 
 #-----------------------------------#
 # This code was written by the BBCF #

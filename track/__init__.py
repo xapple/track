@@ -255,10 +255,9 @@ def convert(source, destination):
     # Do it #
     paths = parser(serializer)
     # Maybe add some metadata #
-    if destination_format == 'sql':
-        with load(destination_path, destination_format) as t:
-            t.info['orig_name'] = source_path
-            t.info['orig_name'] = source_path
+    #if destination_format == 'sql':
+    #    with load(destination_path, destination_format) as t:
+    #        t.info['orig_name'] = source_path
     # Return a track path #
     return paths
 
