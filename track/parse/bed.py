@@ -41,11 +41,6 @@ class ParserBED(Parser):
                 self.handler.newTrack(self.name, info)
                 fields = all_fields_possible[1:len(items)]
                 self.handler.defineFields(fields)
-            # Chromosome field #
-            try:
-                chrom = items[0]
-            except IndexError:
-                self.handler.error(self.path, number, "The track%s is missing a chromosome")
             # Start and end fields #
             try:
                 items[1] = int(items[1])
@@ -84,7 +79,7 @@ class ParserBED(Parser):
             except IndexError:
                 pass
             finally:
-                self.handler.newFeature(chrom, items[1:])
+                self.handler.newFeature(items)
 
 #-----------------------------------#
 # This code was written by the BBCF #

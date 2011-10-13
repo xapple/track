@@ -16,6 +16,8 @@ from track.test import samples
 # Dictionaries #
 collection_conversion =  {'small_features':     {'from':'bed', 'to':'sql', 'assembly':'sacCer2'},
                           'yeast_features':     {'from':'bed', 'to':'sql', 'assembly':'sacCer2'},
+                          'small_signals':      {'from':'wig', 'to':'sql', 'assembly':'sacCer2'},
+                          'rand_signals':       {'from':'wig', 'to':'sql', 'assembly':'sacCer2'},
                           }
 # Same randomness #
 import random

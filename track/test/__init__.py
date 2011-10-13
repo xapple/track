@@ -43,15 +43,15 @@ samples = {
   },
   'small_signals': {
     1: {'name':'Signal track 1', 'filename': 'scores1'},
-    2: {'name':'Signal track 2', 'filename': 'scores1'},
-    3: {'name':'Signal track 3', 'filename': 'scores1'},
-    4: {'name':'Signal track 4', 'filename': 'scores1'},
+    2: {'name':'Signal track 2', 'filename': 'scores2'},
+    3: {'name':'Signal track 3', 'filename': 'scores3'},
+    4: {'name':'Signal track 4', 'filename': 'scores4'},
   },
   'rand_features': {
     1: {'name':'Random features 1', 'filename': 'random1'},
     2: {'name':'Random features 2', 'filename': 'random2'},
-    2: {'name':'Random features 2', 'filename': 'random3'},
-    2: {'name':'Random features 2', 'filename': 'random4'},
+    2: {'name':'Random features 3', 'filename': 'random3'},
+    2: {'name':'Random features 4', 'filename': 'random4'},
   },
   'rand_signals': {
     'Pol2':       {'name':'Pol2 signal', 'filename': 'yeast_pol2'},
@@ -59,7 +59,7 @@ samples = {
   },
   'yeast_features': {
     'All genes':  {'name':'All yeast genes',  'filename': 'yeast_genes'},
-    'Ribi genes': {'name':'Yesat Ribi genes', 'filename': 'yeast_ribi_genes'},
+    'Ribi genes': {'name':'Yeast Ribi genes', 'filename': 'yeast_ribi_genes'},
     'RP genes':   {'name':'Yeast RP genes',   'filename': 'yeast_rp_genes'},
   }
 }

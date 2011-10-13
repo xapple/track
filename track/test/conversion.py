@@ -31,6 +31,16 @@ class Test_BED_to_SQL(unittest.TestCase):
             self.assertTrue(assert_sql_equal(expected_path, out_path))
             os.remove(out_path)
 
+class Test_WIG_to_SQL(unittest.TestCase):
+    def runTest(self):
+        for info in samples['small_signals'].values():
+            in_path       = info['wig']
+            expected_path = info['sql']
+            out_path      = temporary_path('.sql')
+            track.convert(in_path, out_path)
+            with track.load(out_path) as t: t.assembly = 'sacCer2'
+            self.assertTrue(assert_sql_equal(expected_path, out_path))
+            os.remove(out_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

@@ -107,6 +107,23 @@ def sentinelize(iterable, sentinel):
     yield sentinel
 
 ################################################################################
+def get_next_item(iterable):
+    """
+    Gets the next item of an iterable.
+    If the iteratable is exhausted, returns None.
+
+    >>> get_next_item(iter(range(4)))
+    0
+    >>> get_next_item(iter([]))
+    None
+    """
+    try:
+        x = iterable.next()
+    except StopIteration:
+        x = None
+    return x
+
+################################################################################
 def pick_iterator_elements(iterable, indices):
     """
     Return a new iterator, yielding only those elements

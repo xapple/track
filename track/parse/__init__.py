@@ -10,6 +10,7 @@ parsers = {
     'memory': {'module': 'track.parse',          'class': 'Parser'},
     'track':  {'module': 'track.parse.instance', 'class': 'ParserTrack'},
     'bed':    {'module': 'track.parse.bed',      'class': 'ParserBED'},
+    'wig':    {'module': 'track.parse.wig',      'class': 'ParserWIG'},
 }
 
 ################################################################################

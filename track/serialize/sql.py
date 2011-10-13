@@ -11,7 +11,7 @@ from track.serialize import Serializer
 from track.common import make_file_names
 
 # Constants #
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 2048
 
 ################################################################################
 class SerializerSQL(Serializer):
@@ -49,13 +49,14 @@ class SerializerSQL(Serializer):
         # Benchmark it #
         #self.start_time = time.time()
 
-    def newFeature(self, chrom, feature):
+    def newFeature(self, feature):
+        chrom = feature[0]
         if chrom == self.current_chrom and len(self.buffer) < BUFFER_SIZE:
-            self.buffer.append(feature)
+            self.buffer.append(feature[1:])
         else:
             self.flushBuffer()
             self.current_chrom = chrom
-            self.buffer.append(feature)
+            self.buffer.append(feature[1:])
 
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):
@@ -63,8 +64,6 @@ class SerializerSQL(Serializer):
         self.flushBuffer()
         # Add the benchmark #
         #self.current_track.info['converted_in'] = time.time() - self.start_time
-        # Add the chromosome metadata #
-        #TODO
         # Commit changes #
         self.current_track.save()
         self.current_track.close()
