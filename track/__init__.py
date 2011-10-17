@@ -152,7 +152,7 @@ py_field_types  = {'start':        int,
 def load(path, format=None, readonly=False):
     """Loads a track from disk, whatever the format is.
 
-       :param path: is the path to track file to load.
+       :param path: is the path to track file to load or an URL. If the path is an URL, the file will be downloaded first and `readonly` will be set to True.
        :type  path: string
        :param format: is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.
        :type  format: string
@@ -169,7 +169,12 @@ def load(path, format=None, readonly=False):
                 data = yeast.read()
             with track.load('tracks/repeats.bed', readonly=True) as repeats:
                 data = repeats.read()
+            with track.load('http://example.com/genes.bed') as genes:
+                data = genes.read()
+
     """
+    # Check if URL #
+
     # Guess the format #
     if not format: format = determine_format(path)
     # If sql, just make a track with the path #
@@ -881,7 +886,7 @@ class Track(object):
     @property
     def name(self):
         """Giving a name to your track is optional. The default name is ``Unnamed``. This attribute is stored inside the *info* dictionary."""
-        return self.info.get('name', 'Unnamed')
+        return self.info.get('name', os.path.basename(self.path))
 
     @name.setter
     def name(self, value):

@@ -115,7 +115,6 @@ def get_next_item(iterable):
     >>> get_next_item(iter(range(4)))
     0
     >>> get_next_item(iter([]))
-    None
     """
     try:
         x = iterable.next()
@@ -130,7 +129,7 @@ def pick_iterator_elements(iterable, indices):
     of the original iterator.
 
     >>> list(pick_iterator_elements(iter([('a','b','c'),(10,20,30)]), (0,2)))
-    [('a','c'), (10,30)]
+    [['a', 'c'], [10, 30]]
     """
     for item in iterable: yield [item[i] for i in indices]
 

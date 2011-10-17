@@ -9,6 +9,7 @@ import sys, collections
 serializers = {
     'memory': {'module': 'track.parse',         'class': 'Serializer'},
     'sql':    {'module': 'track.serialize.sql', 'class': 'SerializerSQL'},
+    'bed':    {'module': 'track.serialize.bed', 'class': 'SerializerBED'},
 }
 
 ################################################################################

@@ -49,14 +49,13 @@ class SerializerSQL(Serializer):
         # Benchmark it #
         #self.start_time = time.time()
 
-    def newFeature(self, feature):
-        chrom = feature[0]
+    def newFeature(self, chrom, feature):
         if chrom == self.current_chrom and len(self.buffer) < BUFFER_SIZE:
-            self.buffer.append(feature[1:])
+            self.buffer.append(feature)
         else:
             self.flushBuffer()
             self.current_chrom = chrom
-            self.buffer.append(feature[1:])
+            self.buffer.append(feature)
 
     #-----------------------------------------------------------------------------#
     def closeCurrentTrack(self):

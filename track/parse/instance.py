@@ -12,7 +12,7 @@ class ParserTrack(Parser):
         self.handler.newTrack(self.attributes)
         for chrom in self.path:
             for feature in self.path.read(chrom):
-                self.handler.newFeature(feature)
+                self.handler.newFeature(chrom, feature)
 
 #-----------------------------------#
 # This code was written by the BBCF #

@@ -3,30 +3,30 @@ This subpackage contains functions to access the GenRep server.
 
 Example usage:
 
-    >>> from track import genrep
-    >>> print genrep.assemblies
+    >> from track import genrep
+    >> print genrep.assemblies
     [{u'source_name': u'UCSC', u'name': u'ce6', u'created_at': u'2010-12-19T20:52:31Z', u'updated_at': u'2011-01-05T14:58:43Z', u'bbcf_valid': True, u'nr_assembly_id': 106, u'source_id': 4, u'genome_id': 8, u'id': 14, u'md5': u'fd56 ......
 
-    >>> print genrep.assemblies.by('name')
+    >> print genrep.assemblies.by('name')
     ['ce6', 'danRer7', 'dm3', 'GRCh37', 'hg19', 'MLeprae_TN', ......
 
-    >>> print genrep.assemblies.get('hg19')
+    >> print genrep.assemblies.get('hg19')
     {u'bbcf_valid': True, u'created_at': u'2010-12-16T16:08:13Z', u'genome_id': 5, u'id': 11, ......
 
-    >>> print genrep.assemblies.filter('genome_id', 5)
+    >> print genrep.assemblies.filter('genome_id', 5)
     [{u'bbcf_valid': False, u'created_at': u'2011-03-25T01:56:41Z', u'genome_id': 5, u'id': 22, ......
 
-    >>> print genrep.assemblies.hg19.id
+    >> print genrep.assemblies.hg19.id
     11
 
     Same goes for organisms, genomes, etc.
 
-    >>> from track.genrep import get_assembly
-    >>> a = get_assembly('hg19')
-    >>> print a.created_at
+    >> from track.genrep import get_assembly
+    >> a = get_assembly('hg19')
+    >> print a.created_at
     '2010-12-16T16:08:13Z'
 
-    >>> print [c['name'] for c in a.chromosomes]
+    >> print [c['name'] for c in a.chromosomes]
     [u'1', u'2', u'3', u'4', u'5', u'6', u'7', u'8', u'9', u'10', u'11', u'12', ......
 """
 

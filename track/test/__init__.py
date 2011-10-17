@@ -71,6 +71,10 @@ for group_key, group in sorted(samples.items()):
         for format in formats:
             track[format] = samples_path + format + '/' + track['filename'] + '.' + format
 
+# Per format lists #
+bed_samples = samples['small_features'].values() + \
+              samples['yeast_features'].values()
+
 # Specially hard to parse tracks for testing #
 formats = ['bed', 'wig']
 outcomes = ['pass', 'fail']

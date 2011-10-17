@@ -11,9 +11,9 @@ import shlex
 from track.parse import Parser
 from track.common import iterate_lines
 
-# Variables #
-all_fields_possible = ['chr', 'start', 'end', 'name', 'score', 'strand', 'thick_start',
-                       'thick_end', 'item_rgb', 'block_count', 'block_sizes', 'block_starts']
+# Constants #
+all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
+              'thick_end', 'item_rgb', 'block_count', 'block_sizes', 'block_starts']
 
 ################################################################################
 class ParserBED(Parser):
@@ -39,7 +39,7 @@ class ParserBED(Parser):
             # Have we started a track already ? #
             if not fields:
                 self.handler.newTrack(self.name, info)
-                fields = all_fields_possible[1:len(items)]
+                fields = all_fields[len(items)]
                 self.handler.defineFields(fields)
             # Start and end fields #
             try:
@@ -79,7 +79,7 @@ class ParserBED(Parser):
             except IndexError:
                 pass
             finally:
-                self.handler.newFeature(items)
+                self.handler.newFeature(items[0], items[1:])
 
 #-----------------------------------#
 # This code was written by the BBCF #
