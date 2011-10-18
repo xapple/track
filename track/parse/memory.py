@@ -1,18 +1,18 @@
 """
-This module implements the parsing of the track object.
+This module implements the parsing of the in-memory data.
+In this case, self.path will be a large dictionary.
 """
 
 # Internal modules #
 from track.parse import Parser
 
 ################################################################################
-class ParserTrack(Parser):
+class ParserRAM(Parser):
     def parse(self):
-        self.handler.defineFields(self.fields)
-        self.handler.newTrack(self.attributes)
+        self.handler.newTrack({}, self.name)
         for chrom in self.path:
-            for feature in self.path.read(chrom):
-                self.handler.newFeature(chrom, feature)
+            for feature in self.path[chrom]:
+                self.handler.newFeature((chrom,) + feature)
 
 #-----------------------------------#
 # This code was written by the BBCF #

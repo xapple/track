@@ -30,56 +30,58 @@ class ParserBED(Parser):
                 try:
                     info = dict([p.split('=',1) for p in shlex.split(line[6:])])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s seems to have an invalid <track> header line")
+                    self.handler.error("The track%s seems to have an invalid <track> header line", self.path, number)
                 fields = []
                 continue
             # Split the lines #
             items = line.split('\t')
             if len(items) == 1: items = line.split()
+            # Chromosome #
+            chrom = items.pop(0)
             # Have we started a track already ? #
             if not fields:
-                self.handler.newTrack(self.name, info)
-                fields = all_fields[len(items)]
+                self.handler.newTrack(info, self.name)
+                fields = all_fields[0:len(items)]
                 self.handler.defineFields(fields)
             # Start and end fields #
             try:
+                items[0] = int(items[0])
                 items[1] = int(items[1])
-                items[2] = int(items[2])
             except ValueError:
-                self.handler.error(self.path, number, "The track%s has non integers as interval bounds")
+                self.handler.error("The track%s has non integers as interval bounds", self.path, number)
             except IndexError:
-                self.handler.error(self.path, number, "The track%s has less than two columns")
-            if line[2] <= line[1]:
-                self.handler.error(self.path, number, "The track%s has negative or null intervals")
+                self.handler.error("The track%s has less than two columns", self.path, number)
+            if items[1] <= items[0]:
+                self.handler.error("The track%s has negative or null intervals", self.path, number)
             # All following fields are optional #
             try:
                 # Name field #
-                if items[3] == '.': items[3] = ''
+                if items[2] == '.': items[2] = ''
                 # Score field #
-                if items[4] == '.' or items[4] == '': items[4] = 0.0
+                if items[3] == '.' or items[3] == '': items[3] = 0.0
                 try:
-                    items[4] = float(items[4])
+                    items[3] = float(items[3])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has non floats as score values")
+                    self.handler.error("The track%s has non floats as score values", self.path, number)
                 # Strand field #
-                if   items[5] == '+': items[5] =  1
-                elif items[5] == '-': items[5] = -1
-                else:                 items[5] =  0
+                if   items[4] == '+': items[4] =  1
+                elif items[4] == '-': items[4] = -1
+                else:                 items[4] =  0
                 # Thick starts #
                 try:
-                    items[6] = float(items[6])
+                    items[6] = float(items[5])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has non integers as thick starts")
+                    self.handler.error("The track%s has non integers as thick starts", self.path, number)
                 # Thick ends #
                 try:
-                    items[7] = float(items[7])
+                    items[7] = float(items[6])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has non integers as thick ends")
-            # All index errors are ignored since the fields are optional #
+                    self.handler.error("The track%s has non integers as thick ends", self.path, number)
+            # All index errors are ignored since the fields above three are optional #
             except IndexError:
                 pass
             finally:
-                self.handler.newFeature(items[0], items[1:])
+                self.handler.newFeature(chrom, items)
 
 #-----------------------------------#
 # This code was written by the BBCF #

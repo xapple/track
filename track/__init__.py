@@ -114,7 +114,7 @@ from track.util import determine_format, join_read_queries, make_cond_from_sel, 
 from track.util import serialize_chr_file
 from track.common import check_path, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
-from track.common import pick_iterator_elements
+from track.common import Color, pick_iterator_elements
 
 # Lists #
 special_tables = ['attributes', 'chrNames', 'types']
@@ -354,7 +354,7 @@ class Track(object):
 
                ``['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM']``
 
-           You cannot set this attribute. To add new chromosomes, just write() to them."""
+           You cannot set this attribute. To add new chromosomes, just ``write()`` to them."""
         # Filters the list of SQL tables to retrieve the list of chromosomes.
         chroms = [x for x in self.tables if x not in special_tables and not x.endswith('_idx')]
         chroms.sort(key=natural_sort)
@@ -458,7 +458,7 @@ class Track(object):
         # Get a serializer #
         serializer = get_serializer(path, format)
         # Get a parser #
-        parser = get_parser(self, 'track')
+        parser = get_parser(self, 'sql')
         # Do it #
         return parser(serializer)
 
@@ -607,9 +607,11 @@ class Track(object):
         try:
             self.cursor.executemany(sql_command, data)
         except (sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
-            raise Exception("The command '" + sql_command + "' on the track '" + self.path + "' failed with error: '" + str(err) + "'" + \
-                '\n    ' + 'The bindings: ' + str(fields) + \
-                '\n    ' + 'You gave: ' + str(data))
+            message1 = "The command '%s%s%s' on the track '%s' failed with error:\n %s%s%s"
+            message1 = message1 % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
+            message2 = "\n * %sThe bindings%s: %s \n * %sYou gave%s: %s"
+            message2 = message2 % (Color.b_ylw, Color.end, fields, Color.b_ylw, Color.end, data)
+            raise Exception(message1 + message2)
 
     #-----------------------------------------------------------------------------#
     def insert(self, chromosome, feature):
@@ -961,7 +963,7 @@ class Track(object):
 
     @property
     def assembly(self):
-        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call *guess_assembly()*. This attribute is also stored inside the *info* dictionary.
+        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
 
         ::
 

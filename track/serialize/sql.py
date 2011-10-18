@@ -31,10 +31,10 @@ class SerializerSQL(Serializer):
     def defineChrmeta(self, chrmeta):
         self.current_track.chrmeta = chrmeta
 
-    def newTrack(self, name=None, info=None):
+    def newTrack(self, info=None, name=None):
         # Close previous track #
         if self.current_track: self.closeCurrentTrack()
-        # Get a name #
+        # Get a file name #
         path = self.file_paths.next()
         # Add it to the result #
         self.tracks.append(path)

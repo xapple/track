@@ -3,13 +3,13 @@ This subpackage contains one python source file per format implemented for seria
 """
 
 # Built-in modules #
-import sys, collections
+import sys
 
 # Variables #
 serializers = {
-    'memory': {'module': 'track.parse',         'class': 'Serializer'},
-    'sql':    {'module': 'track.serialize.sql', 'class': 'SerializerSQL'},
-    'bed':    {'module': 'track.serialize.bed', 'class': 'SerializerBED'},
+    'memory': {'module': 'track.serialize.memory', 'class': 'SerializerRAM'},
+    'sql':    {'module': 'track.serialize.sql',    'class': 'SerializerSQL'},
+    'bed':    {'module': 'track.serialize.bed',    'class': 'SerializerBED'},
 }
 
 ################################################################################
@@ -51,21 +51,24 @@ class Serializer(object):
     def __exit__(self, errtype, value, traceback):
         pass
 
-    def error(self, path, line_number, message):
-        location = " '" + path + ":" + str(line_number) + "'"
-        raise Exception(message % location)
+    def error(self, message, path=None, line_number=None):
+        if path:
+            if not line_number: location = " '" + path + "'"
+            else: location = " '" + path + ":" + str(line_number) + "'"
+            raise Exception(message % location)
+        raise Exception(message)
 
     def defineFields(self, fields):
-        self.fields = fields
+        pass
 
     def defineChrmeta(self, chrmeta):
-        self.chrmeta = chrmeta
+        pass
 
-    def newTrack(self, name=None, attributes=None):
-        self.tracks.append(collections.defaultdict(list))
+    def newTrack(self, info=None, name=None):
+        pass
 
     def newFeature(self, chrom, feature):
-        self.tracks[-1]['chrom'].append(feature)
+        raise NotImplementedError
 
 #-----------------------------------#
 # This code was written by the BBCF #

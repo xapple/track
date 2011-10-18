@@ -136,7 +136,7 @@ def pick_iterator_elements(iterable, indices):
 ################################################################################
 def assert_sql_equal(file_a, file_b):
     """
-    Compare two two sqlite3 databases via their dumps.
+    Compare two sqlite3 databases via their dumps.
     Raise an exception if they are not equal, otherwise
     return True.
     """
@@ -145,11 +145,29 @@ def assert_sql_equal(file_a, file_b):
     B = sqlite3.connect(file_b)
     for a,b in itertools.izip_longest(A.iterdump(), B.iterdump()):
         if a != b:
-            intro  = Colors.ylw + "First difference in dump follows" + Colors.end
-            A_line = Colors.b_ylw + "A: " + Colors.end + a
-            B_line = Colors.b_ylw + "B: " + Colors.end + b
+            intro  = Color.ylw + "First difference in dump follows" + Color.end
+            A_line = Color.b_ylw + "A: " + Color.end + a
+            B_line = Color.b_ylw + "B: " + Color.end + b
             raise AssertionError(intro + "\n" + A_line + "\n" + B_line)
     return True
+
+################################################################################
+def assert_file_equal(file_a, file_b, *args, **kwargs):
+    """
+    Compare two text file.
+    Raise an exception if they are not equal, otherwise
+    return True.
+    """
+    # Compare them #
+    import difflib
+    with open(file_a, 'r') as f: A = f.read().splitlines()
+    with open(file_b, 'r') as f: B = f.read().splitlines()
+    diff = list(difflib.unified_diff(A, B, fromfile=file_a, tofile=file_b))
+    if not diff: return True
+    # Raise and print differences #
+    message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
+    message = message  % (Color.cyn, file_a, Color.end, Color.cyn, file_b, Color.end)
+    raise AssertionError(message + '\n'.join(diff))
 
 ################################################################################
 def empty_sql_file(path):
@@ -221,11 +239,11 @@ def roman_to_int(input):
     else: raise ValueError, 'Input is not a valid roman numeral: "%s."' % input
 
 ################################################################################
-class Colors:
+class Color:
     """Shortcuts for the ANSI escape sequences to control
        formatting, color, etc. on text terminals. Use it like this:
 
-        print Colors.red + "Hello world" + Colors.end
+        print Color.red + "Hello world" + Color.end
 
     """
     # Special #
@@ -334,7 +352,6 @@ class JournaledDict(object):
     def has_key(self, key): return key in self.data
     def get(self, key, d=None): return self.data.get(key, d)
 
-    #-----------------------------------------------------------------------------#
     def clear(self):
         self.modified = True
         self.data.clear()
@@ -370,8 +387,6 @@ class JournaledDict(object):
         d = cls()
         for key in iterable: d[key] = value
         return d
-
-    #-----------------------------------------------------------------------------#
 
     def save(self):
         self.modified = False

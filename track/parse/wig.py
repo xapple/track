@@ -29,7 +29,7 @@ class ParserWIG(Parser):
                 try:
                     info = dict([p.split('=',1) for p in shlex.split(line[6:])])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s seems to have an invalid <track> header line")
+                    self.handler.error("The track%s seems to have an invalid <track> header line", self.path, number)
                 declare_track = True
                 continue
             # Have we started a track already ? #
@@ -39,43 +39,43 @@ class ParserWIG(Parser):
                     self.handler.newFeature(last_chrom, last_feature)
                     last_feature = None
                     last_chrom   = None
-                self.handler.newTrack(self.name, info)
+                self.handler.newTrack(info, self.name)
                 self.handler.defineFields(['start', 'end', 'score'])
             # Directive line #
             if line.startswith("variableStep") or line.startswith("fixedStep"):
                 params = dict([p.split('=',1) for p in shlex.split('mode=' + line)])
                 if not params.get('chrom', False):
-                    self.handler.error(self.path, number, "The track%s doesn't specify a chromosome.")
+                    self.handler.error("The track%s doesn't specify a chromosome.", self.path, number)
                 try:
                     params['span'] = int(params.get('span', 1))
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has a non integer as span value.")
+                    self.handler.error("The track%s has a non integer as span value.", self.path, number)
                 if params['span'] < 1:
-                    self.handler.error(self.path, number, "The track%s has a negative or null span value.")
+                    self.handler.error("The track%s has a negative or null span value.", self.path, number)
                 if line.startswith("fixedStep "):
                     if not 'start' in params:
-                       self.handler.error(self.path, number, "The track%s has a fixedStep directive without a start.")
+                       self.handler.error("The track%s has a fixedStep directive without a start.", self.path, number)
                     try:
                         params['start'] = int(params['start'])
                     except ValueError:
-                         self.handler.error(self.path, number, "The track%s has a non integer as start value.")
+                         self.handler.error("The track%s has a non integer as start value.", self.path, number)
                     try:
                         params['step'] = int(params.get('step',1))
                     except ValueError:
-                        self.handler.error(self.path, number, "The track%s has a non integer as step value.")
+                        self.handler.error("The track%s has a non integer as step value.", self.path, number)
                     if params['step'] < 1:
-                        self.handler.error(self.path, number, "The track%s has a negative or null step value.")
+                        self.handler.error("The track%s has a negative or null step value.", self.path, number)
                     params['count'] = 0
                 continue
             # Not a directive line #
             if not params:
-                self.handler.error(self.path, number, "The track%s is missing a fixedStep or variableStep directive.")
+                self.handler.error("The track%s is missing a fixedStep or variableStep directive.", self.path, number)
             # Fixed #
             if params['mode'] == 'fixedStep':
                 try:
                     line = float(line)
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has non floats as score values.")
+                    self.handler.error("The track%s has non floats as score values.", self.path, number)
                 base = params['start'] + params['count'] * params['step']
                 chrom   = params['chrom']
                 feature = [base, base + params['span'], line]
@@ -88,9 +88,9 @@ class ParserWIG(Parser):
                     line[0] = int(line[0])
                     line[1] = float(line[1])
                 except ValueError:
-                    self.handler.error(self.path, number, "The track%s has invalid values.")
+                    self.handler.error("The track%s has invalid values.", self.path, number)
                 except IndexError:
-                  self.handler.error(self.path, number, "The track%s has missing values.")
+                  self.handler.error("The track%s has missing values.", self.path, number)
                 chrom   = params['chrom']
                 feature = [line[0], line[0] + params['span'], line[1]]
             # Ignore null scores #
@@ -100,7 +100,7 @@ class ParserWIG(Parser):
             if last_feature:
                 if last_chrom[0] == chrom[0]:
                     if last_feature[1] > feature[0]:
-                        self.handler.error(self.path, -1, "The track%s has a start or span larger than its end or step.")
+                        self.handler.error("The track%s has a start or span larger than its end or step.", self.path)
                     if last_feature[1] == feature[0] and last_feature[3] == feature[3]:
                         last_feature[1] = feature[1]
                         continue

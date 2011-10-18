@@ -36,31 +36,31 @@ chr_files = {
 # Tracks collection #
 samples = {
   'small_features': {
-    1: {'name':'Validation features 1', 'filename': 'features1'},
-    2: {'name':'Validation features 2', 'filename': 'features2'},
-    3: {'name':'Validation features 3', 'filename': 'features3'},
-    4: {'name':'Validation features 4', 'filename': 'features4'},
+    1:            {'name':'Validation features 1', 'filename': 'features1'},
+    2:            {'name':'Validation features 2', 'filename': 'features2'},
+    3:            {'name':'Validation features 3', 'filename': 'features3'},
+    4:            {'name':'Validation features 4', 'filename': 'features4'},
   },
   'small_signals': {
-    1: {'name':'Signal track 1', 'filename': 'scores1'},
-    2: {'name':'Signal track 2', 'filename': 'scores2'},
-    3: {'name':'Signal track 3', 'filename': 'scores3'},
-    4: {'name':'Signal track 4', 'filename': 'scores4'},
+    1:            {'name':'Signal track 1',        'filename': 'scores1'},
+    2:            {'name':'Signal track 2',        'filename': 'scores2'},
+    3:            {'name':'Signal track 3',        'filename': 'scores3'},
+    4:            {'name':'Signal track 4',        'filename': 'scores4'},
   },
   'rand_features': {
-    1: {'name':'Random features 1', 'filename': 'random1'},
-    2: {'name':'Random features 2', 'filename': 'random2'},
-    2: {'name':'Random features 3', 'filename': 'random3'},
-    2: {'name':'Random features 4', 'filename': 'random4'},
+    1:            {'name':'Random features 1',     'filename': 'random1'},
+    2:            {'name':'Random features 2',     'filename': 'random2'},
+    2:            {'name':'Random features 3',     'filename': 'random3'},
+    2:            {'name':'Random features 4',     'filename': 'random4'},
   },
   'rand_signals': {
-    'Pol2':       {'name':'Pol2 signal', 'filename': 'yeast_pol2'},
-    'Rap1':       {'name':'Rap1 signal', 'filename': 'yeast_rap1'},
+    'Pol2':       {'name':'Pol2 signal',           'filename': 'yeast_pol2'},
+    'Rap1':       {'name':'Rap1 signal',           'filename': 'yeast_rap1'},
   },
   'yeast_features': {
-    'All genes':  {'name':'All yeast genes',  'filename': 'yeast_genes'},
-    'Ribi genes': {'name':'Yeast Ribi genes', 'filename': 'yeast_ribi_genes'},
-    'RP genes':   {'name':'Yeast RP genes',   'filename': 'yeast_rp_genes'},
+    'All genes':  {'name':'All yeast genes',       'filename': 'yeast_genes'},
+    'Ribi genes': {'name':'Yeast Ribi genes',      'filename': 'yeast_ribi_genes'},
+    'RP genes':   {'name':'Yeast RP genes',        'filename': 'yeast_rp_genes'},
   }
 }
 

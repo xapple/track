@@ -8,7 +8,7 @@ import os
 
 # Internal modules #
 import track
-from track.common import temporary_path, assert_sql_equal
+from track.common import temporary_path, assert_sql_equal, assert_file_equal
 from track.test import bed_samples
 
 # Unittesting module #
@@ -34,9 +34,7 @@ class TestBED(unittest.TestCase):
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # From SQL to BED #
             track.convert(test_sql_path, test_bed_path)
-            with open(orig_bed_path, 'r') as f: A = f.read().split('\n')
-            with open(test_bed_path, 'r') as f: B = f.read().split('\n')
-            self.assertEqual(A[1:], B)
+            assert_file_equal(orig_bed_path, test_bed_path)
             # Clean up #
             os.remove(test_sql_path)
             os.remove(test_bed_path)

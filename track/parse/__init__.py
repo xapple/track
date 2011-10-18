@@ -7,8 +7,8 @@ import os, sys
 
 # Variables #
 parsers = {
-    'memory': {'module': 'track.parse',          'class': 'Parser'},
-    'track':  {'module': 'track.parse.instance', 'class': 'ParserTrack'},
+    'memory': {'module': 'track.parse.memory',   'class': 'ParserRAM'},
+    'sql':    {'module': 'track.parse.sql',      'class': 'ParserSQL'},
     'bed':    {'module': 'track.parse.bed',      'class': 'ParserBED'},
     'wig':    {'module': 'track.parse.wig',      'class': 'ParserWIG'},
 }
@@ -58,10 +58,7 @@ class Parser(object):
         else: return self.handler.tracks
 
     def parse(self):
-        self.handler.newTrack(self.name)
-        for chrom in self.path:
-            for feature in self.path[chrom]:
-                self.handler.newFeature((chrom,) + feature)
+        raise NotImplementedError
 
 #-----------------------------------#
 # This code was written by the BBCF #

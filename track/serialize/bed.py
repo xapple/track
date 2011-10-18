@@ -21,17 +21,26 @@ class SerializerBED(Serializer):
 
     def defineFields(self, fields):
         for i in range(len(fields)):
-            if fields[i] != all_fields[i]: break
-        else:
-            self.indices = [feature[i] for i in self.indices]
+            if fields[i] != all_fields[i]:
+                try:
+                    self.indices = [all_fields.index(f) for f in fields]
+                except ValueError:
+                    message = "You tried to write a '%s' field to a BED file. Possible fields are: %s"
+                    self.error(message % (f, all_fields))
+                break
 
-    def newTrack(self, name=None, info=None):
+    def newTrack(self, info=None, name=None):
+        if not info: info = {}
         info['type'] = 'bed'
         info['converted_by'] = __package__
         self.file.write("track " + ' '.join([k + '="' + v + '"' for k, v in info.items()]) + '\n')
 
     def newFeature(self, chrom, feature):
+        # Make sure eveything is a string #
+        feature = [str(f) for f in feature]
+        # Put the fields in the right order #
         if self.indices: feature = [feature[i] for i in self.indices]
+        # Write on line #
         self.file.write('\t'.join([chrom] + feature) + '\n')
 
 #-----------------------------------#
