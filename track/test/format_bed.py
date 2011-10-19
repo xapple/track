@@ -9,7 +9,7 @@ import os
 # Internal modules #
 import track
 from track.common import temporary_path, assert_sql_equal, assert_file_equal
-from track.test import bed_samples
+from track.test import samples
 
 # Unittesting module #
 try:
@@ -21,9 +21,28 @@ except ImportError:
 __test__ = True
 
 ###################################################################################
-class TestBED(unittest.TestCase):
+class TestConversion(unittest.TestCase):
     def runTest(self):
-        for info in bed_samples:
+        for info in samples['yeast_features'].values():
+            # We want to see all diffs #
+            self.maxDiff = None
+            # Prepare paths #
+            orig_bed_path = info['bed']
+            orig_sql_path = info['sql']
+            test_sql_path = temporary_path('.sql')
+            # From BED to SQL #
+            track.convert(orig_bed_path, test_sql_path)
+            with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
+            self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
+            # Clean up #
+            os.remove(test_sql_path)
+
+class TestRoundtrip(unittest.TestCase):
+    def runTest(self):
+        for info in samples['small_features'].values():
+            # We want to see all diffs #
+            self.maxDiff = None
+            # Prepare paths #
             orig_bed_path = info['bed']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
@@ -33,8 +52,9 @@ class TestBED(unittest.TestCase):
             with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # From SQL to BED #
+            with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
             track.convert(test_sql_path, test_bed_path)
-            assert_file_equal(orig_bed_path, test_bed_path)
+            self.assertTrue(assert_file_equal(orig_bed_path, test_bed_path, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
             os.remove(test_bed_path)

@@ -7,7 +7,7 @@ import os
 
 # Internal modules #
 import track
-from track.common import temporary_path, sqlcmp
+from track.common import temporary_path
 from track.test import samples
 
 # Unittesting module #
@@ -22,6 +22,7 @@ __test__ = True
 ###################################################################################
 class Test_Read(unittest.TestCase):
     def runTest(self):
+        self.skipTest('')
         in_path = samples['features'][1]['sql']
         with track.load(in_path) as t:
             data = t.read('chr1', fields=['start','end','attributes'])

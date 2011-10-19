@@ -10,6 +10,7 @@ import shlex
 # Internal modules #
 from track.parse import Parser
 from track.common import iterate_lines
+from track.util import strand_to_int
 
 # Constants #
 all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
@@ -64,9 +65,7 @@ class ParserBED(Parser):
                 except ValueError:
                     self.handler.error("The track%s has non floats as score values", self.path, number)
                 # Strand field #
-                if   items[4] == '+': items[4] =  1
-                elif items[4] == '-': items[4] = -1
-                else:                 items[4] =  0
+                items[4] = strand_to_int(items[4])
                 # Thick starts #
                 try:
                     items[6] = float(items[5])

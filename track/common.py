@@ -2,7 +2,7 @@
 Common stuff for python projects.
 """
 
-###############################################################################
+########################### FILES FUNCTIONS ###################################
 def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
     """
     Iterate over the lines of a text file in an intelligent way.
@@ -29,7 +29,7 @@ def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
     with open(path, 'r') as file:
         for line in lines(units(file)): yield line
 
-################################################################################
+#------------------------------------------------------------------------------#
 def make_file_names(path):
     """
     Given a path to a file, generate more filenames.
@@ -47,7 +47,7 @@ def make_file_names(path):
     constant, ext = os.path.splitext(path)
     for i in xrange(1,sys.maxint): yield constant + "_" + str(i) + ext
 
-################################################################################
+#------------------------------------------------------------------------------#
 def check_path(path):
     """
     Raise an exception if the path *path* is already taken.
@@ -55,7 +55,7 @@ def check_path(path):
     import os
     if os.path.exists(path): raise Exception("The location '" + path + "' is already taken")
 
-################################################################################
+#------------------------------------------------------------------------------#
 def check_executable(tool_name):
     """
     Raises an exception if the executable *tool_name* is not found.
@@ -66,23 +66,7 @@ def check_executable(tool_name):
     except OSError:
         raise Exception("The executable '" + tool_name + "' cannot be found")
 
-################################################################################
-def natural_sort(item):
-    """
-    Sort strings that contain numbers correctly.
-
-    >>> l = ['v1.3.12', 'v1.3.3', 'v1.2.5', 'v1.2.15', 'v1.2.3', 'v1.2.1']
-    >>> l.sort(key=natural_sort)
-    >>> l.__repr__()
-    "['v1.2.1', 'v1.2.3', 'v1.2.5', 'v1.2.15', 'v1.3.3', 'v1.3.12']"
-    """
-    import re
-    def try_int(s):
-        try: return int(s)
-        except ValueError: return s
-    return map(try_int, re.findall(r'(\d+|\D+)', item))
-
-################################################################################
+#------------------------------------------------------------------------------#
 def temporary_path(suffix=''):
     """
     Often, one needs a new random and temporary file path
@@ -95,7 +79,67 @@ def temporary_path(suffix=''):
     file.close()
     return path
 
-################################################################################
+#------------------------------------------------------------------------------#
+def assert_sql_equal(pathA, pathB):
+    """
+    Compare two sqlite3 databases via their dumps.
+    Raise an exception if they are not equal, otherwise
+    return True.
+    """
+    import itertools, sqlite3
+    A = sqlite3.connect(pathA)
+    B = sqlite3.connect(pathB)
+    for a,b in itertools.izip_longest(A.iterdump(), B.iterdump()):
+        if a != b:
+            message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
+            message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
+            message += Color.ylw + "First difference in dump follows:" + Color.end
+            raise AssertionError(message + "\n   " + a + "\n   " + b)
+    return True
+
+#------------------------------------------------------------------------------#
+def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
+    """
+    Compare two text file.
+    Raise an exception if they are not equal, otherwise returns True.
+    :param start_a: Discard these many elements from pathA
+    :param start_b: Discard these many elements from pathB
+    """
+    # Load them #
+    with open(pathA, 'r') as f: A = f.read().splitlines()[start_a:]
+    with open(pathB, 'r') as f: B = f.read().splitlines()[start_b:]
+    # Compare them #
+    if A == B: return True
+    # Get a diff #
+    import difflib
+    diff = difflib.ndiff(A, B)
+    diff_text = '\n'.join(get_n_items_or_less(10, diff))
+    # Raise and print differences #
+    message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
+    message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
+    message += Color.ylw + "First ten lines of difference follows:\n" + Color.end
+    raise AssertionError(message + diff_text)
+
+#------------------------------------------------------------------------------#
+def empty_sql_file(path):
+    """
+    Create an empty sql file at the path specified.
+    """
+    import sqlite3
+    connection = sqlite3.connect(path)
+    cursor = connection.cursor()
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+#------------------------------------------------------------------------------#
+def empty_file(path):
+    """
+    Create an empty file at the path specified.
+    """
+    with open(path, 'w') as f: pass
+
+########################## ITERATOR FUNCTIONS ##################################
 def sentinelize(iterable, sentinel):
     """
     Add an item to the end of an iterable.
@@ -106,7 +150,7 @@ def sentinelize(iterable, sentinel):
     for item in iterable: yield item
     yield sentinel
 
-################################################################################
+#------------------------------------------------------------------------------#
 def get_next_item(iterable):
     """
     Gets the next item of an iterable.
@@ -122,7 +166,26 @@ def get_next_item(iterable):
         x = None
     return x
 
-################################################################################
+#------------------------------------------------------------------------------#
+def get_n_items_or_less(n, iterable):
+    """
+    Gets the n next items of an iterable or less
+    if the iterator is exhausted before
+
+    >>> get_n_items_or_less(6, iter(range(10)))
+    [0, 1, 2, 3, 4, 5]
+    >>> get_n_items_or_less(6, iter(range(4)))
+    [0, 1, 2, 3]
+    """
+    result = []
+    try:
+        for i in xrange(n):
+            result.append(iterable.next())
+    except StopIteration:
+        pass
+    return result
+
+#------------------------------------------------------------------------------#
 def pick_iterator_elements(iterable, indices):
     """
     Return a new iterator, yielding only those elements
@@ -133,62 +196,49 @@ def pick_iterator_elements(iterable, indices):
     """
     for item in iterable: yield [item[i] for i in indices]
 
-################################################################################
-def assert_sql_equal(file_a, file_b):
+############################## VARIOUS FUNCTIONS ###############################
+def format_float(f, precision=None):
     """
-    Compare two sqlite3 databases via their dumps.
-    Raise an exception if they are not equal, otherwise
-    return True.
-    """
-    import itertools, sqlite3
-    A = sqlite3.connect(file_a)
-    B = sqlite3.connect(file_b)
-    for a,b in itertools.izip_longest(A.iterdump(), B.iterdump()):
-        if a != b:
-            intro  = Color.ylw + "First difference in dump follows" + Color.end
-            A_line = Color.b_ylw + "A: " + Color.end + a
-            B_line = Color.b_ylw + "B: " + Color.end + b
-            raise AssertionError(intro + "\n" + A_line + "\n" + B_line)
-    return True
+    Formats a float, by rounding it and striping unnecesarry zeros.
+    But it always leaves one zero after the decimal point.
 
-################################################################################
-def assert_file_equal(file_a, file_b, *args, **kwargs):
+    >>> format_float(0.100)
+    '0.1'
+    >>> format_float(0.1001)
+    '0.1001'
+    >>> format_float(0.10000001)
+    '0.1'
+    >>> format_float(101.0)
+    '101.0'
+    >>> format_float(100001.1)
+    '100000.0'
+    >>> format_float(1000.0/6.0)
+    '166.7'
+    >>> format_float(999.9)
+    '999.9'
+    >>> format_float(999.99)
+    '1000.0'
     """
-    Compare two text file.
-    Raise an exception if they are not equal, otherwise
-    return True.
-    """
-    # Compare them #
-    import difflib
-    with open(file_a, 'r') as f: A = f.read().splitlines()
-    with open(file_b, 'r') as f: B = f.read().splitlines()
-    diff = list(difflib.unified_diff(A, B, fromfile=file_a, tofile=file_b))
-    if not diff: return True
-    # Raise and print differences #
-    message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
-    message = message  % (Color.cyn, file_a, Color.end, Color.cyn, file_b, Color.end)
-    raise AssertionError(message + '\n'.join(diff))
+    if precision: return '%s' % float('%.'+str(precision)+'g' % f)
+    else:         return '%s' % float('%.4g' % f)
 
-################################################################################
-def empty_sql_file(path):
+#------------------------------------------------------------------------------#
+def natural_sort(item):
     """
-    Create an empty sql file at the path specified.
-    """
-    import sqlite3
-    connection = sqlite3.connect(path)
-    cursor = connection.cursor()
-    connection.commit()
-    cursor.close()
-    connection.close()
+    Sort strings that contain numbers correctly.
 
-################################################################################
-def empty_file(path):
+    >>> l = ['v1.3.12', 'v1.3.3', 'v1.2.5', 'v1.2.15', 'v1.2.3', 'v1.2.1']
+    >>> l.sort(key=natural_sort)
+    >>> l.__repr__()
+    "['v1.2.1', 'v1.2.3', 'v1.2.5', 'v1.2.15', 'v1.3.3', 'v1.3.12']"
     """
-    Create an empty file at the path specified.
-    """
-    with open(path, 'w') as f: pass
+    import re
+    def try_int(s):
+        try: return int(s)
+        except ValueError: return s
+    return map(try_int, re.findall(r'(\d+|\D+)', item))
 
-################################################################################
+#------------------------------------------------------------------------------#
 def int_to_roman(input):
     """
     Convert an integer to a roman numeral.
@@ -207,7 +257,7 @@ def int_to_roman(input):
        input  -= ints[i] * count
     return result
 
-################################################################################
+#------------------------------------------------------------------------------#
 def roman_to_int(input):
     """
     Convert a roman numeral to an integer.
@@ -238,7 +288,26 @@ def roman_to_int(input):
     if int_to_roman(output) == input: return output
     else: raise ValueError, 'Input is not a valid roman numeral: "%s."' % input
 
-################################################################################
+#------------------------------------------------------------------------------#
+def profile_it(command):
+    """Profiles a given command and returns a pstat object.
+       Use it like this:
+
+            r = profile_it('batch_benchmark(args)')
+            r.sort_stats('time', 'cum')
+            r.print_stats(10)
+
+    """
+    import os, cProfile, pstats
+    result_file = temporary_path('.profile')
+    cProfile.run(command, result_file)
+    results = pstats.Stats(result_file)
+    results.sort_stats('time', 'cum')
+    results.print_stats(20)
+    os.remove(result_file)
+    return results
+
+############################## CLASSES #########################################
 class Color:
     """Shortcuts for the ANSI escape sequences to control
        formatting, color, etc. on text terminals. Use it like this:
@@ -296,7 +365,7 @@ class Color:
     f_cyn = '\033[46m'   # Cyan
     f_wht = '\033[47m'   # White
 
-################################################################################
+#------------------------------------------------------------------------------#
 class JournaledDict(object):
     """
     A dictionary like object that tracks modification to itself.
@@ -400,7 +469,7 @@ class JournaledDict(object):
         self.modified = True
         self.data = d
 
-################################################################################
+#------------------------------------------------------------------------------#
 class JsonJit(object):
     """
     JsonJit is a class for Just In Time instantiation of JSON resources.
@@ -507,7 +576,7 @@ class JsonJit(object):
         if not self.obj: self.__lazy__()
         del self.obj[key]
 
-################################################################################
+#------------------------------------------------------------------------------#
 class Timer:
     """Times a given code block. Use it like this:
 
@@ -532,22 +601,3 @@ class Timer:
         line1 = "%.6f seconds for " % total_time + self.name
         line2 = "(%.3f usec per entry)" % entry_time
         print line1, line2
-
-################################################################################
-def profile_it(command):
-    """Profiles a given command and returns a pstat object.
-       Use it like this:
-
-            r = profile_it('batch_benchmark(args)')
-            r.sort_stats('time', 'cum')
-            r.print_stats(10)
-
-    """
-    import os, cProfile, pstats
-    result_file = temporary_path('.profile')
-    cProfile.run(command, result_file)
-    results = pstats.Stats(result_file)
-    results.sort_stats('time', 'cum')
-    results.print_stats(20)
-    os.remove(result_file)
-    return results

@@ -7,7 +7,7 @@ import os
 
 # Internal modules #
 import track
-from track.common import temporary_path, sqlcmp
+from track.common import temporary_path
 from track.test import samples
 
 # Unittesting module #
@@ -22,6 +22,7 @@ __test__ = True
 ###################################################################################
 class Test_Download(unittest.TestCase):
     def runTest(self):
+        self.skipTest('')
         url = "http://sugar.epfl.ch/BED/sinclair/genomic/ChIP.bedGraph"
         with track.load(url) as t:
             data = t.read('1', fields=['start','end','attributes'])

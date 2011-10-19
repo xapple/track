@@ -110,6 +110,18 @@ def make_cond_from_sel(selection):
         query += 'score >= ' + str(selection['score'][0]) + ' and score <= ' + str(selection['score'][1])
     return query
 
+################################################################################
+def strand_to_int(strand):
+    if strand == '+': return 1
+    if strand == '-': return -1
+    return 0
+
+def int_to_strand(num):
+    num = int(num)
+    if num == 1: return  '+'
+    if num == -1: return '-'
+    return '.'
+
 #-----------------------------------#
 # This code was written by the BBCF #
 # http://bbcf.epfl.ch/              #

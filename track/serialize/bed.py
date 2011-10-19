@@ -4,6 +4,8 @@ This module implements the bed serialization.
 
 # Internal modules #
 from track.serialize import Serializer
+from track.common import format_float
+from track.util import int_to_strand
 
 # Constants #
 all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
@@ -36,12 +38,20 @@ class SerializerBED(Serializer):
         self.file.write("track " + ' '.join([k + '="' + v + '"' for k, v in info.items()]) + '\n')
 
     def newFeature(self, chrom, feature):
-        # Make sure eveything is a string #
-        feature = [str(f) for f in feature]
         # Put the fields in the right order #
-        if self.indices: feature = [feature[i] for i in self.indices]
+        if self.indices: line = [feature[i] for i in self.indices]
+        else:            line = list(feature)
+        # Convert the score #
+        try: line[3] = format_float(line[3])
+        except IndexError: pass
+        # Convert the strand #
+        try: line[4] = int_to_strand(line[4])
+        except IndexError: pass
+        # Make sure eveything is a string #
+        line = [str(f) for f in line]
+        print line
         # Write on line #
-        self.file.write('\t'.join([chrom] + feature) + '\n')
+        self.file.write('\t'.join([chrom] + line) + '\n')
 
 #-----------------------------------#
 # This code was written by the BBCF #
