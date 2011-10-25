@@ -17,12 +17,11 @@ except ImportError:
     import unittest
 
 # Nosetest flag #
-__test__ = True
+__test__ = False
 
 ###################################################################################
 class Test_Download(unittest.TestCase):
     def runTest(self):
-        self.skipTest('')
         url = "http://sugar.epfl.ch/BED/sinclair/genomic/ChIP.bedGraph"
         with track.load(url) as t:
             data = t.read('1', fields=['start','end','attributes'])

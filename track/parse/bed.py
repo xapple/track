@@ -68,12 +68,12 @@ class ParserBED(Parser):
                 items[4] = strand_to_int(items[4])
                 # Thick starts #
                 try:
-                    items[6] = float(items[5])
+                    items[5] = float(items[5])
                 except ValueError:
                     self.handler.error("The track%s has non integers as thick starts", self.path, number)
                 # Thick ends #
                 try:
-                    items[7] = float(items[6])
+                    items[6] = float(items[6])
                 except ValueError:
                     self.handler.error("The track%s has non integers as thick ends", self.path, number)
             # All index errors are ignored since the fields above three are optional #

@@ -9,7 +9,10 @@ import shlex
 
 # Internal modules #
 from track.parse import Parser
-from track.common import iterate_lines, get_next_item
+from track.common import iterate_lines
+
+# Constants #
+all_fields = ['start', 'end', 'score']
 
 ################################################################################
 class ParserWIG(Parser):
@@ -40,7 +43,7 @@ class ParserWIG(Parser):
                     last_feature = None
                     last_chrom   = None
                 self.handler.newTrack(info, self.name)
-                self.handler.defineFields(['start', 'end', 'score'])
+                self.handler.defineFields(all_fields)
             # Directive line #
             if line.startswith("variableStep") or line.startswith("fixedStep"):
                 params = dict([p.split('=',1) for p in shlex.split('mode=' + line)])
@@ -94,14 +97,14 @@ class ParserWIG(Parser):
                 chrom   = params['chrom']
                 feature = [line[0], line[0] + params['span'], line[1]]
             # Ignore null scores #
-            if feature[3] == 0.0: continue
+            if feature[2] == 0.0: continue
             # Merge adjacent features with same scores #
             # For instance ['chr1', 10, 11, 9.8] and ['chr1', 11, 12, 9.8] should merge.
             if last_feature:
-                if last_chrom[0] == chrom[0]:
+                if last_chrom == chrom:
                     if last_feature[1] > feature[0]:
-                        self.handler.error("The track%s has a start or span larger than its end or step.", self.path)
-                    if last_feature[1] == feature[0] and last_feature[3] == feature[3]:
+                        self.handler.error("The track%s has a start or span larger than its end or step.", self.path, number)
+                    if last_feature[1] == feature[0] and last_feature[2] == feature[2]:
                         last_feature[1] = feature[1]
                         continue
                 self.handler.newFeature(last_chrom, last_feature)

@@ -86,15 +86,16 @@ def assert_sql_equal(pathA, pathB):
     Raise an exception if they are not equal, otherwise
     return True.
     """
-    import itertools, sqlite3
-    A = sqlite3.connect(pathA)
-    B = sqlite3.connect(pathB)
-    for a,b in itertools.izip_longest(A.iterdump(), B.iterdump()):
+    # Load them #
+    import sqlite3, itertools
+    sqlA = sqlite3.connect(pathA)
+    sqlB = sqlite3.connect(pathB)
+    # Compare them #
+    for a,b in itertools.izip_longest(sqlA.iterdump(), sqlB.iterdump()):
         if a != b:
-            message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
-            message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
-            message += Color.ylw + "First difference in dump follows:" + Color.end
-            raise AssertionError(message + "\n   " + a + "\n   " + b)
+            A = list(sqlA.iterdump())
+            B = list(sqlB.iterdump())
+            print_file_diff(pathA, pathB, A, B)
     return True
 
 #------------------------------------------------------------------------------#
@@ -110,7 +111,10 @@ def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
     with open(pathB, 'r') as f: B = f.read().splitlines()[start_b:]
     # Compare them #
     if A == B: return True
-    # Get a diff #
+    else: print_file_diff(pathA, pathB, A, B)
+
+def print_file_diff(pathA, pathB, A, B):
+    # Compare them #
     import difflib
     diff = difflib.ndiff(A, B)
     diff_text = '\n'.join(get_n_items_or_less(10, diff))

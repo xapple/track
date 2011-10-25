@@ -23,15 +23,15 @@ __test__ = True
 ###################################################################################
 class TestConversion(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['yeast_features'].items()):
+        for num, info in sorted(samples['rand_signals'].items()):
             # We want to see all diffs #
             self.maxDiff = None
             # Prepare paths #
-            orig_bed_path = info['bed']
+            orig_wig_path = info['wig']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            # From BED to SQL #
-            track.convert(orig_bed_path, test_sql_path)
+            # From WIG to SQL #
+            track.convert(orig_wig_path, test_sql_path)
             with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # Clean up #
@@ -39,27 +39,27 @@ class TestConversion(unittest.TestCase):
 
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['small_features'].items()):
+        for num, info in sorted(samples['small_signals'].items()):
             # The third test cannot be roundtriped #
             if num == 3: continue
             # We want to see all diffs #
             self.maxDiff = None
             # Prepare paths #
-            orig_bed_path = info['bed']
+            orig_wig_path = info['wig']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            test_bed_path = temporary_path('.bed')
-            # From BED to SQL #
-            track.convert(orig_bed_path, test_sql_path)
+            test_wig_path = temporary_path('.wig')
+            # From WIG to SQL #
+            track.convert(orig_wig_path, test_sql_path)
             with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
-            # From SQL to BED #
+            # From SQL to WIG #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
-            track.convert(test_sql_path, test_bed_path)
-            self.assertTrue(assert_file_equal(orig_bed_path, test_bed_path, start_b=1))
+            track.convert(test_sql_path, test_wig_path)
+            self.assertTrue(assert_file_equal(orig_wig_path, test_wig_path, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
-            os.remove(test_bed_path)
+            os.remove(test_wig_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

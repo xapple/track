@@ -17,12 +17,11 @@ except ImportError:
     import unittest
 
 # Nosetest flag #
-__test__ = True
+__test__ = False
 
 ###################################################################################
 class Test_Read(unittest.TestCase):
     def runTest(self):
-        self.skipTest('')
         in_path = samples['features'][1]['sql']
         with track.load(in_path) as t:
             data = t.read('chr1', fields=['start','end','attributes'])

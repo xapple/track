@@ -10,6 +10,7 @@ serializers = {
     'memory': {'module': 'track.serialize.memory', 'class': 'SerializerRAM'},
     'sql':    {'module': 'track.serialize.sql',    'class': 'SerializerSQL'},
     'bed':    {'module': 'track.serialize.bed',    'class': 'SerializerBED'},
+    'wig':    {'module': 'track.serialize.wig',    'class': 'SerializerWIG'},
 }
 
 ################################################################################
