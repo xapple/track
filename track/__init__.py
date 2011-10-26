@@ -111,42 +111,15 @@ from track import genrep
 from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
-from track.util import serialize_chr_file
+from track.util import sql_field_types, py_field_types, serialize_chr_file
 from track.common import check_path, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements
 
-# Lists #
+# Constants #
 special_tables = ['attributes', 'chrNames', 'types']
 default_fields = ['start', 'end', 'name', 'score', 'strand']
 signal_fields  = ['start', 'end', 'score']
-
-# Dictionairies #
-sql_field_types = {'start':        'integer',
-                   'end':          'integer',
-                   'score':        'real',
-                   'strand':       'integer',
-                   'name':         'text',
-                   'thick_start':  'integer',
-                   'thick_end':    'integer',
-                   'item_rgb':     'text',
-                   'block_count':  'integer',
-                   'block_sizes':  'text',
-                   'block_starts': 'text',
-                   'attributes':   'text',}
-
-py_field_types  = {'start':        int,
-                   'end':          int,
-                   'score':        float,
-                   'strand':       int,
-                   'name':         str,
-                   'thick_start':  int,
-                   'thick_end':    int,
-                   'item_rgb':     str,
-                   'block_count':  int,
-                   'block_sizes':  str,
-                   'block_starts': str,
-                   'attributes':   str,}
 
 ################################################################################
 def load(path, format=None, readonly=False):
@@ -584,7 +557,7 @@ class Track(object):
         else:                       outgoing_fields = incoming_fields
         # Maybe create the table #
         if not chrom_exists:
-            fields = ','.join([field + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
+            fields = ','.join(['"' + field + '"' + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
             self.cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
             current_fields = outgoing_fields
         # Make them sets #
@@ -600,6 +573,8 @@ class Track(object):
         if outgoing_set < incoming_set:
             indicies = tuple([incoming_fields.index(f) for f in outgoing_fields])
             data = pick_iterator_elements(data, indicies)
+        # Protect names for SQL query #
+        outgoing_fields = ['"' + f + '"' for f in outgoing_fields]
         # Create the SQL statement #
         question_marks = '(' + ','.join(['?' for x in xrange(len(outgoing_fields))]) + ')'
         sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
@@ -856,7 +831,7 @@ class Track(object):
         """Populates the *self.info* attribute with information found in the 'attributes' table."""
         if not 'attributes' in self.tables: return
         # Make a dictionary directly from the table #
-        query = self.cursor.execute("select key, value from attributes")
+        query = self.cursor.execute('select key, value from "attributes"')
         self.info = dict(query.fetchall())
         # Freshly loaded, so not modified #
         self.info.modified = False
@@ -864,12 +839,12 @@ class Track(object):
     def _info_write(self):
         """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS attributes')
+        self.cursor.execute('drop table IF EXISTS "attributes"')
         if not self.info: return
         # Write every dictionary entry #
-        self.cursor.execute('create table attributes (key text, value text)')
+        self.cursor.execute('create table "attributes" ("key" text, "value" text)')
         for k in self.info.keys():
-            self.cursor.execute('insert into attributes (key,value) values (?,?)', (k, self.info[k]))
+            self.cursor.execute('insert into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
 
     @property
     def datatype(self):
@@ -913,11 +888,11 @@ class Track(object):
         if not 'chrNames' in self.tables: return
         # Columns are the chromosome attributes #
         # ['name', 'length']
-        query = self.cursor.execute("pragma table_info(chrNames)")
+        query = self.cursor.execute('pragma table_info("chrNames")')
         columns = [x[1].encode('ascii') for x in query]
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
-        query = self.cursor.execute("select * from chrNames").fetchall()
+        query = self.cursor.execute('select * from "chrNames"').fetchall()
         rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
         # Make a pretty dictionary of dictionaries #
         # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
@@ -929,17 +904,17 @@ class Track(object):
     def _chrmeta_write(self):
         """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS chrNames')
+        self.cursor.execute('drop table IF EXISTS "chrNames"')
         if not self.chrmeta: return
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
         rows = [dict([['name', chrom]] + [(k,v) for k,v in self[chrom].items()]) for chrom in self.chrmeta]
-        self.cursor.execute('create table chrNames (name text, length integer)')
+        self.cursor.execute('create table "chrNames" ("name" text, "length" integer)')
         for r in rows:
             question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
-            column_names   = '(' + ','.join(r.keys()) + ')'
+            column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
-            self.cursor.execute('insert into chrNames ' + column_names + ' values ' + question_marks, cell_values)
+            self.cursor.execute('insert into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.

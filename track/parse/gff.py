@@ -1,7 +1,12 @@
 """
-This module implements the parsing of BED files according to this standard:
+This module implements the parsing of GFF files.
 
 http://genome.ucsc.edu/FAQ/FAQformat.html#format3
+
+A bug in the python sqlite3 module prevents us form using 'group' for the ninth field.
+http://bugs.python.org/issue9750
+
+It is hence replaced with 'attributes'
 """
 
 # Built-in modules #
@@ -13,11 +18,10 @@ from track.common import iterate_lines
 from track.util import strand_to_int
 
 # Constants #
-all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
-              'thick_end', 'item_rgb', 'block_count', 'block_sizes', 'block_starts']
+all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame', 'attributes']
 
 ################################################################################
-class ParserBED(Parser):
+class ParserGFF(Parser):
     def parse(self):
         # Initial variables #
         fields = []
@@ -39,48 +43,45 @@ class ParserBED(Parser):
             if len(items) == 1: items = line.split()
             # Chromosome #
             chrom = items.pop(0)
+            # Length is nine #
+            if len(items) != 8:
+                self.handler.error("The track%s doesn't have nine columns", self.path, number)
             # Have we started a track already ? #
             if not fields:
                 self.handler.newTrack(info, self.name)
                 fields = all_fields[0:len(items)]
                 self.handler.defineFields(fields)
+            # Source field #
+            if items[0] == '.': items[0] = ''
+            # Name field #
+            if items[1] == '.': items[1] = ''
             # Start and end fields #
             try:
-                items[0] = int(items[0])
-                items[1] = int(items[1])
+                items[2] = int(items[2])
+                items[3] = int(items[3])
             except ValueError:
                 self.handler.error("The track%s has non integers as interval bounds", self.path, number)
-            except IndexError:
-                self.handler.error("The track%s has less than two columns", self.path, number)
-            if items[1] <= items[0]:
+            if items[3] <= items[2]:
                 self.handler.error("The track%s has negative or null intervals", self.path, number)
-            # All following fields are optional #
+            # Score field #
+            if items[4] == '.' or items[4] == '': items[4] = 0.0
             try:
-                # Name field #
-                if items[2] == '.': items[2] = ''
-                # Score field #
-                if items[3] == '.' or items[3] == '': items[3] = 0.0
+                items[4] = float(items[4])
+            except ValueError:
+                self.handler.error("The track%s has non floats as score values", self.path, number)
+            # Strand field #
+            items[5] = strand_to_int(items[5])
+            # Frame field #
+            if items[6] == '.': items[6] = None
+            else:
                 try:
-                    items[3] = float(items[3])
+                    items[6] = int(items[6])
                 except ValueError:
-                    self.handler.error("The track%s has non floats as score values", self.path, number)
-                # Strand field #
-                items[4] = strand_to_int(items[4])
-                # Thick starts #
-                try:
-                    items[5] = float(items[5])
-                except ValueError:
-                    self.handler.error("The track%s has non integers as thick starts", self.path, number)
-                # Thick ends #
-                try:
-                    items[6] = float(items[6])
-                except ValueError:
-                    self.handler.error("The track%s has non integers as thick ends", self.path, number)
-            # All index errors are ignored since the fields above three are optional #
-            except IndexError:
-                pass
-            finally:
-                self.handler.newFeature(chrom, items)
+                    self.handler.error("The track%s has non integers as frame value", self.path, number)
+            # Group or attribute field #
+            if items[7] == '.': items[7] = ''
+            # Yield it #
+            self.handler.newFeature(chrom, items)
 
 #-----------------------------------#
 # This code was written by the BBCF #

@@ -1,7 +1,7 @@
 """
-This module implements the parsing of BED files.
+This module implements the parsing of WIG files according to this standard:
 
-http://genome.ucsc.edu/FAQ/FAQformat.html#format1
+http://genome.ucsc.edu/goldenPath/help/wiggle.html
 """
 
 # Built-in modules #

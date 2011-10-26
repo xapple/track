@@ -24,8 +24,6 @@ __test__ = True
 class TestConversion(unittest.TestCase):
     def runTest(self):
         for num, info in sorted(samples['yeast_features'].items()):
-            # We want to see all diffs #
-            self.maxDiff = None
             # Prepare paths #
             orig_bed_path = info['bed']
             orig_sql_path = info['sql']
@@ -40,10 +38,6 @@ class TestConversion(unittest.TestCase):
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
         for num, info in sorted(samples['small_features'].items()):
-            # The third test cannot be roundtriped #
-            if num == 3: continue
-            # We want to see all diffs #
-            self.maxDiff = None
             # Prepare paths #
             orig_bed_path = info['bed']
             orig_sql_path = info['sql']

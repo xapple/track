@@ -98,7 +98,6 @@ def assert_sql_equal(pathA, pathB):
             print_file_diff(pathA, pathB, A, B)
     return True
 
-#------------------------------------------------------------------------------#
 def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
     """
     Compare two text file.

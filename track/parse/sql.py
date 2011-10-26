@@ -1,5 +1,8 @@
 """
-This module implements the parsing of the track object.
+This module implements the parsing of the track object. The specification can be found here:
+
+http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite
+
 In this case the self.path attribute can be either
 a Track object or the path to an SQL file.
 """

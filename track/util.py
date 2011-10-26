@@ -8,7 +8,41 @@ import os, shlex
 # Internal modules #
 from track.common import temporary_path, iterate_lines
 
-########################################################################################################
+###############################################################################
+# Constants #
+sql_field_types = {'start':        'integer',
+                   'end':          'integer',
+                   'score':        'real',
+                   'strand':       'integer',
+                   'name':         'text',
+                   'thick_start':  'integer',
+                   'thick_end':    'integer',
+                   'item_rgb':     'text',
+                   'block_count':  'integer',
+                   'block_sizes':  'text',
+                   'block_starts': 'text',
+                   'attributes':   'text',
+                   'source':       'text',
+                   'frame':        'integer',
+                   'attributes':   'text',}
+
+py_field_types  = {'start':        int,
+                   'end':          int,
+                   'score':        float,
+                   'strand':       int,
+                   'name':         str,
+                   'thick_start':  int,
+                   'thick_end':    int,
+                   'item_rgb':     str,
+                   'block_count':  int,
+                   'block_sizes':  str,
+                   'block_starts': str,
+                   'attributes':   str,
+                   'source':       str,
+                   'frame':        int,
+                   'attributes':   str,}
+
+###############################################################################
 def determine_format(path):
     """Try to guess the format of a track given its path.
        Returns a three letter extension"""
@@ -44,7 +78,7 @@ def guess_file_format(path):
             if number > 100: break
             if line.startswith("track "):
                 try:
-                    id = dict([p.split('=',1) for p in shlex.split(line[6:])])['type']
+                    id = dict([p.split('=',1) for p in shlex.split(line[6:])]).get('type', '')
                 except ValueError:
                     id = ''
                 return known_identifiers.get(id, id)

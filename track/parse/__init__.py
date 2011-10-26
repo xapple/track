@@ -11,6 +11,8 @@ parsers = {
     'sql':    {'module': 'track.parse.sql',      'class': 'ParserSQL'},
     'bed':    {'module': 'track.parse.bed',      'class': 'ParserBED'},
     'wig':    {'module': 'track.parse.wig',      'class': 'ParserWIG'},
+    'gff':    {'module': 'track.parse.gff',      'class': 'ParserGFF'},
+    'gtf':    {'module': 'track.parse.gff',      'class': 'ParserGTF'},
 }
 
 ################################################################################

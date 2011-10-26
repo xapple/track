@@ -21,41 +21,25 @@ except ImportError:
 __test__ = True
 
 ###################################################################################
-class TestConversion(unittest.TestCase):
-    def runTest(self):
-        for num, info in sorted(samples['rand_signals'].items()):
-            # Prepare paths #
-            orig_wig_path = info['wig']
-            orig_sql_path = info['sql']
-            test_sql_path = temporary_path('.sql')
-            # From WIG to SQL #
-            track.convert(orig_wig_path, test_sql_path)
-            with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
-            self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
-            # Clean up #
-            os.remove(test_sql_path)
-
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['small_signals'].items()):
-            # The third test cannot be roundtriped #
-            if num == 3: continue
+        for num, info in sorted(samples['gff_tracks'].items()):
             # Prepare paths #
-            orig_wig_path = info['wig']
+            orig_gff_path = info['gff']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            test_wig_path = temporary_path('.wig')
-            # From WIG to SQL #
-            track.convert(orig_wig_path, test_sql_path)
+            test_gff_path = temporary_path('.gff')
+            # From GFF to SQL #
+            track.convert(orig_gff_path, test_sql_path)
             with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
-            # From SQL to WIG #
+            # From SQL to GFF #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
-            track.convert(test_sql_path, test_wig_path)
-            self.assertTrue(assert_file_equal(orig_wig_path, test_wig_path, start_b=1))
+            track.convert(test_sql_path, test_gff_path)
+            self.assertTrue(assert_file_equal(orig_gff_path, test_gff_path, start_a=1, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
-            os.remove(test_wig_path)
+            os.remove(test_gff_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #
