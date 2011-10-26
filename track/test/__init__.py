@@ -65,10 +65,13 @@ samples = {
   'gff_tracks': {
     1:            {'name':'UCSC GFF example',      'filename': 'test1'},
   },
+  'gtf_tracks': {
+    1:            {'name':'GenRep saccer example', 'filename': 'saccer'},
+  },
 }
 
 # Add the path for every format #
-formats = ['sql', 'bed', 'wig', 'gff', 'bedGraph', 'bigWig']
+formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig']
 for group_key, group in sorted(samples.items()):
     for track_key, track in sorted(group.items()):
         for format in formats:

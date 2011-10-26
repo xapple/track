@@ -27,6 +27,7 @@ class SerializerSQL(Serializer):
 
     def defineFields(self, fields):
         self.fields = fields
+        self.flushBuffer()
 
     def defineChrmeta(self, chrmeta):
         self.current_track.chrmeta = chrmeta
