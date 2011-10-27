@@ -8,7 +8,7 @@ num_entries = 1000000
 
 ################################################################################
 # General Functions #
-def setup_database(path, auto_commit=None):
+def setup_database(path, auto_commit=False):
     global connection, cursor
     if auto_commit: connection = sqlite3.connect(path, isolation_level=None) # commit all the time
     else:           connection = sqlite3.connect(path)                       # no commits ever (default)

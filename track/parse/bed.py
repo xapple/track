@@ -52,8 +52,6 @@ class ParserBED(Parser):
                 self.handler.error("The track%s has non integers as interval bounds", self.path, number)
             except IndexError:
                 self.handler.error("The track%s has less than two columns", self.path, number)
-            if items[1] <= items[0]:
-                self.handler.error("The track%s has negative or null intervals", self.path, number)
             # All following fields are optional #
             try:
                 # Name field #

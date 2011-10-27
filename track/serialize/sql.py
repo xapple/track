@@ -11,12 +11,13 @@ from track.serialize import Serializer
 from track.common import make_file_names
 
 # Constants #
-BUFFER_SIZE = 2048
+BUFFER_SIZE = 32767
 
 ################################################################################
 class SerializerSQL(Serializer):
     def __enter__(self):
         self.buffer = []
+        self.fields = None
         self.current_track = None
         self.current_chrom = None
         self.file_paths = make_file_names(self.path)
@@ -26,8 +27,8 @@ class SerializerSQL(Serializer):
         if self.current_track: self.closeCurrentTrack()
 
     def defineFields(self, fields):
+        if fields != self.fields: self.flushBuffer()
         self.fields = fields
-        self.flushBuffer()
 
     def defineChrmeta(self, chrmeta):
         self.current_track.chrmeta = chrmeta

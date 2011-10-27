@@ -38,6 +38,7 @@ where X.Y is the version of Python you run it with.
 ###########
 Quick start
 ###########
+
 To get access to the information contained inside already existing tracks, you would do the following whatever the format of the track is::
 
     import track
@@ -351,6 +352,7 @@ class Track(object):
                t.remove('chr19_gl000209_random')
                t.save()
         """
+        print "Saving"
         if self._info.modified:    self._info_write()
         if self._chrmeta.modified: self._chrmeta_write()
         self._make_missing_indexes()
@@ -362,6 +364,7 @@ class Track(object):
                 * score      --> chr1_score_idx
                 * name       --> chr1_name_idx
         """
+        print "Indexing"
         if self.readonly: return
         try:
             for ch in self:
