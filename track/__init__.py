@@ -360,7 +360,7 @@ class Track(object):
         # Check the table exists #
         if not chrom in self.tables: return []
         # A pragma statement will implicitly issue a commit, don't use #
-        self.cursor.execute('SELECT * from "%s"' % chrom)
+        self.cursor.execute("SELECT * from '%s'" % chrom)
         return [x[0] for x in self.cursor.description]
 
     #-----------------------------------------------------------------------------#

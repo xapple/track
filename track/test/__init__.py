@@ -63,10 +63,10 @@ samples = {
     'RP genes':   {'name':'Yeast RP genes',        'filename': 'yeast_rp_genes'},
   },
   'gff_tracks': {
-    1:            {'name':'UCSC GFF example',      'filename': 'test1'},
+    1:            {'name':'UCSC GFF example',      'filename': 'gff_test1'},
   },
   'gtf_tracks': {
-    1:            {'name':'GenRep saccer example', 'filename': 'saccer'},
+    1:            {'name':'GenRep saccer example', 'filename': 'gtf_saccer'},
   },
 }
 

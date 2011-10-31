@@ -19,6 +19,7 @@ collection_conversion =  {'small_features':     {'from':'bed', 'to':'sql', 'asse
                           'small_signals':      {'from':'wig', 'to':'sql', 'assembly':'sacCer2'},
                           'rand_signals':       {'from':'wig', 'to':'sql', 'assembly':'sacCer2'},
                           'gff_tracks':         {'from':'gff', 'to':'sql', 'assembly':'sacCer2'},
+                          'gtf_tracks':         {'from':'gtf', 'to':'sql', 'assembly':'sacCer2'},
                           }
 # Same randomness #
 import random
