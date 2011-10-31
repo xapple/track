@@ -45,6 +45,13 @@ To get access to the information contained inside already existing tracks, you w
     with track.load('tracks/rp_genes.bed') as rpgenes:
         data = rpgenes.read('chr3')
 
+However, it is strongly advise to convert your tracks into the SQL format before working with them for better performance. If you do this your text files will only be parsed once. The previous code becomes::
+
+    import track
+    track.convert('tracks/rp_genes.bed', 'tracks/rp_genes.sql')
+    with track.load('tracks/rp_genes.sql') as rpgenes:
+        data = rpgenes.read('chr3')
+
 For instance, the cumulative base coverage of features on chromosome two can be calculated like this::
 
     import track
@@ -76,10 +83,10 @@ For instance, to make a new track from an old one, and invert the strand of ever
             for chrom in orig:
                 inverted.write(chrom, invert_strands(orig.read(chrom)))
 
-To convert a track from a format (e.g. BED) to an other format (e.g. SQL) you call the `track.convert` function::
+To convert a track from a format (e.g. BED) to an other format (e.g. GFF) you call the `track.convert` function::
 
     import track
-    track.convert('tracks/rp_genes.bed', 'tracks/rp_genes.sql')
+    track.convert('tracks/rp_genes.bed', 'tracks/rp_genes.gff')
 
 If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file. You can even try to guess the assembly::
 
@@ -158,7 +165,7 @@ def load(path, format=None, readonly=False):
     else:
         sql_path = temporary_path(".sql") or os.path.splitext(path)[0] + ".sql"
         convert(source=(path, format), destination=(sql_path, 'sql'))
-        return Track(sql_path, readonly, orig_path=path, orig_format=format)
+        return Track(sql_path, readonly=readonly, orig_path=path, orig_format=format)
 
 #---------------------------------------------------------------------------------#
 def new(path, format=None):
@@ -252,7 +259,7 @@ class Track(object):
             if len(genes) != 23: print 'Aneuploidy'
     """
 
-    def __init__(self, path, readonly=False, autosave=False, orig_path=None, orig_format=None):
+    def __init__(self, path, readonly=False, autosave=True, orig_path=None, orig_format=None):
         """The track package is designed to use the 'load()' and 'new()' functions to create Track objects.
            Usually, the constructor is not called directly."""
         # Passed attributes #
@@ -261,14 +268,16 @@ class Track(object):
         self.autosave    = autosave
         self.orig_path   = orig_path
         self.orig_format = orig_format
-        # Other attributes #
-        self.modified   = False
-        self.connection = sqlite3.connect(self.path)
-        self.cursor     = self.connection.cursor()
+        # Fixed attributes #
+        self.modified    = False
         # Hidden attributes #
         self._fields  = []
         self._chrmeta = JournaledDict()
         self._info    = JournaledDict()
+        # Opening the database #
+        self._connection = sqlite3.connect(self.path)
+        self._connection.row_factory = sqlite3.Row
+        self._cursor = self._connection.cursor()
         # Load some tables #
         self._chrmeta_read()
         self._info_read()
@@ -334,10 +343,25 @@ class Track(object):
         chroms.sort(key=natural_sort)
         return chroms
 
+    @property
+    def cursor(self):
+        """*cursor* is an sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results::
+
+            import track
+            with track.load('tracks/rp_genes.sql') as rpgenes:
+                rpgenes.cusror.execute("select name from sqlite_master where type='table'")
+                results = rpgenes.cusror.fetchall()
+
+           More information is available on the `sqlite3 docuemntation pages <http://docs.python.org/library/sqlite3.html>`_."""
+        return self._cursor
+
     def _get_fields_of_table(self, chrom):
         """Returns the list of fields for a particular chromosome by querying the SQL for the complete list of column names"""
+        # Check the table exists #
         if not chrom in self.chromosomes: return []
-        return [x[1].encode('ascii') for x in self.cursor.execute('pragma table_info("' + chrom + '")').fetchall()]
+        # A pragma statement will implicitly issue a commit, don't use #
+        self.cursor.execute('SELECT * from "%s"' % chrom)
+        return [x[0] for x in self.cursor.description]
 
     #-----------------------------------------------------------------------------#
     def save(self):
@@ -352,11 +376,10 @@ class Track(object):
                t.remove('chr19_gl000209_random')
                t.save()
         """
-        print "Saving"
         if self._info.modified:    self._info_write()
         if self._chrmeta.modified: self._chrmeta_write()
         self._make_missing_indexes()
-        self.connection.commit()
+        self._connection.commit()
 
     def _make_missing_indexes(self):
         """For every chromosomes present in the track, will create an index on the following fields if they exist:
@@ -364,7 +387,6 @@ class Track(object):
                 * score      --> chr1_score_idx
                 * name       --> chr1_name_idx
         """
-        print "Indexing"
         if self.readonly: return
         try:
             for ch in self:
@@ -391,11 +413,11 @@ class Track(object):
                t.rollback()
 
         """
-        self.connection.rollback()
+        self._connection.rollback()
 
     #-----------------------------------------------------------------------------#
     def close(self):
-        """Closes the current track. This method is useful when you are not using the 'with ... as' form for loading tracks.
+        """Closes the current track. This method is useful when for some special reason you are not using the 'with ... as' form for loading tracks.
 
         :returns: None
 
@@ -409,7 +431,7 @@ class Track(object):
         """
         if self.autosave: self.save()
         self.cursor.close()
-        self.connection.close()
+        self._connection.close()
 
     #-----------------------------------------------------------------------------#
     def export(self, path, format=None):
@@ -476,6 +498,7 @@ class Track(object):
                 data = t.read({'chr':'chr1', 'start':10000, 'end':15000, 'strand':-1, 'score':(10,100)})
                 data = t.read({'chr':'chr5', 'start':0, 'end':200}, ['strand', 'start', 'score'])
         """
+        where = None
         ### SELECTION ###
         if not selection: selection = self.chromosomes
         # Case list of things #
@@ -492,24 +515,26 @@ class Track(object):
         # Empty chromosome case #
         if chrom not in self.chromosomes: return ()
         ### FIELDS ###
-        available_fields = self._get_fields_of_table(chrom)
-        # Function variable is set #
-        if fields:         query_fields = [f in available_fields and f or str(py_field_types[f]()) for f in fields]
-        # Track attribute is set #
-        elif self._fields: query_fields = [f in available_fields and f or str(py_field_types[f]()) for f in self._fields]
-        # Nothing set #
-        else:              query_fields = available_fields
+        if fields == None and self._fields == None: query_fields = "*"
+        else:
+            # Columns names in the table #
+            available_fields = self._get_fields_of_table(chrom)
+            # Function variable is set #
+            if fields: query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in fields])
+            # Track attribute is set #
+            else:      query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in self._fields])
         ### QUERY ###
-        sql_request = "SELECT " + ','.join(query_fields) + " from '" + chrom + "'"
-        if 'where' in locals(): sql_request += where
+        sql_request = "SELECT " + query_fields + " from '" + chrom + "'"
+        # Add the where case #
+        if where: sql_request += where
         # Sorting results #
         order_by = 'order by ' + order
+        sql_request += order_by
         # Return the results #
-        if cursor: cur = self.connection.cursor()
+        if cursor: cur = self._connection.cursor()
         else:      cur = self.cursor
         # Make a feature stream #
-        data = cur.execute(sql_request + ' ' + order_by)
-        return FeatureStream(data, query_fields)
+        return FeatureStream(cur.execute(sql_request))
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
@@ -517,8 +542,8 @@ class Track(object):
 
         :param chromosome: is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.
         :type  chromosome: string
-        :param data: must be an iterable object that yields tuples of the correct length. As an example, the ``read`` function of this class produces such objects. *data* can have a *fields* attribute describing what the different elements of the tuple represent.
-        :type  data: list of strings
+        :param data: must be an iterable object that yields tuples of the correct length. As an example, the ``read`` function of this class produces such objects. *data* can have a *fields* attribute describing what the different elements of the tuple represent. *data* can also simply be a list of tuples.
+        :type  data: an iteratable
         :param fields: is a parameter describing what the different elements in *data* represent. It is optional and is used only if *data* doesn't already have a ``fields`` attribute.
         :type  fields: list of strings
 
@@ -544,32 +569,42 @@ class Track(object):
         # Check track attributes #
         if self.readonly: return
         self.modified = True
-        chrom_exists = chromosome in self.chromosomes
+        # Guess the fields we are getting #
+        if fields:                           incoming_fields = fields
+        elif hasattr(data, 'fields'):        incoming_fields = data.fields
+        elif hasattr(data, 'description'):   incoming_fields = [x[0] for x in data.description]
+        elif self._fields:                   incoming_fields = self._fields
+        elif chromosome in self.chromosomes: incoming_fields = self._get_fields_of_table(chromosome)
+        else:                                incoming_fields = default_fields
+        # Just try to write that and see if it fails #
+        outgoing_fields = ['"' + f + '"' for f in incoming_fields]
+        question_marks = '(' + ','.join(['?' for x in xrange(len(outgoing_fields))]) + ')'
+        sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
+        try:
+            self.cursor.executemany(sql_command, data)
+            return None
+        except (sqlite3.OperationalError, sqlite3.ProgrammingError):
+            pass
         # Current fields present in table #
-        if chrom_exists:            current_fields = self._get_fields_of_table(chromosome)
-        else:                       current_fields = None
-        # The fields we are getting #
-        if hasattr(data, 'fields'): incoming_fields = data.fields
-        elif fields:                incoming_fields = fields
-        elif self._fields:          incoming_fields = self._fields
-        elif chrom_exists:          incoming_fields = current_fields
-        else:                       incoming_fields = default_fields
+        current_fields = []
+        chrom_exists = chromosome in self.chromosomes
+        if chrom_exists: current_fields = self._get_fields_of_table(chromosome)
         # The fields we want to write #
-        if self._fields:            outgoing_fields = self._fields
-        elif chrom_exists:          outgoing_fields = current_fields
-        else:                       outgoing_fields = incoming_fields
-        # Maybe create the table #
-        if not chrom_exists:
-            fields = ','.join(['"' + field + '"' + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
-            self.cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
-            current_fields = outgoing_fields
+        if self._fields: outgoing_fields = self._fields
+        else:            outgoing_fields = incoming_fields
         # Make them sets #
         outgoing_set = set(outgoing_fields)
         incoming_set = set(incoming_fields)
         current_set  = set(current_fields)
-        # Maybe create fields #
-        for field in outgoing_set - current_set:
-            self.cursor.execute('ALTER table "' + chromosome + '" ADD "' + field + '" ' + sql_field_types.get(field, 'text'))
+        # Maybe we need to create the table #
+        if not chrom_exists:
+            fields = ','.join(['"' + field + '"' + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
+            self.cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
+            current_fields = outgoing_fields
+        # Or maybe we need to create new columns #
+        else:
+            for field in outgoing_set - current_set:
+                self.cursor.execute('ALTER table "' + chromosome + '" ADD "' + field + '" ' + sql_field_types.get(field, 'text'))
         # Adjust size #
         if outgoing_set > incoming_set:
             outgoing_fields = incoming_fields
@@ -578,7 +613,6 @@ class Track(object):
             data = pick_iterator_elements(data, indicies)
         # Protect names for SQL query #
         outgoing_fields = ['"' + f + '"' for f in outgoing_fields]
-        # Create the SQL statement #
         question_marks = '(' + ','.join(['?' for x in xrange(len(outgoing_fields))]) + ')'
         sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
         # Execute the insertion #
@@ -958,7 +992,7 @@ class Track(object):
         # Set the attribute #
         self.info['assembly'] = value
         # Check it is valid #
-        if value not in genrep.assemblies.by('name'): return
+        if value not in genrep.assemblies.by('name') or value not in genrep.assemblies.by('id'): return
         # Downlaod the info #
         assembly = genrep.get_assembly(value)
         if not assembly: return
@@ -998,8 +1032,9 @@ class FeatureStream(object):
        @param fields: the list of fields
     """
 
-    def __init__(self, data, fields):
+    def __init__(self, data, fields=None):
         self.data = data
+        if not fields and hasattr(data, 'description'): fields = [x[0] for x in data.description]
         self.fields = fields
 
     def __iter__(self): return self.data

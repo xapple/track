@@ -92,6 +92,15 @@ def bad_bad_execute(iterable):
     connection.commit()
     connection.close()
 
+def bad_execute_many(iterable):
+    # Don't do this
+    global connection, cursor
+    for x in iterable:
+        cursor.execute('insert into dummy values (?,?,?)', x)
+    cursor.close()
+    connection.commit()
+    connection.close()
+
 ################################################################################
 # Read functions #
 def read_one_by_one(command):

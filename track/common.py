@@ -80,23 +80,17 @@ def temporary_path(suffix=''):
     return path
 
 #------------------------------------------------------------------------------#
-def assert_sql_equal(pathA, pathB):
+def assert_sql_equal(pathA, pathB, start_a=0, start_b=0):
     """
     Compare two sqlite3 databases via their dumps.
     Raise an exception if they are not equal, otherwise
     return True.
     """
-    # Load them #
-    import sqlite3, itertools
+    import sqlite3
     sqlA = sqlite3.connect(pathA)
     sqlB = sqlite3.connect(pathB)
-    # Compare them #
-    for a,b in itertools.izip_longest(sqlA.iterdump(), sqlB.iterdump()):
-        if a != b:
-            A = list(sqlA.iterdump())
-            B = list(sqlB.iterdump())
-            print_file_diff(pathA, pathB, A, B)
-    return True
+    A, B = sqlA.iterdump(), sqlB.iterdump()
+    return raise_file_diff(pathA, pathB, A, B, start_a, start_b)
 
 def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
     """
@@ -106,22 +100,31 @@ def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
     :param start_b: Discard these many elements from pathB
     """
     # Load them #
-    with open(pathA, 'r') as f: A = f.read().splitlines()[start_a:]
-    with open(pathB, 'r') as f: B = f.read().splitlines()[start_b:]
-    # Compare them #
-    if A == B: return True
-    else: print_file_diff(pathA, pathB, A, B)
+    A, B = open(pathA, 'r'), open(pathB, 'r')
+    return raise_file_diff(pathA, pathB, A, B, start_a, start_b)
 
-def print_file_diff(pathA, pathB, A, B):
+def raise_file_diff(pathA, pathB, A, B, start_a, start_b):
+    # Advance them #
+    try:
+        for x in xrange(start_a): A.next()
+        for x in xrange(start_b): B.next()
+    except StopIteration:
+        pass
     # Compare them #
-    import difflib
-    diff = difflib.ndiff(A, B)
-    diff_text = '\n'.join(get_n_items_or_less(10, diff))
-    # Raise and print differences #
-    message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
-    message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
-    message += Color.ylw + "First ten lines of difference follows:\n" + Color.end
-    raise AssertionError(message + diff_text)
+    import itertools
+    for a,b in itertools.izip_longest(A,B):
+        if a != b:
+            # They are different #
+            import difflib
+            diff = difflib.ndiff([a] + list(A)[0:40], [b] + list(B)[0:40])
+            diff_text = '\n'.join(get_n_items_or_less(10, diff))
+            # Raise and print differences #
+            message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
+            message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
+            message += Color.ylw + "First ten lines of fourty lines difference follows:\n" + Color.end
+            raise AssertionError(message + diff_text)
+    # They are identical #
+    return True
 
 #------------------------------------------------------------------------------#
 def empty_sql_file(path):
@@ -525,7 +528,7 @@ class JsonJit(object):
         """Return a list of attributes present
            in every element of the JSON"""
         if not self.obj: self.__lazy__()
-        return [x.get(name).encode('ascii') for x in self.obj]
+        return [x or x.encode('ascii') and isinstance(x, str) for x in self.obj]
 
     def make(self, name):
         """Return an object whoes attributes are the
@@ -542,7 +545,7 @@ class JsonJit(object):
         if not self.obj: self.__lazy__()
         # Search in the child object #
         try: return getattr(self.obj, name)
-        except AttributeError as err:
+        except AttributeError:
             # Search in the parent object #
             if name in self.__dict__: return self.__dict__[name]
             else: return self.make(name)
@@ -552,8 +555,7 @@ class JsonJit(object):
            assigned to."""
         if not self.obj: self.__lazy__()
         try: setattr(self.obj, name, value)
-        except AttributeError:
-            self.__dict__[name] = value
+        except AttributeError: self.__dict__[name] = value
 
     def __len__(self):
         if not self.obj: self.__lazy__()
@@ -587,7 +589,7 @@ class Timer:
 
     """
 
-    def __init__(self, name, entries):
+    def __init__(self, name=None, entries=1):
         import timeit
         self.name = name
         self.entries = entries
@@ -601,6 +603,6 @@ class Timer:
         self.end = self.timer()
         total_time = self.end - self.start
         entry_time = (1000000*total_time / self.entries)
-        line1 = "%.6f seconds for " % total_time + self.name
+        line1 = "%.6f seconds for %s" % (total_time, self.name or 'Unnamed')
         line2 = "(%.3f usec per entry)" % entry_time
         print line1, line2
