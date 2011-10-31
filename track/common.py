@@ -528,7 +528,7 @@ class JsonJit(object):
         """Return a list of attributes present
            in every element of the JSON"""
         if not self.obj: self.__lazy__()
-        return [x or x.encode('ascii') and isinstance(x, str) for x in self.obj]
+        return [x or x.encode('ascii') and isinstance(x, basestring) for x in [x.get(name) for x in self.obj]]
 
     def make(self, name):
         """Return an object whoes attributes are the

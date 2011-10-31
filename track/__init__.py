@@ -356,9 +356,9 @@ class Track(object):
         return self._cursor
 
     def _get_fields_of_table(self, chrom):
-        """Returns the list of fields for a particular chromosome by querying the SQL for the complete list of column names"""
+        """Returns the list of fields for a particular table by querying the SQL for the complete list of column names"""
         # Check the table exists #
-        if not chrom in self.chromosomes: return []
+        if not chrom in self.tables: return []
         # A pragma statement will implicitly issue a commit, don't use #
         self.cursor.execute('SELECT * from "%s"' % chrom)
         return [x[0] for x in self.cursor.description]
@@ -515,7 +515,7 @@ class Track(object):
         # Empty chromosome case #
         if chrom not in self.chromosomes: return ()
         ### FIELDS ###
-        if fields == None and self._fields == None: query_fields = "*"
+        if not fields and not self._fields: query_fields = "*"
         else:
             # Columns names in the table #
             available_fields = self._get_fields_of_table(chrom)
@@ -524,17 +524,24 @@ class Track(object):
             # Track attribute is set #
             else:      query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in self._fields])
         ### QUERY ###
-        sql_request = "SELECT " + query_fields + " from '" + chrom + "'"
+        sql_command = "SELECT " + query_fields + " from '" + chrom + "'"
         # Add the where case #
-        if where: sql_request += where
+        if where: sql_command += where
         # Sorting results #
-        order_by = 'order by ' + order
-        sql_request += order_by
+        order_by = ' order by ' + order
+        sql_command += order_by
         # Return the results #
         if cursor: cur = self._connection.cursor()
         else:      cur = self.cursor
+        # Execute the select #
+        try:
+            cur.execute(sql_command)
+        except sqlite3.OperationalError as err:
+            message = "The command <%s%s%s> on the track '%s' failed with error:\n\n %s%s%s"
+            message = message % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
+            raise Exception(message)
         # Make a feature stream #
-        return FeatureStream(cur.execute(sql_request))
+        return FeatureStream(cur)
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
@@ -619,7 +626,7 @@ class Track(object):
         try:
             self.cursor.executemany(sql_command, data)
         except (sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
-            message1 = "The command '%s%s%s' on the track '%s' failed with error:\n %s%s%s"
+            message1 = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
             message1 = message1 % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
             message2 = "\n * %sThe bindings%s: %s \n * %sYou gave%s: %s"
             message2 = message2 % (Color.b_ylw, Color.end, fields, Color.b_ylw, Color.end, data)
@@ -868,7 +875,7 @@ class Track(object):
         """Populates the *self.info* attribute with information found in the 'attributes' table."""
         if not 'attributes' in self.tables: return
         # Make a dictionary directly from the table #
-        query = self.cursor.execute('select key, value from "attributes"')
+        query = self.cursor.execute('SELECT key, value from "attributes"')
         self.info = dict(query.fetchall())
         # Freshly loaded, so not modified #
         self.info.modified = False
@@ -876,12 +883,12 @@ class Track(object):
     def _info_write(self):
         """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS "attributes"')
+        self.cursor.execute('DROP table IF EXISTS "attributes"')
         if not self.info: return
         # Write every dictionary entry #
-        self.cursor.execute('create table "attributes" ("key" text, "value" text)')
+        self.cursor.execute('CREATE table "attributes" ("key" text, "value" text)')
         for k in self.info.keys():
-            self.cursor.execute('insert into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
+            self.cursor.execute('INSERT into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
 
     @property
     def datatype(self):
@@ -925,11 +932,10 @@ class Track(object):
         if not 'chrNames' in self.tables: return
         # Columns are the chromosome attributes #
         # ['name', 'length']
-        query = self.cursor.execute('pragma table_info("chrNames")')
-        columns = [x[1].encode('ascii') for x in query]
+        columns = self._get_fields_of_table("chrNames")
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
-        query = self.cursor.execute('select * from "chrNames"').fetchall()
+        query = self.cursor.execute('SELECT * from "chrNames"').fetchall()
         rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
         # Make a pretty dictionary of dictionaries #
         # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
@@ -941,17 +947,17 @@ class Track(object):
     def _chrmeta_write(self):
         """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
-        self.cursor.execute('drop table IF EXISTS "chrNames"')
+        self.cursor.execute('DROP table IF EXISTS "chrNames"')
         if not self.chrmeta: return
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
-        rows = [dict([['name', chrom]] + [(k,v) for k,v in self[chrom].items()]) for chrom in self.chrmeta]
-        self.cursor.execute('create table "chrNames" ("name" text, "length" integer)')
+        rows = [dict([('name', chrom)] + [(k,v) for k,v in self.chrmeta[chrom].items()]) for chrom in self.chrmeta]
+        self.cursor.execute('CREATE table "chrNames" ("name" text, "length" integer)')
         for r in rows:
             question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
-            self.cursor.execute('insert into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
+            self.cursor.execute('INSERT into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.
@@ -992,7 +998,8 @@ class Track(object):
         # Set the attribute #
         self.info['assembly'] = value
         # Check it is valid #
-        if value not in genrep.assemblies.by('name') or value not in genrep.assemblies.by('id'): return
+        if value not in genrep.assemblies.by('name') and value not in genrep.assemblies.by('id'):
+            return
         # Downlaod the info #
         assembly = genrep.get_assembly(value)
         if not assembly: return
