@@ -37,11 +37,11 @@ class SerializerBedGraph(Serializer):
         # Put the fields in the right order #
         line = [feature[i] for i in self.indices]
         # Convert the score #
-        line[2] = format_float(line[3])
+        line[2] = format_float(line[2])
         # Make sure eveything is a string #
         line = [str(f) for f in line]
         # Write one line #
-        self.file.write('\t'.join([chrom] + line) + '\n')
+        self.file.write(' '.join([chrom] + line) + '\n')
 
 #-----------------------------------#
 # This code was written by the BBCF #

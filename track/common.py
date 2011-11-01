@@ -67,6 +67,18 @@ def check_executable(tool_name):
         raise Exception("The executable '" + tool_name + "' cannot be found")
 
 #------------------------------------------------------------------------------#
+def run_tool(self, tool_name, args):
+    """
+    Run the executable *tool_name* with *args* as arguments.
+    Raises an exception if the process outputs something on the
+    standard error output.
+    """
+    import subprocess
+    proc = subprocess.Popen([tool_name] + args, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if stderr: raise Exception("The tool '" + tool_name + "' exited with message: " + '"' + stderr.strip('\n') + '"')
+
+#------------------------------------------------------------------------------#
 def temporary_path(suffix=''):
     """
     Often, one needs a new random and temporary file path
@@ -210,8 +222,9 @@ def aggregate_sql_rows(cursor, base_columns, new_column_name):
     columns are aggregated toghther in one column.
     This column is named *new_column_name*.
 
-    >>> print 'TODO'
-    TODO
+    >>> data = [{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}]
+    >>> result = aggregate_sql_rows(data, ['a','b'], 'z'])
+    >>> print list(result)
     """
     extra_columns = tuple(set(cursor.fields) - set(base_columns))
     for item in cursor:

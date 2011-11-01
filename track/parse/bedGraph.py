@@ -18,6 +18,7 @@ all_fields = ['start', 'end', 'score']
 class ParserBedGraph(Parser):
     def parse(self):
         # Initial variables #
+        info = {}
         declare_track = True
         # Main loop #
         for number, line in iterate_lines(self.path):
@@ -51,9 +52,9 @@ class ParserBedGraph(Parser):
             except ValueError:
                 self.handler.error("The track%s has non integers as interval bounds", self.path, number)
             # Score field #
-            if items[3] == '.' or items[3] == '': items[3] = 0.0
+            if items[2] == '.' or items[2] == '': items[2] = 0.0
             try:
-                items[3] = float(items[3])
+                items[2] = float(items[2])
             except ValueError:
                 self.handler.error("The track%s has non floats as score values", self.path, number)
             # Yield it #

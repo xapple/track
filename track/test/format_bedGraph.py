@@ -35,7 +35,7 @@ class TestRoundtrip(unittest.TestCase):
             # From SQL to GFF #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
             track.convert(test_sql_path, test_bedGraph_path)
-            self.assertTrue(assert_file_equal(orig_bedGraph_path, test_bedGraph_path, start_a=1, start_b=1))
+            self.assertTrue(assert_file_equal(orig_bedGraph_path, test_bedGraph_path, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
             os.remove(test_bedGraph_path)
