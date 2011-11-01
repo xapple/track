@@ -7,12 +7,14 @@ import os, sys
 
 # Variables #
 parsers = {
-    'memory': {'module': 'track.parse.memory',   'class': 'ParserRAM'},
-    'sql':    {'module': 'track.parse.sql',      'class': 'ParserSQL'},
-    'bed':    {'module': 'track.parse.bed',      'class': 'ParserBED'},
-    'wig':    {'module': 'track.parse.wig',      'class': 'ParserWIG'},
-    'gff':    {'module': 'track.parse.gff',      'class': 'ParserGFF'},
-    'gtf':    {'module': 'track.parse.gtf',      'class': 'ParserGTF'},
+    'memory':   {'module': 'track.parse.memory',   'class': 'ParserRAM'},
+    'sql':      {'module': 'track.parse.sql',      'class': 'ParserSQL'},
+    'bed':      {'module': 'track.parse.bed',      'class': 'ParserBED'},
+    'wig':      {'module': 'track.parse.wig',      'class': 'ParserWIG'},
+    'gff':      {'module': 'track.parse.gff',      'class': 'ParserGFF'},
+    'gtf':      {'module': 'track.parse.gtf',      'class': 'ParserGTF'},
+    'bedGraph': {'module': 'track.parse.bedGraph', 'class': 'ParserBedGraph'},
+    'bigWig':   {'module': 'track.parse.bigWig',   'class': 'ParserBigWig'},
 }
 
 ################################################################################

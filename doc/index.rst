@@ -38,6 +38,7 @@ Track attributes
 .. autoattribute:: Track.datatype
 .. autoattribute:: Track.assembly
 .. autoattribute:: Track.chrmeta
+.. autoattribute:: Track.modified
 .. autoattribute:: Track.cursor
 
 Track methods

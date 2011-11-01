@@ -60,6 +60,13 @@ For instance, the cumulative base coverage of features on chromosome two can be 
         # gene[1] is the end coordinate and gene[0] is the start coordinate
         base_coverage = sum([gene[1] - gene[0] for gene in all_genes])
 
+The results coming from the ``read`` function can also be referenced by field name. Hence this code works as well::
+
+    import track
+    with track.load('tracks/rp_genes.bed.gff') as rpgenes:
+        all_genes = rpgenes.read('chr3')
+        base_coverage = sum([gene['end'] - gene['start'] for gene in all_genes])
+
 To create a new track and then write to it, you would do the following::
 
     import track
@@ -267,12 +274,11 @@ class Track(object):
         self.autosave    = autosave
         self.orig_path   = orig_path
         self.orig_format = orig_format
-        # Fixed attributes #
-        self.modified    = False
         # Hidden attributes #
-        self._fields  = []
-        self._chrmeta = JournaledDict()
-        self._info    = JournaledDict()
+        self._modified = False
+        self._fields   = []
+        self._chrmeta  = JournaledDict()
+        self._info     = JournaledDict()
         # Opening the database #
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = sqlite3.Row
@@ -304,6 +310,12 @@ class Track(object):
     def __nonzero__(self):
         """Called when evaluating 'if track: pass'."""
         return True
+
+    @property
+    def modified(self):
+        """*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also make set this value to True."""
+        if self._modified or self.info.modified or self.chrmeta.modified: return True
+        return False
 
     @property
     def fields(self):
@@ -377,6 +389,7 @@ class Track(object):
         """
         if self._info.modified:    self._info_write()
         if self._chrmeta.modified: self._chrmeta_write()
+        self._make_missing_tables()
         self._make_missing_indexes()
         self._connection.commit()
 
@@ -396,6 +409,12 @@ class Track(object):
                     self.cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
         except sqlite3.OperationalError as err:
             raise Exception("The index creation on the track '" + self.path + "' failed with error: " + str(err))
+
+    def _make_missing_tables(self):
+        """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
+        fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in self.fields])
+        for chrom_name in self.chrmeta:
+            self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
     #-----------------------------------------------------------------------------#
     def rollback(self):
@@ -427,8 +446,8 @@ class Track(object):
             t.remove('chr19_gl000209_random')
             t.close()
         """
-        if self.autosave: self.save()
-        self.cursor.close()
+        if self.modified and self.autosave: self.save()
+        self._cursor.close()
         self._connection.close()
 
     #-----------------------------------------------------------------------------#
@@ -570,7 +589,7 @@ class Track(object):
         """
         # Check track attributes #
         if self.readonly: return
-        self.modified = True
+        self._modified = True
         # Guess the fields we are getting #
         if fields:                           incoming_fields = fields
         elif hasattr(data, 'fields'):        incoming_fields = data.fields
@@ -665,7 +684,7 @@ class Track(object):
                 t.remove(['chr1', 'chr2', 'chr3'])
         """
         # Check track attributes #
-        self.modified = True
+        self._modified = True
         if self.readonly: return
         # Can be a list or a string #
         if isinstance(chromosome, list):
@@ -692,7 +711,7 @@ class Track(object):
                 t.rename('chr4', 'chrIV')
         """
         # Check track attributes #
-        self.modified = True
+        self._modified = True
         if self.readonly: return
         # Check existance #
         if previous_name not in self.chromosomes: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
@@ -949,10 +968,6 @@ class Track(object):
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
             self.cursor.execute('INSERT into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
-        # Make empty tables for compatiblity #
-        fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in self.fields])
-        for chrom_name in self.chrmeta:
-            self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.

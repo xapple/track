@@ -68,6 +68,16 @@ samples = {
   'gtf_tracks': {
     1:            {'name':'GenRep saccer example', 'filename': 'gtf_saccer'},
   },
+  'bedGraph_tracks': {
+    1:            {'name':'Signal track 1',        'filename': 'scores1'},
+    5:            {'name':'Signal track 5',        'filename': 'scores5'},
+    6:            {'name':'Signal track 6',        'filename': 'scores5'},
+  },
+  'bigWig_tracks': {
+    1:            {'name':'Signal track 1',        'filename': 'scores1'},
+    5:            {'name':'Signal track 5',        'filename': 'scores5'},
+    6:            {'name':'Signal track 6',        'filename': 'scores5'},
+  },
 }
 
 # Add the path for every format #
