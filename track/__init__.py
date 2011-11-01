@@ -70,7 +70,6 @@ To duplicate a chromosome inside the same track, you can use the following::
 
     with track.load('tracks/copychrs.sql') as t:
         t.write('chrY', t.read('chrX', cursor=True))
-        t.save()
 
 For instance, to make a new track from an old one, and invert the strand of every feature of every chromosome::
 
@@ -365,7 +364,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def save(self):
-        """Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database.
+        """Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling ``rollback`` will revert all changes to the track since the last call to ``save()``. By default, when the track is closed, all changes are saved.
 
         :returns: None
 
@@ -426,7 +425,6 @@ class Track(object):
             import track
             t = track.load('tracks/rp_genes.bed')
             t.remove('chr19_gl000209_random')
-            t.save()
             t.close()
         """
         if self.autosave: self.save()
@@ -561,17 +559,14 @@ class Track(object):
             import track
             with track.load('tracks/example.sql') as t:
                 t.write('chr1', [(10, 20, 'A', 0.0, 1), (40, 50, 'B', 0.0, -1)])
-                t.save()
             with track.load('tracks/example.sql') as t:
                 def example_generator():
                     for i in xrange(5):
                         yield (10, 20, 'X')
                 t.write('chr2', example_generator(), fields=['start','end','name'])
-                t.save()
             with track.load('tracks/new.sql') as t2:
                 with track.load('tracks/orig.sql') as t1:
                     t1.write('chr1', t2.read('chr1'))
-                    t1.save()
         """
         # Check track attributes #
         if self.readonly: return
@@ -648,7 +643,6 @@ class Track(object):
             import track
             with track.load('tracks/example.sql') as t:
                 t.insert('chr1', (10, 20, 'A')
-                t.save()
         """
         question_marks = '(' + ','.join(['?' for x in xrange(len(feature))]) + ')'
         self.cursor.execute('insert into "' + chromosome + '" values ' + question_marks, feature)
@@ -667,10 +661,8 @@ class Track(object):
             import track
             with track.load('tracks/example.sql') as t:
                 t.remove('chr1')
-                t.save()
             with track.load('tracks/example.sql') as t:
                 t.remove(['chr1', 'chr2', 'chr3'])
-                t.save()
         """
         # Check track attributes #
         self.modified = True
@@ -698,7 +690,6 @@ class Track(object):
             import track
             with track.load('tracks/rp_genes.bed') as t:
                 t.rename('chr4', 'chrIV')
-                t.save()
         """
         # Check track attributes #
         self.modified = True
@@ -958,6 +949,10 @@ class Track(object):
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
             self.cursor.execute('INSERT into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
+        # Make empty tables for compatiblity #
+        fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in self.fields])
+        for chrom_name in self.chrmeta:
+            self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.
@@ -989,7 +984,6 @@ class Track(object):
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
                 t.assembly = 'hg19'
-                t.save()
         """
         return self.info.get('assembly', 'Unnamed')
 
@@ -1022,7 +1016,6 @@ class Track(object):
             track.convert('tracks/genes.bed', 'tracks/genes.sql')
             with track.load('tracks/genes.sql') as t:
                 t.guess_assembly()
-                t.save()
         """
         genomes = set.intersection(*map(set, [genrep.find_possible_assemblies(chrom) for chrom in self]))
         if len(genomes) != 1: return

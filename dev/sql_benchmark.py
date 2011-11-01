@@ -3,7 +3,7 @@ import sqlite3, os, timeit, random, tempfile
 from track.common import Timer
 
 # Variables #
-global num_entries
+global num_entries, connection, cursor
 num_entries = 1000000
 
 ################################################################################
@@ -17,19 +17,20 @@ def setup_database(path, auto_commit=False):
     connection.commit()
 
 def destroy_database(path):
-    os.remove(path)
+    if os.path.exists(path): os.remove(path)
 
-def reopen_database(path):
+def reopen_database(path, rows=None):
     global connection, cursor
     cursor.close()
     connection.close()
     connection = sqlite3.connect(path)
+    if rows: connection.row_factory = rows
     cursor = connection.cursor()
 
 def generate_data():
     global num_entries
     name_gen = tempfile._RandomNameSequence()
-    for i in range(num_entries):
+    for i in xrange(num_entries):
         yield (name_gen.next(), name_gen.next(), random.randint(1,1000))
 
 def time_the_execution(command):
@@ -104,6 +105,7 @@ def bad_execute_many(iterable):
 ################################################################################
 # Read functions #
 def read_one_by_one(command):
+    global connection, cursor
     cursor.execute(command)
     sum = 0
     while True:
@@ -114,6 +116,7 @@ def read_one_by_one(command):
             break
 
 def read_all(command):
+    global connection, cursor
     cursor.execute(command)
     sum = 0
     data = cursor.fetchall()
@@ -122,8 +125,14 @@ def read_all(command):
         sum += x[2]
 
 def read_iterator(command):
+    global connection, cursor
     cursor.execute(command)
     sum([x[2] for x in cursor])
+
+def read_row(command):
+    global connection, cursor
+    cursor.execute(command)
+    sum([x['three'] for x in cursor])
 
 ################################################################################
 # Write #
@@ -131,6 +140,7 @@ path = "test_database.sql"
 data = list(generate_data())
 
 print "--- Write ---"
+destroy_database(path)
 setup_database(path)
 with Timer('simple_execute'): simple_execute(data)
 destroy_database(path)
@@ -161,13 +171,16 @@ cursor = connection.cursor()
 command = "select * from dummy"
 
 reopen_database(path)
-with Timer('read_one_by_one'): read_one_by_one(data)
+with Timer('read_one_by_one'): read_one_by_one(command)
 
 reopen_database(path)
-with Timer('read_all'): read_all(data)
+with Timer('read_all'): read_all(command)
 
 reopen_database(path)
-with Timer('read_iterator'): read_iterator(data)
+with Timer('read_iterator'): read_iterator(command)
+
+reopen_database(path, rows=sqlite3.Row)
+with Timer('read_row'): read_row(command)
 
 cursor.close()
 connection.close()

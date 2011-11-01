@@ -202,6 +202,22 @@ def pick_iterator_elements(iterable, indices):
     """
     for item in iterable: yield [item[i] for i in indices]
 
+#------------------------------------------------------------------------------#
+def aggregate_sql_rows(cursor, base_columns, new_column_name):
+    """
+    Return a new generator, yielding sqlite3 rows but where the columns
+    specified in *base_columns* are untouched and the remaining
+    columns are agregated toghther in one column.
+    This column is named *new_column_name*.
+
+    >>> print 'TODO'
+    TODO
+    """
+    extra_columns = set([x[0] for x in cursor.description]) - set(base_columns)
+    for item in cursor:
+        item = [item[f] for f in base_columns] + []
+        yield
+
 ############################## VARIOUS FUNCTIONS ###############################
 def format_float(f, precision=None):
     """
