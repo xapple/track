@@ -31,8 +31,7 @@ class TestConversion(unittest.TestCase):
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
             # From BED to SQL #
-            track.convert(orig_gtf_path, test_sql_path)
-            with track.load(test_sql_path) as t: t.assembly = 12
+            track.convert(orig_gtf_path, test_sql_path, assembly=12)
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # Clean up #
             os.remove(test_sql_path)

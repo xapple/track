@@ -29,8 +29,7 @@ class TestRoundtrip(unittest.TestCase):
             test_sql_path = temporary_path('.sql')
             test_bedGraph_path = temporary_path('.bedGraph')
             # From GFF to SQL #
-            track.convert(orig_bedGraph_path, test_sql_path)
-            with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
+            track.convert(orig_bedGraph_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # From SQL to GFF #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]

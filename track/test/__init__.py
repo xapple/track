@@ -67,7 +67,7 @@ samples = {
   },
   'gtf_tracks': {
     1:            {'name':'WUSTL GTF example',      'filename': 'gtf_test1'},
-    'GenRep':     {'name':'GenRep saccer',          'filename': 'gtf_saccer'},
+    'GenRep':     {'name':'GenRep saccer GTF',      'filename': 'gtf_saccer'},
   },
   'bedGraph_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},

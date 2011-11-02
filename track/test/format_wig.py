@@ -29,8 +29,7 @@ class TestConversion(unittest.TestCase):
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
             # From WIG to SQL #
-            track.convert(orig_wig_path, test_sql_path)
-            with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
+            track.convert(orig_wig_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # Clean up #
             os.remove(test_sql_path)
@@ -46,8 +45,7 @@ class TestRoundtrip(unittest.TestCase):
             test_sql_path = temporary_path('.sql')
             test_wig_path = temporary_path('.wig')
             # From WIG to SQL #
-            track.convert(orig_wig_path, test_sql_path)
-            with track.load(test_sql_path) as t: t.assembly = 'sacCer2'
+            track.convert(orig_wig_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
             # From SQL to WIG #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
