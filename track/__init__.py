@@ -214,13 +214,16 @@ def new(path, format=None):
         return Track(sql_path, orig_path=path, orig_format=format)
 
 #---------------------------------------------------------------------------------#
-def convert(source, destination):
+def convert(source, destination, assembly=None):
     """Converts a track from one format to an other. The *source* file should have a different format from the *destination* file. If either the source or destination are missing a file extension, you can specify their formats using a tuple. See examples below.
 
        :param source: is the path to the original track to load.
        :type  source: string
        :param destination: is the path to the track to be created.
        :type  destination: string
+       :param assembly: an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.
+       :type  assembly: string
+
        :returns: the path to the track created (or a list of track paths in the case of multi-track files).
 
        ::
@@ -252,12 +255,15 @@ def convert(source, destination):
     serializer = get_serializer(destination_path, destination_format)
     # Get a parser #
     parser = get_parser(source_path, source_format)
+    # Chrmeta #
+    if assembly and destination_format is not 'sql': serializer.defineChrmeta(genrep.get_assembly(assembly).chrmeta)
     # Do it #
     paths = parser(serializer)
     # Maybe add some metadata #
-    #if destination_format == 'sql':
-    #    with load(destination_path, destination_format) as t:
-    #        t.info['orig_name'] = source_path
+    if destination_format == 'sql':
+        with load(destination_path, destination_format) as t:
+            t.info['orig_name'] = os.path.basename(source_path)
+            if assembly: t.assembly = assembly
     # Return a track path #
     return paths
 
@@ -1020,7 +1026,7 @@ class Track(object):
 
     @property
     def assembly(self):
-        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
+        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name or id. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
 
         ::
 
