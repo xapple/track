@@ -129,7 +129,7 @@ from track.util import determine_format, join_read_queries, make_cond_from_sel, 
 from track.util import sql_field_types, py_field_types, serialize_chr_file
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
-from track.common import Color, pick_iterator_elements
+from track.common import Color, pick_iterator_elements, natural_sort
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -926,7 +926,7 @@ class Track(object):
         if not self.info: return
         # Write every dictionary entry #
         self.cursor.execute('CREATE table "attributes" ("key" text, "value" text)')
-        for k in self.info.keys():
+        for k in sorted(self.info.keys(), key=natural_sort):
             self.cursor.execute('INSERT into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
 
     @property
@@ -998,7 +998,7 @@ class Track(object):
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
         rows = [dict([('name', chrom)] + [(k,v) for k,v in self.chrmeta[chrom].items()]) for chrom in self.chrmeta]
         self.cursor.execute('CREATE table "chrNames" ("name" text, "length" integer)')
-        for r in rows:
+        for r in sorted(rows, key=lambda x: natural_sort(x['name'])):
             question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
