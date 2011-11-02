@@ -66,8 +66,8 @@ samples = {
     1:            {'name':'UCSC GFF example',      'filename': 'gff_test1'},
   },
   'gtf_tracks': {
-    1:            {'name':'UCSC GTF example',      'filename': 'gtf_test1'},
-    'GenRep':     {'name':'GenRep saccer example', 'filename': 'gtf_saccer'},
+    1:            {'name':'WUSTL GTF example',      'filename': 'gtf_test1'},
+    'GenRep':     {'name':'GenRep saccer',          'filename': 'gtf_saccer'},
   },
   'bedGraph_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},

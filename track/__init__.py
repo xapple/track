@@ -420,8 +420,8 @@ class Track(object):
 
     def _make_missing_tables(self):
         """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
-        fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in self.fields])
-        if not fields: fields = minimum_fields
+        fields = self.fields or minimum_fields
+        fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in fields])
         for chrom_name in self.chrmeta:
             self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 

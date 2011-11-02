@@ -231,7 +231,8 @@ def aggregate_sql_rows(features, base_columns, new_column_name):
     This column is named *new_column_name*.
 
     >>> from track import FeatureStream
-    >>> features = FeatureStream([{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}], ['a','b','b','d'])
+    >>> data = [{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}]
+    >>> features = FeatureStream(iter(data), ['a','b','b','d'])
     >>> result = aggregate_sql_rows(features, ['a','b'], 'z')
     >>> print list(result)
     """
