@@ -32,7 +32,7 @@ class SerializerSQL(Serializer):
         self.fields = fields
 
     def defineChrmeta(self, chrmeta):
-        if self.current_track: self.current_track.chrmeta = chrmeta
+        if self.__dict__.get('current_track',''): self.current_track.chrmeta = chrmeta
         else: self.current_chrmeta = chrmeta
 
     def newTrack(self, info=None, name=None):
