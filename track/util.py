@@ -103,12 +103,13 @@ def parse_chr_file(self, path):
     return chrmeta
 
 ###############################################################################
-def serialize_chr_file(self, chrmeta, path=None, seperator='\t'):
+def serialize_chr_file(chrmeta, path=None, seperator='\t'):
     """Read a dictionary and create a plain text file"""
     if not path: path = temporary_path()
     def lines():
         for k,v in chrmeta.items(): yield k + seperator + str(v['length']) + '\n'
     with open(path, 'w') as f: f.writelines(lines())
+    return path
 
 ################################################################################
 def join_read_queries(track, selections, fields):

@@ -232,9 +232,10 @@ def aggregate_sql_rows(features, base_columns, new_column_name):
 
     >>> from track import FeatureStream
     >>> data = [{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}]
-    >>> features = FeatureStream(iter(data), ['a','b','b','d'])
+    >>> features = FeatureStream(iter(data), ['a','b','c','d'])
     >>> result = aggregate_sql_rows(features, ['a','b'], 'z')
     >>> print list(result)
+    [{'a': 1, 'b': 2, 'z': {'c': 3, 'd': 0}}, {'a': 4, 'b': 5, 'z': {'c': 6, 'd': 0}}]
     """
     extra_columns = tuple(set(features.fields) - set(base_columns))
     for item in features:
