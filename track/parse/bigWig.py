@@ -19,10 +19,7 @@ import track
 from track.parse import Parser
 from track.common import temporary_path, check_executable, run_tool
 
-# Constants #
-all_fields = ['start', 'end', 'score']
-
-##mb##############################################################################
+################################################################################
 class ParserBigWig(Parser):
     def parse(self):
         # Check the binary tools exist #
@@ -32,7 +29,7 @@ class ParserBigWig(Parser):
         bedgraph_path = temporary_path('.bedGraph')
         run_tool('bigWigToBedGraph', [bigwig_path, bedgraph_path])
         # Now just parse the bedGraph #
-        parser = track.parse.get_parser(bedgraph_path)
+        parser = track.parse.get_parser(bedgraph_path, 'bedGraph')
         parser.name = self.name
         paths = parser(self.handler)
         # Erase the temporary file #

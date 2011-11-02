@@ -48,6 +48,7 @@ Track methods
 .. automethod:: Track.write
 .. automethod:: Track.save
 .. automethod:: Track.rollback
+.. automethod:: Track.vacuum
 .. automethod:: Track.close
 .. automethod:: Track.export
 .. automethod:: Track.remove

@@ -121,6 +121,7 @@ genomes       = JsonJit(url + "genomes.json",       'genome')
 nr_assemblies = JsonJit(url + "nr_assemblies.json", 'nr_assembly')
 assemblies    = JsonJit(url + "assemblies.json",    'assembly')
 sources       = JsonJit(url + "sources.json",       'source')
+chromosomes   = JsonJit(url + "chromosomes.json",   'chromosome')
 
 #-----------------------------------#
 # This code was written by the BBCF #

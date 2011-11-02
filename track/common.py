@@ -53,7 +53,15 @@ def check_path(path):
     Raise an exception if the path *path* is already taken.
     """
     import os
-    if os.path.exists(path): raise Exception("The location '" + path + "' is already taken")
+    if os.path.exists(path): raise Exception("The location '" + path + "' is already taken.")
+
+#------------------------------------------------------------------------------#
+def check_file(path):
+    """
+    Raise an exception if the path *path* is empty.
+    """
+    import os
+    if os.path.getsize(path) == 0: raise Exception("The file '" + path + "' is empty.")
 
 #------------------------------------------------------------------------------#
 def check_executable(tool_name):
@@ -67,7 +75,7 @@ def check_executable(tool_name):
         raise Exception("The executable '" + tool_name + "' cannot be found")
 
 #------------------------------------------------------------------------------#
-def run_tool(self, tool_name, args):
+def run_tool(tool_name, args):
     """
     Run the executable *tool_name* with *args* as arguments.
     Raises an exception if the process outputs something on the
@@ -215,19 +223,20 @@ def pick_iterator_elements(iterable, indices):
     for item in iterable: yield [item[i] for i in indices]
 
 #------------------------------------------------------------------------------#
-def aggregate_sql_rows(cursor, base_columns, new_column_name):
+def aggregate_sql_rows(features, base_columns, new_column_name):
     """
     Return a new generator, yielding dictionaries where the columns
     specified in *base_columns* are untouched and the remaining
     columns are aggregated toghther in one column.
     This column is named *new_column_name*.
 
-    >>> data = [{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}]
-    >>> result = aggregate_sql_rows(data, ['a','b'], 'z'])
+    >>> from track import FeatureStream
+    >>> features = FeatureStream([{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}], ['a','b','b','d'])
+    >>> result = aggregate_sql_rows(features, ['a','b'], 'z')
     >>> print list(result)
     """
-    extra_columns = tuple(set(cursor.fields) - set(base_columns))
-    for item in cursor:
+    extra_columns = tuple(set(features.fields) - set(base_columns))
+    for item in features:
         yield dict([(f,item[f]) for f in base_columns] + [(new_column_name, dict([(f,item[f]) for f in extra_columns]))])
 
 ############################## VARIOUS FUNCTIONS ###############################

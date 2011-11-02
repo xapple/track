@@ -18,6 +18,7 @@ class ParserSQL(Parser):
         def read_whole_track(t):
             self.handler.defineFields(t.fields)
             self.handler.newTrack(t.info)
+            self.handler.defineChrmeta(t.chrmeta)
             for chrom in t:
                 for feature in t.read(chrom):
                     self.handler.newFeature(chrom, feature)

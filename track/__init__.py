@@ -26,6 +26,7 @@ and clicking on "Downloads", or by cloning the git repository with::
 
 Once you have the source code, run::
 
+    $ cd track
     $ sudo python setup.py build
 
 to install it. If you need to install it in a particular directory, use::
@@ -126,14 +127,17 @@ from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.util import sql_field_types, py_field_types, serialize_chr_file
-from track.common import check_path, empty_file, empty_sql_file, temporary_path
+from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements
 
 # Constants #
-special_tables = ['attributes', 'chrNames', 'types']
-default_fields = ['start', 'end', 'name', 'score', 'strand']
-signal_fields  = ['start', 'end', 'score']
+special_tables = ('attributes', 'chrNames', 'types')
+minimum_fields = ('start', 'end')
+default_fields = ('start', 'end', 'name', 'score', 'strand')
+signal_fields = ('start', 'end', 'score')
+feature_fields = ('start', 'end', 'name', 'score', 'strand', 'attributes')
+relational_fields = ('start', 'end', 'name', 'score', 'strand', 'attributes', 'group', 'id')
 
 ################################################################################
 def load(path, format=None, readonly=False):
@@ -161,7 +165,9 @@ def load(path, format=None, readonly=False):
 
     """
     # Check if URL #
-
+    pass
+    # Check not empty #
+    check_file(path)
     # Guess the format #
     if not format: format = determine_format(path)
     # If sql, just make a track with the path #
@@ -240,6 +246,8 @@ def convert(source, destination):
         destination_format = os.path.splitext(destination)[1][1:]
     # Check it is not taken #
     check_path(destination_path)
+    # Check it is not empty #
+    check_file(source_path)
     # Get a serializer #
     serializer = get_serializer(destination_path, destination_format)
     # Get a parser #
@@ -363,7 +371,7 @@ class Track(object):
                 rpgenes.cusror.execute("select name from sqlite_master where type='table'")
                 results = rpgenes.cusror.fetchall()
 
-           More information is available on the `sqlite3 docuemntation pages <http://docs.python.org/library/sqlite3.html>`_."""
+           More information is available on the `sqlite3 documentation pages <http://docs.python.org/library/sqlite3.html>`_."""
         return self._cursor
 
     def _get_fields_of_table(self, chrom):
@@ -413,6 +421,7 @@ class Track(object):
     def _make_missing_tables(self):
         """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
         fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in self.fields])
+        if not fields: fields = minimum_fields
         for chrom_name in self.chrmeta:
             self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
@@ -429,9 +438,23 @@ class Track(object):
                t.remove('chr19_gl000209_random')
                t.export('tmp/clean.bed')
                t.rollback()
-
         """
         self._connection.rollback()
+
+    #-----------------------------------------------------------------------------#
+    def vacuum(self):
+        """Rebuilds the database making it shrink in file size. This method is useful when, after having executed many inserts, updates, and deletes, the SQLite file is fragmented and full of empty space.
+
+        :returns: None
+
+        ::
+
+           import track
+           with track.load('tracks/rp_genes.bed') as t:
+               t.remove('chr19_gl000209_random')
+               t.vaccum()
+        """
+        self.cursor.execute("VACUUM")
 
     #-----------------------------------------------------------------------------#
     def close(self):
@@ -489,7 +512,7 @@ class Track(object):
         :param cursor: is an optional parameter which should be set to True if you are performing several operations on the same track at the same time. This is the case, for instance, when you are chaining a read operation to a write operation.
         :type  cursor: bool
 
-        :returns: a generator object yielding tuples.
+        :returns: a generator object yielding row. A row can be referenced like a tuple or like a dictionary.
 
         *selection* can be the name of a chromosome, in which case all the data on that chromosome will be returned.
 
@@ -566,7 +589,7 @@ class Track(object):
 
         :param chromosome: is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.
         :type  chromosome: string
-        :param data: must be an iterable object that yields tuples of the correct length. As an example, the ``read`` function of this class produces such objects. *data* can have a *fields* attribute describing what the different elements of the tuple represent. *data* can also simply be a list of tuples.
+        :param data: must be an iterable object that yields tuples or rows of the correct length. As an example, the ``read`` function of this class produces such objects. *data* can have a *fields* attribute describing what the different elements of the tuple represent. *data* can also simply be a list of tuples.
         :type  data: an iteratable
         :param fields: is a parameter describing what the different elements in *data* represent. It is optional and is used only if *data* doesn't already have a ``fields`` attribute.
         :type  fields: list of strings
@@ -930,6 +953,12 @@ class Track(object):
 
              ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
 
+        You would hence use it like this::
+
+            import track
+            with track.load('tmp/track.sql') as t:
+                print t.chrmeta['chr1']['length']
+
         Of course, genomic formats such as ``bed`` cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed."""
         return self._chrmeta
 
@@ -1004,8 +1033,6 @@ class Track(object):
 
     @assembly.setter
     def assembly(self, value):
-        # Set the attribute #
-        self.info['assembly'] = value
         # Check it is valid #
         if value not in genrep.assemblies.by('name') and value not in genrep.assemblies.by('id'):
             return
@@ -1019,6 +1046,8 @@ class Track(object):
             else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
+        # Add the attribute #
+        self.info['assembly'] = assembly.name
 
     def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.

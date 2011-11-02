@@ -15,7 +15,7 @@ from track.util import strand_to_int
 # Constants #
 all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame']
 
-##mb##############################################################################
+################################################################################
 class ParserGTF(Parser):
     def parse(self):
         # Initial variables #
@@ -36,6 +36,7 @@ class ParserGTF(Parser):
             # Split the lines #
             items = line.split('\t')
             if len(items) == 1: items = line.split()
+            if len(items) > 8: items = items[0:8] + [' '.join(items[8:])]
             # Chromosome #
             chrom = items.pop(0)
             # Length is nine #

@@ -19,7 +19,7 @@ def read(path, format=None):
        :type  path: string
        :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.
        :type  format: string
-       :returns: a dictionary containing all features of every chromosome contained in a track
+       :returns: a dictionary containing all features of every chromosome contained in a track.
 
        ::
 

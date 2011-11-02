@@ -58,15 +58,16 @@ samples = {
     'Rap1':       {'name':'Rap1 signal',           'filename': 'yeast_rap1'},
   },
   'yeast_features': {
-    'All genes':  {'name':'All yeast genes',       'filename': 'yeast_genes'},
-    'Ribi genes': {'name':'Yeast Ribi genes',      'filename': 'yeast_ribi_genes'},
-    'RP genes':   {'name':'Yeast RP genes',        'filename': 'yeast_rp_genes'},
+    'All':        {'name':'All yeast genes',       'filename': 'yeast_genes'},
+    'Ribi':       {'name':'Yeast Ribi genes',      'filename': 'yeast_ribi_genes'},
+    'RP':         {'name':'Yeast RP genes',        'filename': 'yeast_rp_genes'},
   },
   'gff_tracks': {
     1:            {'name':'UCSC GFF example',      'filename': 'gff_test1'},
   },
   'gtf_tracks': {
-    1:            {'name':'GenRep saccer example', 'filename': 'gtf_saccer'},
+    1:            {'name':'UCSC GTF example',      'filename': 'gtf_test1'},
+    'GenRep':     {'name':'GenRep saccer example', 'filename': 'gtf_saccer'},
   },
   'bedGraph_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},

@@ -1,6 +1,6 @@
 """
 Contains tests for the BED format.
-We will do a roundtrips for several sample validation tracks.
+We will do roundtrips for several sample validation tracks.
 """
 
 # Built-in modules #
