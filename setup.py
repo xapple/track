@@ -11,7 +11,7 @@ setup(
         author_email     =   'webmaster.bbcf@epfl.ch',
         classifiers      =   ['Topic :: Scientific/Engineering :: Bio-Informatics'],
         packages         =   ['track',
-                              'track.prase',
+                              'track.parse',
                               'track.serialize',
                               'track.transform',
                             ],
