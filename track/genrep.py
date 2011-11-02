@@ -73,7 +73,7 @@ class Assembly(object):
     """
 
     def __init__(self, assembly):
-        # Can be string or URL #
+        # Can be string several types #
         if isinstance(assembly, int):          suffix = "id=%s"  % assembly
         elif isinstance(assembly, basestring): suffix = "name=%s"  % assembly
         elif isinstance(assembly, dict):       suffix = "name=%s"  % assembly['name']
