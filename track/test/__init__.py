@@ -66,18 +66,18 @@ samples = {
     1:            {'name':'UCSC GFF example',      'filename': 'gff_test1'},
   },
   'gtf_tracks': {
-    1:            {'name':'WUSTL GTF example',      'filename': 'gtf_test1'},
-    'GenRep':     {'name':'GenRep saccer GTF',      'filename': 'gtf_saccer'},
+    1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},
+    'GenRep':     {'name':'GenRep saccer GTF',     'filename': 'gtf_saccer'},
   },
   'bedGraph_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},
     5:            {'name':'Signal track 5',        'filename': 'scores5'},
-    6:            {'name':'Signal track 6',        'filename': 'scores5'},
+    6:            {'name':'Signal track 6',        'filename': 'scores6'},
   },
   'bigWig_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},
     5:            {'name':'Signal track 5',        'filename': 'scores5'},
-    6:            {'name':'Signal track 6',        'filename': 'scores5'},
+    6:            {'name':'Signal track 6',        'filename': 'scores6'},
   },
 }
 

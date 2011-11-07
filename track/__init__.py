@@ -262,7 +262,6 @@ def convert(source, destination, assembly=None):
     # Maybe add some metadata #
     if destination_format == 'sql':
         with load(destination_path, destination_format) as t:
-            t.info['orig_name'] = os.path.basename(source_path)
             if assembly: t.assembly = assembly
     # Return a track path #
     return paths

@@ -92,8 +92,8 @@ class Assembly(object):
         self._chrmeta = None
 
     def guess_chromosome_name(self, chromosome_name):
-        """Searches the assembly for chromosome synoyn names,
-           and return the cannoncial name of the chromosome.
+        """Searches the assembly for chromosome synonym names,
+           and return the canonical name of the chromosome.
            Returns None if the chromosome is not known about.
         """
         address = url + "chromosomes.json?assembly_id=" + str(self.id) + "&identifier=" + chromosome_name
