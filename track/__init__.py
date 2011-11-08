@@ -123,6 +123,7 @@ formats = ('bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig')
 
 # Built-in modules #
 import os, re, sqlite3
+from itertools import imap
 
 # Internal modules #
 from track import genrep
@@ -621,6 +622,8 @@ class Track(object):
         # Check track attributes #
         if self.readonly: return
         self._modified = True
+        # Check what the data genertor yields #
+        if isinstance(data, FeatureStream) and data.kind == sqlite3.Row: data.generator = imap(tuple,data)
         # Guess the fields we are getting #
         if fields:                           incoming_fields = fields
         elif hasattr(data, 'fields'):        incoming_fields = data.fields
@@ -638,9 +641,8 @@ class Track(object):
         except (sqlite3.OperationalError, sqlite3.ProgrammingError):
             pass
         # Current fields present in table #
-        current_fields = []
         chrom_exists = chromosome in self.chromosomes
-        if chrom_exists: current_fields = self._get_fields_of_table(chromosome)
+        current_fields = chrom_exists and self._get_fields_of_table(chromosome) or []
         # The fields we want to write #
         if self._fields: outgoing_fields = self._fields
         else:            outgoing_fields = incoming_fields
@@ -989,7 +991,7 @@ class Track(object):
         dictionary = dict([(r['name'], dict([(k, r[k]) for k in columns if k != 'name'])) for r in rows])
         self.chrmeta = dictionary
         # Freshly loaded, so not modified #
-        self.info.modified = False
+        self.chrmeta.modified = False
 
     def _chrmeta_write(self):
         """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
@@ -1084,14 +1086,19 @@ class FeatureStream(object):
        @param fields: the list of fields
     """
 
-    def __init__(self, data, fields=None):
-        self.data = data
-        if not fields and hasattr(data, 'description'): fields = [x[0] for x in data.description]
+    def __init__(self, generator, kind=None, fields=None):
+        # The generator itself #
+        self.generator = generator
+        # The type of elements yielded #
+        if not kind and hasattr(generator, 'connection'): kind = generator.connection.row_factory or tuple
+        self.kind = kind
+        # The description of the elements inside #
+        if not fields and hasattr(generator, 'description'): fields = [x[0] for x in generator.description]
         self.fields = fields
 
-    def __iter__(self): return self.data
+    def __iter__(self): return self.generator
 
-    def next(self): return self.data.next()
+    def next(self): return self.generator.next()
 
 #-----------------------------------#
 # This code was written by the BBCF #

@@ -1,0 +1,9 @@
+track type=wiggle_0 name=test
+variableStep chrom=1 span=500
+2000 10.0
+3000 15
+4000 -15.0
+5000 2
+6000 20.0
+7000 -17.5
+8000 15.0

@@ -1,5 +1,5 @@
 """
-Contains format conversion unittests.
+Contains simple loading tests.
 """
 
 # Built-in modules #
@@ -20,7 +20,7 @@ except ImportError:
 __test__ = False
 
 ###################################################################################
-class Test_Download(unittest.TestCase):
+class TestDownload(unittest.TestCase):
     def runTest(self):
         url = "http://sugar.epfl.ch/BED/sinclair/genomic/ChIP.bedGraph"
         with track.load(url) as t:

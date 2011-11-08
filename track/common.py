@@ -100,30 +100,28 @@ def temporary_path(suffix=''):
     return path
 
 #------------------------------------------------------------------------------#
-def assert_sql_equal(pathA, pathB, start_a=0, start_b=0):
-    """
-    Compare two sqlite3 databases via their dumps.
-    Raise an exception if they are not equal, otherwise
-    return True.
-    """
-    import sqlite3
-    sqlA = sqlite3.connect(pathA)
-    sqlB = sqlite3.connect(pathB)
-    A, B = sqlA.iterdump(), sqlB.iterdump()
-    return raise_file_diff(pathA, pathB, A, B, start_a, start_b)
+def load_dump(path, kind=None):
+    if not kind:
+        with open(path, 'r') as f: header = f.read(15)
+        if header == 'SQLite format 3': kind = 'sql'
+        else:                           kind = 'txt'
+    if kind == 'txt':
+        return open(path).read()
+    if kind == 'sql':
+        import sqlite3
+        return sqlite3.connect(path).iterdump()
 
-def assert_file_equal(pathA, pathB, start_a=0, start_b=0):
+def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=-1):
     """
-    Compare two text file.
+    Compare two file. If they are text they are simply loaded.
+    If they are sqlite3 databases they are compared via their dumps
     Raise an exception if they are not equal, otherwise returns True.
-    :param start_a: Discard these many elements from pathA
-    :param start_b: Discard these many elements from pathB
+    :param start_a: Start after these many lines from pathA
+    :param start_b: Start after these many lines from pathB
+    :param end: Stop after these many lines
     """
     # Load them #
-    A, B = open(pathA, 'r'), open(pathB, 'r')
-    return raise_file_diff(pathA, pathB, A, B, start_a, start_b)
-
-def raise_file_diff(pathA, pathB, A, B, start_a, start_b):
+    A, B = load_dump(pathA), load_dump(pathB)
     # Advance them #
     try:
         for x in xrange(start_a): A.next()
@@ -132,7 +130,8 @@ def raise_file_diff(pathA, pathB, A, B, start_a, start_b):
         pass
     # Compare them #
     import itertools
-    for a,b in itertools.izip_longest(A,B):
+    for a,b,i in itertools.izip_longest(A,B,xrange(999999)):
+        if i == end: break
         if a != b:
             # They are different #
             import difflib
@@ -145,6 +144,7 @@ def raise_file_diff(pathA, pathB, A, B, start_a, start_b):
             raise AssertionError(message + diff_text)
     # They are identical #
     return True
+
 
 #------------------------------------------------------------------------------#
 def empty_sql_file(path):

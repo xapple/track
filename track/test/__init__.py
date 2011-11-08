@@ -46,6 +46,7 @@ samples = {
     2:            {'name':'Signal track 2',        'filename': 'scores2'},
     3:            {'name':'Signal track 3',        'filename': 'scores3'},
     4:            {'name':'Signal track 4',        'filename': 'scores4'},
+    7:            {'name':'Signal track 7',        'filename': 'scores7'},
   },
   'rand_features': {
     1:            {'name':'Random features 1',     'filename': 'random1'},

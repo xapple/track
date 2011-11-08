@@ -8,7 +8,7 @@ import os
 
 # Internal modules #
 import track
-from track.common import temporary_path, assert_sql_equal, assert_file_equal
+from track.common import temporary_path, assert_file_equal
 from track.test import samples
 
 # Unittesting module #
@@ -31,7 +31,7 @@ class TestRoundtrip(unittest.TestCase):
             test_gff_path = temporary_path('.gff')
             # From GFF to SQL #
             track.convert(orig_gff_path, test_sql_path, assembly='sacCer2')
-            self.assertTrue(assert_sql_equal(orig_sql_path, test_sql_path))
+            self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
             # From SQL to GFF #
             with track.load(test_sql_path) as t: [t.rename(chrom, 'chr'+chrom) for chrom in t]
             track.convert(test_sql_path, test_gff_path)

@@ -1,5 +1,5 @@
 """
-Contains format conversion unittests.
+Contains simple reading tests.
 """
 
 # Built-in modules #
@@ -20,7 +20,7 @@ except ImportError:
 __test__ = False
 
 ###################################################################################
-class Test_Read(unittest.TestCase):
+class TestRead(unittest.TestCase):
     def runTest(self):
         in_path = samples['features'][1]['sql']
         with track.load(in_path) as t:
