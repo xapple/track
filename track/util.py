@@ -65,6 +65,8 @@ def determine_format(path):
 def guess_file_format(path):
     """Try to guess the format of a track given its content.
        Returns a three letter extension"""
+    # Does the file exist #
+    if not os.path.exists(path): return ''
     # Check SQLite #
     with open(path, 'r') as track_file:
         if track_file.read(15) == "SQLite format 3": return 'sql'

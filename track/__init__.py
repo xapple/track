@@ -114,9 +114,12 @@ To set the chromosome metadata  or the track metadata you simply assign to that 
         t.info = {'datatype': 'signal', 'source': 'UCSC'}
 """
 
-# Public variables #
+# Special variables #
 __version__ = '1.0.0'
 __all__ = ['load', 'new', 'convert']
+
+# Other variables #
+formats = ('bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig')
 
 # Built-in modules #
 import os, re, sqlite3
@@ -246,7 +249,7 @@ def convert(source, destination, assembly=None):
         destination_format = destination[1]
     else:
         destination_path   = destination
-        destination_format = os.path.splitext(destination)[1][1:]
+        destination_format = determine_format(destination)
     # Check it is not taken #
     check_path(destination_path)
     # Check it is not empty #
