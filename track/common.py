@@ -1,7 +1,7 @@
 """
 Common stuff for python projects.
 """
-
+import json
 ########################### FILES FUNCTIONS ###################################
 def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
     """
@@ -227,7 +227,7 @@ def aggregate_sql_rows(features, base_columns, new_column_name):
     """
     Return a new generator, yielding dictionaries where the columns
     specified in *base_columns* are untouched and the remaining
-    columns are aggregated toghther in one column.
+    columns are aggregated together in one column.
     This column is named *new_column_name*.
 
     >>> from track import FeatureStream
@@ -240,6 +240,41 @@ def aggregate_sql_rows(features, base_columns, new_column_name):
     extra_columns = tuple(set(features.fields) - set(base_columns))
     for item in features:
         yield dict([(f,item[f]) for f in base_columns] + [(new_column_name, dict([(f,item[f]) for f in extra_columns]))])
+
+def aggregate(t, base_fields):
+    """
+    Read a track with the *base_columns* field, and aggregate all supplementary fields that exists
+    in the index + 1
+    :param: track : the track
+    :param: base_fields : the columns you want to read
+    :return: a generator
+    
+    >>>> t = track.load('path')
+    >>>> t.fields
+    ['start', 'stop', 'score', 'name', 'type', 'strand']
+    >>>> for feat in t:
+        print feat
+    [1, 10, 2.2, 'tc36', 'transcript', '+']
+    [1, 10, 3.4, 'tc36', 'transcript', '-']
+    [11, 12, 3.4, 'tc37', 'transcript', '+']
+    >>>> result = aggregate(track, ('start', 'stop', 'score'))
+    >>>> for feat in result:
+    >>>>    print feat
+    [1, 10, 2.2, {name :'tc36', type:'transcript', strand:'+'}]
+    [1, 10, 3.4, {name :'tc36', type:'transcript', strand:'-'}]
+    [11, 12, 3.4, {name :'tc37', type:'transcript', strand:'+'}]
+    
+    """
+    track_fields = t.fields
+    supplementary_fields = tuple(set(track_fields) - set(base_fields))
+    blen = len(base_fields)
+    ll = range(blen)
+    for chrom in t:
+        for feature in t.read(chrom, base_fields + supplementary_fields):
+            d = [{field : feature[field]} for field in supplementary_fields] 
+            yield [feature[i] for i in ll] + [json.dumps(d)]
+        
+
 
 ############################## VARIOUS FUNCTIONS ###############################
 def format_float(f, precision=None):
