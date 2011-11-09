@@ -10,6 +10,7 @@ setup(
         author           =   'EPFL BBCF',
         author_email     =   'webmaster.bbcf@epfl.ch',
         classifiers      =   ['Topic :: Scientific/Engineering :: Bio-Informatics'],
+        install_requires =   ['bbcflib'],
         packages         =   ['track',
                               'track.parse',
                               'track.serialize',
