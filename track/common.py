@@ -223,47 +223,28 @@ def pick_iterator_elements(iterable, indices):
     for item in iterable: yield [item[i] for i in indices]
 
 #------------------------------------------------------------------------------#
-def aggregate_sql_rows(features, base_columns, new_column_name):
-    """
-    Return a new generator, yielding dictionaries where the columns
-    specified in *base_columns* are untouched and the remaining
-    columns are aggregated together in one column.
-    This column is named *new_column_name*.
-
-    >>> from track import FeatureStream
-    >>> data = [{'a':1,'b':2,'c':3,'d':0},{'a':4,'b':5,'c':6,'d':0}]
-    >>> features = FeatureStream(iter(data), fields=['a','b','c','d'])
-    >>> result = aggregate_sql_rows(features, ['a','b'], 'z')
-    >>> print list(result)
-    [{'a': 1, 'b': 2, 'z': {'c': 3, 'd': 0}}, {'a': 4, 'b': 5, 'z': {'c': 6, 'd': 0}}]
-    """
-    extra_columns = tuple(set(features.fields) - set(base_columns))
-    for item in features:
-        yield dict([(f,item[f]) for f in base_columns] + [(new_column_name, dict([(f,item[f]) for f in extra_columns]))])
-
 def aggregate(t, base_fields):
     """
-    Read a track with the *base_columns* field, and aggregate all supplementary fields that exists
-    in the index + 1
-    :param: track : the track
-    :param: base_fields : the columns you want to read
-    :return: a generator
-    
-    >>>> t = track.load('path')
-    >>>> t.fields
-    ['start', 'stop', 'score', 'name', 'type', 'strand']
-    >>>> for feat in t:
-        print feat
-    [1, 10, 2.2, 'tc36', 'transcript', '+']
-    [1, 10, 3.4, 'tc36', 'transcript', '-']
-    [11, 12, 3.4, 'tc37', 'transcript', '+']
-    >>>> result = aggregate(track, ('start', 'stop', 'score'))
-    >>>> for feat in result:
-    >>>>    print feat
-    [1, 10, 2.2, {name :'tc36', type:'transcript', strand:'+'}]
-    [1, 10, 3.4, {name :'tc36', type:'transcript', strand:'-'}]
-    [11, 12, 3.4, {name :'tc37', type:'transcript', strand:'+'}]
-    
+    Read a track with the *base_fields*, and aggregate all supplementary fields that exist
+    in the index + 1.
+    :param t: the track.
+    :param base_fields: the columns you want to read.
+    :returns: a generator.
+
+    ::
+
+        t = track.load('path')
+        t.fields
+        >> ['start', 'stop', 'score', 'name', 'type', 'strand']
+        for feat in t: print feat
+        >> [1, 10, 2.2, 'tc36', 'transcript', '+']
+        >> [1, 10, 3.4, 'tc36', 'transcript', '-']
+        >> [11, 12, 3.4, 'tc37', 'transcript', '+']
+        result = aggregate(track, ('start', 'stop', 'score'))
+        for feat in result: print feat
+        >> [1, 10, 2.2, {name :'tc36', type:'transcript', strand:'+'}]
+        >> [1, 10, 3.4, {name :'tc36', type:'transcript', strand:'-'}]
+        >> [11, 12, 3.4, {name :'tc37', type:'transcript', strand:'+'}]
     """
     track_fields = t.fields
     supplementary_fields = tuple(set(track_fields) - set(base_fields))
@@ -271,10 +252,8 @@ def aggregate(t, base_fields):
     ll = range(blen)
     for chrom in t:
         for feature in t.read(chrom, base_fields + supplementary_fields):
-            d = [{field : feature[field]} for field in supplementary_fields] 
+            d = [{field : feature[field]} for field in supplementary_fields]
             yield [feature[i] for i in ll] + [json.dumps(d)]
-        
-
 
 ############################## VARIOUS FUNCTIONS ###############################
 def format_float(f, precision=None):
@@ -548,112 +527,6 @@ class JournaledDict(object):
     def overwrite(self, d):
         self.modified = True
         self.data = d
-
-#------------------------------------------------------------------------------#
-class JsonJit(object):
-    """
-    JsonJit is a class for Just In Time instantiation of JSON resources.
-    The __lazy__ method downloads the JSON resource from the server.
-    But the __lazy__ method is called only when the first attribute is either get or set.
-    You can use it like this:
-
-        assemblies = JsonJit('http://bbcftools.vital-it.ch/genrep/assemblies.json', 'assembly')
-
-    :param url: Location of the JSON to load
-    :param list_key: Optional dictionary key to unpack the elements of JSON with
-    """
-
-    def __init__(self, url, list_key=None):
-        """Save the passed parameters"""
-        self.__dict__['url'] = url
-        self.__dict__['list_key'] = list_key
-        self.__dict__['obj'] = None
-
-    def __lazy__(self):
-        """Fetch resource and instantiate object."""
-        import json, urllib2
-        try:
-            content = urllib2.urlopen(self.url).read()
-            # Create the child object #
-            self.__dict__['obj'] = json.loads(content)
-        except urllib2.URLError as err:
-            self.__dict__['obj'] = err
-        # Unpack the child object #
-        if self.list_key:
-            for num, item in enumerate(self.obj):
-                self.obj[num] = item[self.list_key]
-
-    def get(self, value):
-        """Retrieve an item from the JSON
-           by searching all attributes of all items
-           for *name*"""
-        if not self.obj: self.__lazy__()
-        for x in self.obj:
-            if [k for k,v in x.items() if v == value]: return x
-
-    def filter(self, key, value):
-        """Retrieve an item from the JSON
-           by search a key that is equal to value in
-           all elements"""
-        if not self.obj: self.__lazy__()
-        return [x for x in self.obj for k,v in x.items() if v == value and k == key]
-
-    def by(self, name):
-        """Return a list of attributes present
-           in every element of the JSON"""
-        if not self.obj: self.__lazy__()
-        return [x or x.encode('ascii') and isinstance(x, basestring) for x in [x.get(name) for x in self.obj]]
-
-    def make(self, name):
-        """Return an object whoes attributes are the
-           keys of the element's dictionary"""
-        if not self.obj: self.__lazy__()
-        class JsonObject(object): pass
-        obj = JsonObject()
-        obj.__dict__.update(self.get(name))
-        return obj
-
-    def __getattr__(self, name):
-        """Method called when an attribute is
-           not found in __dict__."""
-        if not self.obj: self.__lazy__()
-        # Search in the child object #
-        try: return getattr(self.obj, name)
-        except AttributeError:
-            # Search in the parent object #
-            if name in self.__dict__: return self.__dict__[name]
-            else: return self.make(name)
-
-    def __setattr__(self, name, value):
-        """Method called when an attribute is
-           assigned to."""
-        if not self.obj: self.__lazy__()
-        try: setattr(self.obj, name, value)
-        except AttributeError: self.__dict__[name] = value
-
-    def __len__(self):
-        if not self.obj: self.__lazy__()
-        return self.obj.__len__()
-
-    def __iter__(self):
-        if not self.obj: self.__lazy__()
-        return self.obj.__iter__()
-
-    def __repr__(self):
-        if not self.obj: self.__lazy__()
-        return self.obj.__repr__()
-
-    def __getitem__(self, key):
-        if not self.obj: self.__lazy__()
-        return self.obj[key]
-
-    def __setitem__(self, key, item):
-        if not self.obj: self.__lazy__()
-        self.obj[key] = item
-
-    def __delitem__(self, key):
-        if not self.obj: self.__lazy__()
-        del self.obj[key]
 
 #------------------------------------------------------------------------------#
 class Timer:

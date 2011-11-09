@@ -126,14 +126,17 @@ import os, re, sqlite3
 from itertools import imap
 
 # Internal modules #
-from track import genrep
 from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.util import sql_field_types, py_field_types, serialize_chr_file
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
-from track.common import Color, pick_iterator_elements, natural_sort
+from track.common import Color, pick_iterator_elements
+
+# Other modules #
+import bbcflib.genrep
+genrep = bbcflib.genrep.GenRep()
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -260,7 +263,8 @@ def convert(source, destination, assembly=None):
     # Get a parser #
     parser = get_parser(source_path, source_format)
     # Chrmeta #
-    if assembly and destination_format is not 'sql': serializer.defineChrmeta(genrep.get_assembly(assembly).chrmeta)
+    if assembly and destination_format is not 'sql':
+        serializer.defineChrmeta(genrep.get_chrmeta(genrep.assembly(assembly).name))
     # Do it #
     paths = parser(serializer)
     # Maybe add some metadata #
@@ -1043,21 +1047,19 @@ class Track(object):
 
     @assembly.setter
     def assembly(self, value):
+        # Get the name #
+        assembly_name = genrep.assembly(value).name
         # Check it is valid #
-        if value not in genrep.assemblies.by('name') and value not in genrep.assemblies.by('id'):
-            return
-        # Downlaod the info #
-        assembly = genrep.get_assembly(value)
-        if not assembly: return
+        if not assembly_name: return
         # Check if the tables need renaming or deleting #
         for orig_name in self.chromosomes:
-            cannonical_name = assembly.guess_chromosome_name(orig_name)
+            cannonical_name = genrep.guess_chromosome_name(assembly_name, orig_name)
             if cannonical_name: self.rename(orig_name, cannonical_name)
             else: self.remove(orig_name)
         # Add the chrmeta #
-        self.chrmeta = assembly.chrmeta
+        self.chrmeta = genrep.get_chrmeta(assembly_name)
         # Add the attribute #
-        self.info['assembly'] = assembly.name
+        self.info['assembly'] = assembly_name
 
     def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
@@ -1071,10 +1073,6 @@ class Track(object):
             with track.load('tracks/genes.sql') as t:
                 t.guess_assembly()
         """
-        genomes = set.intersection(*map(set, [genrep.find_possible_assemblies(chrom) for chrom in self]))
-        if len(genomes) != 1: return
-        genome_id = genomes.pop()
-        return genome_id
         #TODO
 
 ################################################################################
