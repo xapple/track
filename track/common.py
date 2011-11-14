@@ -1,7 +1,7 @@
 """
 Common stuff for python projects.
 """
-import json
+
 ########################### FILES FUNCTIONS ###################################
 def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
     """
@@ -34,13 +34,15 @@ def make_file_names(path):
     """
     Given a path to a file, generate more filenames.
 
-    >>> g = make_file_names("tmp/test.png")
-    >>> g.next()
-    'tmp/test.png'
-    >>> g.next()
-    'tmp/test_1.png'
-    >>> g.next()
-    'tmp/test_2.png'
+    ::
+
+        >>> g = make_file_names("tmp/test.png")
+        >>> g.next()
+        'tmp/test.png'
+        >>> g.next()
+        'tmp/test_1.png'
+        >>> g.next()
+        'tmp/test_2.png'
     """
     yield path
     import sys, os
@@ -116,6 +118,7 @@ def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=-1):
     Compare two file. If they are text they are simply loaded.
     If they are sqlite3 databases they are compared via their dumps
     Raise an exception if they are not equal, otherwise returns True.
+
     :param start_a: Start after these many lines from pathA
     :param start_b: Start after these many lines from pathB
     :param end: Stop after these many lines
@@ -145,7 +148,6 @@ def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=-1):
     # They are identical #
     return True
 
-
 #------------------------------------------------------------------------------#
 def empty_sql_file(path):
     """
@@ -170,8 +172,10 @@ def sentinelize(iterable, sentinel):
     """
     Add an item to the end of an iterable.
 
-    >>> list(sentinelize(range(4), 99))
-    [0, 1, 2, 3, 99]
+    ::
+
+        >>> list(sentinelize(range(4), 99))
+        [0, 1, 2, 3, 99]
     """
     for item in iterable: yield item
     yield sentinel
@@ -182,9 +186,11 @@ def get_next_item(iterable):
     Gets the next item of an iterable.
     If the iteratable is exhausted, returns None.
 
-    >>> get_next_item(iter(range(4)))
-    0
-    >>> get_next_item(iter([]))
+    ::
+
+        >>> get_next_item(iter(range(4)))
+        0
+        >>> get_next_item(iter([]))
     """
     try:
         x = iterable.next()
@@ -198,10 +204,12 @@ def get_n_items_or_less(n, iterable):
     Gets the n next items of an iterable or less
     if the iterator is exhausted before
 
-    >>> get_n_items_or_less(6, iter(range(10)))
-    [0, 1, 2, 3, 4, 5]
-    >>> get_n_items_or_less(6, iter(range(4)))
-    [0, 1, 2, 3]
+    ::
+
+        >>> get_n_items_or_less(6, iter(range(10)))
+        [0, 1, 2, 3, 4, 5]
+        >>> get_n_items_or_less(6, iter(range(4)))
+        [0, 1, 2, 3]
     """
     result = []
     try:
@@ -217,43 +225,12 @@ def pick_iterator_elements(iterable, indices):
     Return a new iterator, yielding only those elements
     of the original iterator.
 
-    >>> list(pick_iterator_elements(iter([('a','b','c'),(10,20,30)]), (0,2)))
-    [['a', 'c'], [10, 30]]
-    """
-    for item in iterable: yield [item[i] for i in indices]
-
-#------------------------------------------------------------------------------#
-def aggregate(t, base_fields):
-    """
-    Read a track with the *base_fields*, and aggregate all supplementary fields that exist
-    in the index + 1.
-    :param t: the track.
-    :param base_fields: the columns you want to read.
-    :returns: a generator.
-
     ::
 
-        t = track.load('path')
-        t.fields
-        >> ['start', 'stop', 'score', 'name', 'type', 'strand']
-        for feat in t: print feat
-        >> [1, 10, 2.2, 'tc36', 'transcript', '+']
-        >> [1, 10, 3.4, 'tc36', 'transcript', '-']
-        >> [11, 12, 3.4, 'tc37', 'transcript', '+']
-        result = aggregate(track, ('start', 'stop', 'score'))
-        for feat in result: print feat
-        >> [1, 10, 2.2, {name :'tc36', type:'transcript', strand:'+'}]
-        >> [1, 10, 3.4, {name :'tc36', type:'transcript', strand:'-'}]
-        >> [11, 12, 3.4, {name :'tc37', type:'transcript', strand:'+'}]
+        >>> list(pick_iterator_elements(iter([('a','b','c'),(10,20,30)]), (0,2)))
+        [['a', 'c'], [10, 30]]
     """
-    track_fields = t.fields
-    supplementary_fields = tuple(set(track_fields) - set(base_fields))
-    blen = len(base_fields)
-    ll = range(blen)
-    for chrom in t:
-        for feature in t.read(chrom, base_fields + supplementary_fields):
-            d = [{field : feature[field]} for field in supplementary_fields]
-            yield [feature[i] for i in ll] + [json.dumps(d)]
+    for item in iterable: yield [item[i] for i in indices]
 
 ############################## VARIOUS FUNCTIONS ###############################
 def format_float(f, precision=None):
@@ -261,22 +238,24 @@ def format_float(f, precision=None):
     Formats a float, by rounding it and striping unnecesarry zeros.
     But it always leaves one zero after the decimal point.
 
-    >>> format_float(0.100)
-    '0.1'
-    >>> format_float(0.1001)
-    '0.1001'
-    >>> format_float(0.10000001)
-    '0.1'
-    >>> format_float(101.0)
-    '101.0'
-    >>> format_float(100001.1)
-    '100000.0'
-    >>> format_float(1000.0/6.0)
-    '166.7'
-    >>> format_float(999.9)
-    '999.9'
-    >>> format_float(999.99)
-    '1000.0'
+    ::
+
+        >>> format_float(0.100)
+        '0.1'
+        >>> format_float(0.1001)
+        '0.1001'
+        >>> format_float(0.10000001)
+        '0.1'
+        >>> format_float(101.0)
+        '101.0'
+        >>> format_float(100001.1)
+        '100000.0'
+        >>> format_float(1000.0/6.0)
+        '166.7'
+        >>> format_float(999.9)
+        '999.9'
+        >>> format_float(999.99)
+        '1000.0'
     """
     if precision: return '%s' % float('%.'+str(precision)+'g' % f)
     else:         return '%s' % float('%.4g' % f)
@@ -286,10 +265,12 @@ def natural_sort(item):
     """
     Sort strings that contain numbers correctly.
 
-    >>> l = ['v1.3.12', 'v1.3.3', 'v1.2.5', 'v1.2.15', 'v1.2.3', 'v1.2.1']
-    >>> l.sort(key=natural_sort)
-    >>> l.__repr__()
-    "['v1.2.1', 'v1.2.3', 'v1.2.5', 'v1.2.15', 'v1.3.3', 'v1.3.12']"
+    ::
+
+        >>> l = ['v1.3.12', 'v1.3.3', 'v1.2.5', 'v1.2.15', 'v1.2.3', 'v1.2.1']
+        >>> l.sort(key=natural_sort)
+        >>> l.__repr__()
+        "['v1.2.1', 'v1.2.3', 'v1.2.5', 'v1.2.15', 'v1.3.3', 'v1.3.12']"
     """
     import re
     def try_int(s):
@@ -302,8 +283,10 @@ def int_to_roman(input):
     """
     Convert an integer to a roman numeral.
 
-    >>> int_to_roman(1999)
-    'MCMXCIX'
+    ::
+
+        >>> int_to_roman(1999)
+        'MCMXCIX'
     """
     ints = (1000, 900,  500, 400, 100,  90, 50,  40, 10,  9,   5,  4,   1)
     nums = ('M',  'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
