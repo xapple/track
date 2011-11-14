@@ -755,7 +755,13 @@ class Track(object):
         # Check different #
         if new_name == previous_name: return
         # SQL query #
-        self.cursor.execute("ALTER TABLE '" + previous_name + "' RENAME TO '" + new_name + "'")
+        command = "ALTER TABLE '" + previous_name + "' RENAME TO '" + new_name + "'"
+        try:
+            self.cursor.execute(command)
+        except sqlite3.OperationalError as err:
+            message = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
+            message = message % (Color.cyn, command, Color.end, self.path, Color.u_red, err, Color.end)
+            raise Exception(message)
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_name_idx'")
@@ -1074,6 +1080,41 @@ class Track(object):
                 t.guess_assembly()
         """
         #TODO
+
+    #-----------------------------------------------------------------------------#
+    def aggregated_read(self, base_fields):
+        """
+        Read the track with the *base_fields*, and aggregate all supplementary fields
+        found in a stinrg.
+
+        :param base_fields: the columns you want to read.
+        :returns: a generator.
+
+        ::
+
+            >> import track
+            >> t = track.load('tmp/track.sql')
+            >> t.fields
+            ['start', 'stop', 'score', 'name', 'type', 'strand']
+            >> for feature in t.read(): print feature
+            [1, 10, 2.2, 'tc36', 'transcript', '+']
+            [1, 10, 3.4, 'tc36', 'transcript', '-']
+            [11, 12, 3.4, 'tc37', 'transcript', '+']
+            >> data = t.aggregated_read(('start', 'stop', 'score'))
+            >> for feature in data: print feature
+            [1, 10, 2.2, "{name :'tc36', type:'transcript', strand:'+'}"]
+            [1, 10, 3.4, "{name :'tc36', type:'transcript', strand:'-'}"]
+            [11, 12, 3.4, "{name :'tc37', type:'transcript', strand:'+'}"]
+        """
+        import json
+        track_fields = self.fields
+        supplementary_fields = tuple(set(track_fields) - set(base_fields))
+        blen = len(base_fields)
+        ll = range(blen)
+        for chrom in self:
+            for feature in self.read(chrom, base_fields + supplementary_fields):
+                d = [{field : feature[field]} for field in supplementary_fields]
+                yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
 class FeatureStream(object):
