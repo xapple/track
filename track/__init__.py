@@ -750,8 +750,12 @@ class Track(object):
         # Check track attributes #
         self._modified = True
         if self.readonly: return
-        # Check existance #
+        # Check previous exists #
         if previous_name not in self.chromosomes: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
+        # Check new doesn't exist #
+        if new_name in self.chromosomes:
+            message = "The chromosome '%s' can't be renamed to '%s', as '%s' alredy exists."
+            raise Exception(message % (previous_name, new_name, new_name))
         # Check different #
         if new_name == previous_name: return
         # SQL query #
@@ -762,9 +766,11 @@ class Track(object):
             message = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
             message = message % (Color.cyn, command, Color.end, self.path, Color.u_red, err, Color.end)
             raise Exception(message)
+        # Drop indexes #
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
         self.cursor.execute("drop index IF EXISTS '" + previous_name + "_name_idx'")
+        # Rename the chrmeta #
         if previous_name in self.chrmeta:
             self.chrmeta[new_name] = self.chrmeta[previous_name]
             self.chrmeta.pop(previous_name)
