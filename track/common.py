@@ -272,6 +272,7 @@ def natural_sort(item):
         >>> l.__repr__()
         "['v1.2.1', 'v1.2.3', 'v1.2.5', 'v1.2.15', 'v1.3.3', 'v1.3.12']"
     """
+    if item is None: return 0
     import re
     def try_int(s):
         try: return int(s)
