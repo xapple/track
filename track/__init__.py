@@ -750,6 +750,8 @@ class Track(object):
         # Check track attributes #
         self._modified = True
         if self.readonly: return
+        # Check same name #
+        if previous_name == new_name: return
         # Check previous exists #
         if previous_name not in self.chromosomes: raise Exception("The chromosome '" + previous_name + "' doesn't exist.")
         # Check new doesn't exist #
@@ -893,7 +895,8 @@ class Track(object):
         def convert(chrom):
             if chrom in names: return names[chrom]
             match = re.search('([a-zA-Z]*?)([IVX]+)$', chrom)
-            return match.group(1) + str(roman_to_int(match.group(2)))
+            if match: return match.group(1) + str(roman_to_int(match.group(2)))
+            else: return chrom
         for chrom in self: self.rename(chrom, convert(chrom))
 
     def integer_to_roman(self, names=None):
@@ -914,7 +917,8 @@ class Track(object):
         def convert(chrom):
             if chrom in names: return names[chrom]
             match = re.search('([a-zA-Z]*)([0-9]+)$', chrom)
-            return match.group(1) + int_to_roman(int(match.group(2)))
+            if match: return match.group(1) + int_to_roman(int(match.group(2)))
+            else: return chrom
         for chrom in self: self.rename(chrom, convert(chrom))
 
     #--------------------------------------------------------------------------#
