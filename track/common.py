@@ -113,15 +113,17 @@ def load_dump(path, kind=None):
         import sqlite3
         return sqlite3.connect(path).iterdump()
 
-def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=-1):
+def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=999999, difflen=40, showlen=10):
     """
     Compare two file. If they are text they are simply loaded.
     If they are sqlite3 databases they are compared via their dumps
     Raise an exception if they are not equal, otherwise returns True.
 
-    :param start_a: Start after these many lines from pathA
-    :param start_b: Start after these many lines from pathB
-    :param end: Stop after these many lines
+    :param start_a: Start after these many lines from pathA.
+    :param start_b: Start after these many lines from pathB.
+    :param end: Stop after these many lines.
+    :param difflen: Compute the difference on these many lines.
+    :param showlen: Show these many lines from the difference.
     """
     # Load them #
     A, B = load_dump(pathA), load_dump(pathB)
@@ -133,18 +135,18 @@ def assert_file_equal(pathA, pathB, start_a=0, start_b=0, end=-1):
         pass
     # Compare them #
     import itertools
-    for a,b,i in itertools.izip_longest(A,B,xrange(999999)):
-        if i == end: break
+    for a,b,i in itertools.izip_longest(A,B,xrange(end)):
         if a != b:
             # They are different #
             import difflib
-            diff = difflib.ndiff([a] + list(A)[0:40], [b] + list(B)[0:40])
-            diff_text = '\n'.join(get_n_items_or_less(10, diff))
+            diff = difflib.ndiff([a] + list(A)[0:difflen], [b] + list(B)[0:difflen])
+            diff_text = '\n'.join(get_n_items_or_less(showlen, diff))
             # Raise and print differences #
             message = "The files:\n   %s'%s'%s and\n   %s'%s'%s differ.\n\n"
             message = message  % (Color.cyn, pathA, Color.end, Color.cyn, pathB, Color.end)
-            message += Color.ylw + "First ten lines of fourty lines difference follows:\n" + Color.end
-            raise AssertionError(message + diff_text)
+            message += "First %i lines of %i lines difference follows:\n"
+            message = message  % (showlen, difflen)
+            raise AssertionError(message + Color.wht + diff_text + Color.end)
     # They are identical #
     return True
 
@@ -359,8 +361,7 @@ class Color:
 
     """
     # Special #
-    end =  '\033[0m'
-    underline = '\033[4m'
+    end = '\033[0m'
     # Regular #
     blk   = '\033[0;30m' # Black
     red   = '\033[0;31m' # Red
@@ -380,7 +381,28 @@ class Color:
     b_pur = '\033[1;35m' # Purple
     b_cyn = '\033[1;36m' # Cyan
     b_wht = '\033[1;37m' # White
+    # Light #
+    light = '\033[2m'
+    l_blk = '\033[2;30m' # Black
+    l_red = '\033[2;31m' # Red
+    l_grn = '\033[2;32m' # Green
+    l_ylw = '\033[2;33m' # Yellow
+    l_blu = '\033[2;34m' # Blue
+    l_pur = '\033[2;35m' # Purple
+    l_cyn = '\033[2;36m' # Cyan
+    l_wht = '\033[2;37m' # White
+    # Italic #
+    italic = '\033[1m'
+    i_blk = '\033[3;30m' # Black
+    i_red = '\033[3;31m' # Red
+    i_grn = '\033[3;32m' # Green
+    i_ylw = '\033[3;33m' # Yellow
+    i_blu = '\033[3;34m' # Blue
+    i_pur = '\033[3;35m' # Purple
+    i_cyn = '\033[3;36m' # Cyan
+    i_wht = '\033[3;37m' # White
     # Underline #
+    underline = '\033[4m'
     u_blk = '\033[4;30m' # Black
     u_red = '\033[4;31m' # Red
     u_grn = '\033[4;32m' # Green
@@ -390,6 +412,7 @@ class Color:
     u_cyn = '\033[4;36m' # Cyan
     u_wht = '\033[4;37m' # White
     # Glitter #
+    flash = '\033[5m'
     g_blk = '\033[5;30m' # Black
     g_red = '\033[5;31m' # Red
     g_grn = '\033[5;32m' # Green
