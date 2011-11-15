@@ -35,6 +35,4 @@ def create_tracks():
             from_path = track_info[conversion_info['from']]
             to_path =   track_info[conversion_info['to']]
             if os.path.exists(to_path): os.remove(to_path)
-            track.convert(from_path, to_path)
-            with track.load(to_path) as t:
-                t.assembly = conversion_info['assembly']
+            track.convert(from_path, to_path, assembly = conversion_info['assembly'])

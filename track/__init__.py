@@ -268,7 +268,7 @@ def convert(source, destination, assembly=None):
     # Do it #
     paths = parser(serializer)
     # Maybe add some metadata #
-    if destination_format == 'sql':
+    if destination_format == 'sql' and assembly:
         with load(destination_path, destination_format) as t:
             if assembly: t.assembly = assembly
     # Return a track path #
@@ -435,7 +435,7 @@ class Track(object):
         """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
         fields = self.fields or minimum_fields
         fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in fields])
-        for chrom_name in self.chrmeta:
+        for chrom_name in sorted(self.chrmeta, key=natural_sort):
             self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
     #-----------------------------------------------------------------------------#
