@@ -73,7 +73,7 @@ class ParserGTF(Parser):
                     self.handler.error("The track%s has non integers as frame value", self.path, number)
             # The last special column #
             attr = shlex.split(items.pop())
-            attr = dict([(attr[i],attr[i+1]) for i in xrange(0,len(attr),2)])
+            attr = dict([(attr[i],attr[i+1].strip(';')) for i in xrange(0,len(attr),2)])
             self.handler.defineFields(all_fields + attr.keys())
             items += attr.values()
             # Yield it #
