@@ -355,10 +355,9 @@ def profile_it(command):
 ############################## CLASSES #########################################
 class Color:
     """Shortcuts for the ANSI escape sequences to control
-       formatting, color, etc. on text terminals. Use it like this:
+       formatting, color, etc. on text terminals. Use it like this::
 
-        print Color.red + "Hello world" + Color.end
-
+            print Color.red + "Hello world" + Color.end
     """
     # Special #
     end = '\033[0m'

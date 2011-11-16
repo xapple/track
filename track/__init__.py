@@ -525,7 +525,7 @@ class Track(object):
         :param cursor: is an optional parameter which should be set to True if you are performing several operations on the same track at the same time. This is the case, for instance, when you are chaining a read operation to a write operation.
         :type  cursor: bool
 
-        :returns: a generator object yielding row. A row can be referenced like a tuple or like a dictionary.
+        :returns: a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.
 
         *selection* can be the name of a chromosome, in which case all the data on that chromosome will be returned.
 
