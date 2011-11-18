@@ -14,6 +14,5 @@ setup(
         packages         =   ['track',
                               'track.parse',
                               'track.serialize',
-                              'track.transform',
-                            ],
+                             ],
     )
