@@ -54,7 +54,6 @@ Track methods
 .. automethod:: Track.remove
 .. automethod:: Track.rename
 .. automethod:: Track.count
-.. automethod:: Track.guess_assembly
 .. automethod:: Track.load_chr_file
 .. automethod:: Track.export_chr_file
 .. automethod:: Track.get_score_vector
