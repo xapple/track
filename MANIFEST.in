@@ -1,0 +1,4 @@
+include *.url
+include *.txt
+include *.md
+include *.cfg
