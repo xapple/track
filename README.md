@@ -1,10 +1,9 @@
 track 1.0.0
 ===========
 
-Copyright 2011 EPFL BBCF <webmaster@epfl.ch>
+Copyright 2011 EPFL BBCF <webmaster.bbcf@epfl.ch>
 
-track is a python module for reading and writing genomic
-data.
+track is a python module for reading and writing genomic data.
 
 It was developed by the Bioinformatics and Biostatistics Core
 Facility (BBCF) at the EPFL.
