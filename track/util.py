@@ -119,7 +119,7 @@ def join_read_queries(track, selections, fields):
     def _add_chromsome_prefix(sel, data):
         if type(sel) == str: chrom = (sel,)
         else:                chrom = (sel['chr'],)
-        for f in data: yield chrom + f
+        for f in data: yield chrom + tuple(f)
     for sel in selections:
         for f in _add_chromsome_prefix(sel, track.read(sel, fields)): yield f
 
