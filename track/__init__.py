@@ -134,7 +134,7 @@ from track.util import determine_format, join_read_queries, make_cond_from_sel, 
 from track.util import sql_field_types, py_field_types, serialize_chr_file
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
-from track.common import Color, pick_iterator_elements
+from track.common import Color, pick_iterator_elements, get_next_item
 
 # Other modules #
 import bbcflib.genrep
@@ -319,20 +319,25 @@ class Track(object):
         self.close()
 
     def __iter__(self):
-        """Iterates on the list of chromosomes."""
+        """Called when evaluating ``for chrom in t: pass``."""
         return iter(self.chromosomes)
 
     def __contains__(self, key):
-        """Called when evaluating '"chr1" in track'."""
+        """Called when evaluating ``"chr1" in t``."""
         return key in self.chromosomes
 
     def __len__(self):
-        """The length of a track is the number of chromosomes."""
+        """Called when evaluating ``len(t)``."""
         return len(self.chromosomes)
 
     def __nonzero__(self):
-        """Called when evaluating 'if track: pass'."""
+        """Called when evaluating ``if t: pass``."""
         return True
+
+    def __getitem__(self, key):
+        """Called when evaluating ``t[0] or t['chr1']``."""
+        if isinstance(key,int): return self.chromosomes[key]
+        else: return self.read(key)
 
     @property
     def modified(self):
@@ -678,12 +683,14 @@ class Track(object):
         # Execute the insertion #
         try:
             self.cursor.executemany(sql_command, data)
-        except (sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
+        except (ValueError, sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
             message1 = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
             message1 = message1 % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
             message2 = "\n * %sThe bindings%s: %s \n * %sYou gave%s: %s"
             message2 = message2 % (Color.b_ylw, Color.end, fields, Color.b_ylw, Color.end, data)
-            raise Exception(message1 + message2)
+            message3 = "\n * %sFirst element%s: %s \n"
+            message3 = message3 % (Color.b_ylw, Color.end, get_next_item(data))
+            raise Exception(message1 + message2 + message3)
 
     #-----------------------------------------------------------------------------#
     def insert(self, chromosome, feature):
