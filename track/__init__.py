@@ -970,7 +970,7 @@ class Track(object):
         new_names_to_old_names = {'features'  : 'qualitative',
                                   'signal'    : 'quantitative',
                                   'relational': 'qualitative_extended',}
-        return self.info.get('datatype', 'features')
+        return self.info.get('datatype', None)
 
     @datatype.setter
     def datatype(self, value):
