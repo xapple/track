@@ -966,7 +966,7 @@ class Track(object):
 
     @property
     def datatype(self):
-        """Giving a datatype to your track is optional. The default datatype is ``features``. Other possible datatypes are ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary."""
+        """Giving a datatype to your track is optional. The default datatype is ``None``. Other possible datatypes are ``features``, ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary."""
         new_names_to_old_names = {'features'  : 'qualitative',
                                   'signal'    : 'quantitative',
                                   'relational': 'qualitative_extended',}
