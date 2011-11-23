@@ -3,13 +3,9 @@ Contains tests where the cursor of the track is used to execute
 SQL statements out of the control of the library.
 """
 
-# Built-in modules #
-import os
-
 # Internal modules #
 import track
 from track.common import temporary_path
-from track.test import samples
 
 # Unittesting module #
 try:
@@ -18,7 +14,7 @@ except ImportError:
     import unittest
 
 # Nosetest flag #
-__test__ = False
+__test__ = True
 
 ###################################################################################
 class TestNewTables(unittest.TestCase):
