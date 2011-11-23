@@ -198,6 +198,8 @@ def get_next_item(iterable):
         x = iterable.next()
     except StopIteration:
         x = None
+    except AttributeError:
+        x = None
     return x
 
 #------------------------------------------------------------------------------#
