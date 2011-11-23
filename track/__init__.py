@@ -430,13 +430,15 @@ class Track(object):
         if self.readonly: return
         try:
             for ch in self:
-                self.cursor.execute(    "CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
+                if 'start' in self._get_fields_of_table(ch):
+                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
                 if 'score' in self._get_fields_of_table(ch):
                     self.cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
                 if 'name' in self._get_fields_of_table(ch):
                     self.cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
         except sqlite3.OperationalError as err:
-            raise Exception("The index creation on the track '" + self.path + "' failed with error: " + str(err))
+            message = "The index creation on the track '%s' failed with the following error: %s"
+            raise Exception(message % (self.path, err))
 
     def _make_missing_tables(self):
         """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
