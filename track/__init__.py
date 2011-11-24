@@ -1103,11 +1103,12 @@ class Track(object):
         pass
 
     #-----------------------------------------------------------------------------#
-    def aggregated_read(self, base_fields):
+    def aggregated_read(self, selection, base_fields, cursor=False):
         """
         Read the track with the *base_fields*, and aggregate all supplementary fields
         found in a string.
 
+        :param selection: the selection you want to read
         :param base_fields: the columns you want to read.
         :returns: a generator.
 
@@ -1132,10 +1133,9 @@ class Track(object):
         supplementary_fields = tuple(set(track_fields) - set(base_fields))
         blen = len(base_fields)
         ll = range(blen)
-        for chrom in self:
-            for feature in self.read(chrom, base_fields + supplementary_fields):
-                d = [{field : feature[field]} for field in supplementary_fields]
-                yield [feature[i] for i in ll] + [json.dumps(d)]
+        for feature in self.read(selection, base_fields + supplementary_fields, cursor):
+            d = [{field : feature[field]} for field in supplementary_fields]
+            yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
 class FeatureStream(object):
