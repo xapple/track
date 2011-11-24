@@ -1118,11 +1118,11 @@ class Track(object):
             >> t = track.load('tmp/track.sql')
             >> t.fields
             ['start', 'stop', 'score', 'name', 'type', 'strand']
-            >> for feature in t.read(): print feature
+            >> for feature in t.read('chr1'): print feature
             [1,  10, 2.2, 'tc36', 'transcript', '+']
             [1,  10, 3.4, 'tc36', 'transcript', '-']
             [11, 12, 3.4, 'tc37', 'transcript', '+']
-            >> data = t.aggregated_read(('start', 'stop', 'score'))
+            >> data = t.aggregated_read('chr1', ('start', 'stop', 'score'))
             >> for feature in data: print feature
             [1,  10, 2.2, "{name :'tc36', type:'transcript', strand:'+'}"]
             [1,  10, 3.4, "{name :'tc36', type:'transcript', strand:'-'}"]
