@@ -53,6 +53,7 @@ Track methods
 .. automethod:: Track.export
 .. automethod:: Track.remove
 .. automethod:: Track.rename
+.. automethod:: Track.search
 .. automethod:: Track.count
 .. automethod:: Track.load_chr_file
 .. automethod:: Track.export_chr_file

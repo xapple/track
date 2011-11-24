@@ -114,14 +114,17 @@ def serialize_chr_file(chrmeta, path=None, seperator='\t'):
     return path
 
 ################################################################################
+def add_chromsome_prefix(sel, data):
+    """Add the chromosome in front of every feature"""
+    if type(sel) == str: chrom = (sel,)
+    else:                chrom = (sel['chr'],)
+    for f in data: yield chrom + tuple(f)
+
+################################################################################
 def join_read_queries(track, selections, fields):
     """Join read results when selection is a list"""
-    def _add_chromsome_prefix(sel, data):
-        if type(sel) == str: chrom = (sel,)
-        else:                chrom = (sel['chr'],)
-        for f in data: yield chrom + tuple(f)
     for sel in selections:
-        for f in _add_chromsome_prefix(sel, track.read(sel, fields)): yield f
+        for f in add_chromsome_prefix(sel, track.read(sel, fields)): yield f
 
 ################################################################################
 def make_cond_from_sel(selection):
