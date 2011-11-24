@@ -430,13 +430,15 @@ class Track(object):
         if self.readonly: return
         try:
             for ch in self:
-                self.cursor.execute(    "CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
+                if 'start' in self._get_fields_of_table(ch):
+                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
                 if 'score' in self._get_fields_of_table(ch):
                     self.cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
                 if 'name' in self._get_fields_of_table(ch):
                     self.cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
         except sqlite3.OperationalError as err:
-            raise Exception("The index creation on the track '" + self.path + "' failed with error: " + str(err))
+            message = "The index creation on the track '%s' failed with the following error: %s"
+            raise Exception(message % (self.path, err))
 
     def _make_missing_tables(self):
         """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
@@ -964,11 +966,11 @@ class Track(object):
 
     @property
     def datatype(self):
-        """Giving a datatype to your track is optional. The default datatype is ``features``. Other possible datatypes are ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary."""
+        """Giving a datatype to your track is optional. The default datatype is ``None``. Other possible datatypes are ``features``, ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary."""
         new_names_to_old_names = {'features'  : 'qualitative',
                                   'signal'    : 'quantitative',
                                   'relational': 'qualitative_extended',}
-        return self.info.get('datatype', 'features')
+        return self.info.get('datatype', None)
 
     @datatype.setter
     def datatype(self, value):
@@ -1101,12 +1103,11 @@ class Track(object):
         pass
 
     #-----------------------------------------------------------------------------#
-    def aggregated_read(self, selection, base_fields, cursor=False):
+    def aggregated_read(self, base_fields):
         """
         Read the track with the *base_fields*, and aggregate all supplementary fields
         found in a string.
-        
-        :param selection: the selection you want to read
+
         :param base_fields: the columns you want to read.
         :returns: a generator.
 
@@ -1131,10 +1132,10 @@ class Track(object):
         supplementary_fields = tuple(set(track_fields) - set(base_fields))
         blen = len(base_fields)
         ll = range(blen)
-        
-        for feature in self.read(selection, base_fields + supplementary_fields, cursor):
-            d = [{field : feature[field]} for field in supplementary_fields]
-            yield [feature[i] for i in ll] + [json.dumps(d)]
+        for chrom in self:
+            for feature in self.read(chrom, base_fields + supplementary_fields):
+                d = [{field : feature[field]} for field in supplementary_fields]
+                yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
 class FeatureStream(object):
