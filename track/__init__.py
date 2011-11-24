@@ -794,7 +794,7 @@ class Track(object):
 
         :param query_dict: A dictionary specifying keys and values to search for. See examples.
         :type  query_dict: dict
-        :param chromosome: Optionally, the name of the chromosome on which one wants to search. If None, the search is performed on all chromosomes.
+        :param chromosome: Optionally, the name of the chromosome on which one wants to search. If ``None``, the search is performed on all chromosomes and every feature contains a new field specifying its chromosome.
         :type  chromosome: string
         :param exact_match: By default, will find all entries which contain the query. If set to ``True``, will only find entries that exactly match the query.
         :type  exact_match: bool

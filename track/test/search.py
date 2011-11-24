@@ -1,13 +1,9 @@
 """
-Contains simple reading tests.
+Contains tests for the track.search method.
 """
-
-# Built-in modules #
-import os
 
 # Internal modules #
 import track
-from track.common import temporary_path
 from track.test import samples
 
 # Unittesting module #
@@ -50,4 +46,3 @@ class TestNoResults(unittest.TestCase):
 # http://bbcf.epfl.ch/              #
 # webmaster.bbcf@epfl.ch            #
 #-----------------------------------#
-
