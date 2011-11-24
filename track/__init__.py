@@ -1129,11 +1129,12 @@ class Track(object):
             [11, 12, 3.4, "{name :'tc37', type:'transcript', strand:'+'}"]
         """
         import json
+        base_fields = tuple(base_fields)
         track_fields = self.fields
         supplementary_fields = tuple(set(track_fields) - set(base_fields))
         blen = len(base_fields)
         ll = range(blen)
-        for feature in self.read(selection, base_fields + supplementary_fields, cursor):
+        for feature in self.read(selection, base_fields + supplementary_fields, cursor=cursor):
             d = [{field : feature[field]} for field in supplementary_fields]
             yield [feature[i] for i in ll] + [json.dumps(d)]
 
