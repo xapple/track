@@ -13,7 +13,7 @@ from track.common import iterate_lines
 from track.util import strand_to_int
 
 # Constants #
-all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame']
+all_fields = ['source', 'type', 'start', 'end', 'score', 'strand', 'frame']
 
 ################################################################################
 class ParserGTF(Parser):
