@@ -835,9 +835,7 @@ class Track(object):
             import track
             with track.load('tracks/example.sql') as t:
                 num = t.count('chr1')
-            with track.load('tracks/example.sql') as t:
                 num = t.count(['chr1','chr2','chr3'])
-            with track.load('tracks/example.sql') as t:
                 num = t.count({'chr':'chr1', 'start':10000, 'end':15000})
         """
         # Default selection #
