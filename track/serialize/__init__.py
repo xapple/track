@@ -34,7 +34,7 @@ def get_serializer(path, format):
 
         ``get_serializer`` returns a Serializer instance.
     """
-    if not format in serializers: raise Exception("The format '" + format + "' is not supported.")
+    if not format in serializers: raise Exception("The format '%s' is not supported." % format)
     info = serializers[format]
     # Import the objects #
     base_module    = __import__(info['module'])

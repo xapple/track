@@ -515,6 +515,8 @@ class Track(object):
         """
         # Check it is not taken #
         check_path(path)
+        # Guess format #
+        if not format: format = determine_format(path)
         # Get a serializer #
         serializer = get_serializer(path, format)
         # Get a parser #

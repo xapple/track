@@ -34,7 +34,7 @@ def get_parser(path, format):
 
         ``get_parser`` returns a Parser instance.
     """
-    if not format in parsers: raise Exception("The format '" + format + "' is not supported.")
+    if not format in parsers: raise Exception("The format '%s' is not supported." % format)
     info = parsers[format]
     # Import the objects #
     base_module    = __import__(info['module'])
@@ -48,7 +48,8 @@ def get_parser(path, format):
 class Parser(object):
     def __init__(self, path):
         self.path = path
-        self.name = os.path.basename(path)
+        if isinstance(path, basestring): self.name = os.path.basename(path)
+        else: self.name = path.name
 
     def __call__(self, handler=None):
         # Default handler #
