@@ -1,5 +1,5 @@
 """
-Contains simple loading tests.
+Contains URL download tests.
 """
 
 # Built-in modules #
