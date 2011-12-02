@@ -36,11 +36,14 @@ def run(create_sql_files=False):
                 dest = os.path.splitext(path)[0] + '.sql'
                 if os.path.exists(dest): os.remove(dest)
                 try:
+                    print "track.convert(%s, %s)" % (path, dest)
                     track.convert(path, dest)
                 except Exception as err:
                     message(path, name, 'fail', outcome, str(err)[0:160])
                 else:
                     message(path, name, 'pass', outcome)
+                finally:
+                    if not create_sql_files and os.path.exists(dest): os.remove(dest)
 
 #-----------------------------------#
 # This code was written by the BBCF #
