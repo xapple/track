@@ -16,7 +16,8 @@ def ext_to_clr(ext):
 
 def message(path, name, status, expected, text=None):
     """Function used to produce nice color output"""
-    if text: text = re.sub(" '" + path + "'", "", text)
+    if text: text = re.sub(" '" + path, "", text)
+    if text: text = text.replace("\n"," ")
     title, extension = name.split('.')
     if expected=='pass': s = ('\033[1;37;4'+ ext_to_clr(extension) + 'm' + extension + '\033[0m' + ': ' + title).ljust(42)
     else:                s = ('\033[1;30;4'+ ext_to_clr(extension) + 'm' + extension + '\033[0m' + ': ' + title).ljust(42)
