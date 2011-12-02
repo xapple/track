@@ -30,16 +30,17 @@ def message(path, name, status, expected, text=None):
 
 def run(create_sql_files=False):
     for format, outcomes in challanges.items():
-        for outcome, path in outcomes.items():
-            name = os.path.basename(path)
-            dest = os.path.splitext(path)[0] + '.sql'
-            if os.path.exists(dest): os.remove(dest)
-            try:
-                track.convert(path, dest)
-            except Exception as err:
-                message(path, name, 'fail', outcome, str(err))
-            else:
-                message(path, name, 'pass', outcome)
+        for outcome, paths in outcomes.items():
+            for path in paths:
+                name = os.path.basename(path)
+                dest = os.path.splitext(path)[0] + '.sql'
+                if os.path.exists(dest): os.remove(dest)
+                try:
+                    track.convert(path, dest)
+                except Exception as err:
+                    message(path, name, 'fail', outcome, str(err)[0:160])
+                else:
+                    message(path, name, 'pass', outcome)
 
 #-----------------------------------#
 # This code was written by the BBCF #
