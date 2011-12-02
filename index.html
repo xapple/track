@@ -1,0 +1,914 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Package ‘track’ documentation</title>
+    <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/logo.png"/>
+    <link rel="top" title="None" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">track v1.0.0</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-track">
+<span id="package-track-documentation"></span><h1>Package <em>&#8216;track&#8217;</em> documentation<a class="headerlink" href="#module-track" title="Permalink to this headline">¶</a></h1>
+<p>Provides easy read/write access to genomic tracks in a fashion that is independent from the underlying format. Requires Python 2.6 or higher.
+Currently the following formats are implemented:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite">BioSQLite</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/FAQ/FAQformat.html#format1">BED</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/goldenPath/help/wiggle.html">WIG</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/FAQ/FAQformat.html#format3">GFF</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/FAQ/FAQformat.html#format4">GTF</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/goldenPath/help/bedgraph.html">bedGraph</a></li>
+<li><a class="reference external" href="http://genome.ucsc.edu/goldenPath/help/bigWig.html">bigWig</a></li>
+</ul>
+<p>More formats can be added easily.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install you should download the latest source code from GitHub, either by going to:</p>
+<div class="highlight-python"><pre>http://github.com/bbcf/track</pre>
+</div>
+<p>and clicking on &#8220;Downloads&#8221;, or by cloning the git repository with:</p>
+<div class="highlight-python"><pre>$ git clone https://github.com/bbcf/track.git</pre>
+</div>
+<p>Once you have the source code, run:</p>
+<div class="highlight-python"><pre>$ cd track
+$ sudo python setup.py build</pre>
+</div>
+<p>to install it. If you need to install it in a particular directory, use:</p>
+<div class="highlight-python"><pre>$ python setup.py install --prefix=/prefix/path</pre>
+</div>
+<p>Then the modules will go in <tt class="docutils literal"><span class="pre">/prefix/path/lib/pythonX.Y/site-packages</span></tt>
+where X.Y is the version of Python you run it with.</p>
+</div>
+<div class="section" id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<p>To get access to the information contained inside already existing genomic tracks, you would do the following whatever the format of the track is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">data</span></tt> variable will now yield tuples containing genomic features on chromosome three. Typically, a feature consits of elements such as a start coordinate, a stop coordinate, a name, a score value, and a strand. Hence, when calling <tt class="docutils literal"><span class="pre">data.next()</span></tt> you will get objects looking something like this: <tt class="docutils literal"><span class="pre">(15,</span> <span class="pre">20,</span> <span class="pre">'Gene</span> <span class="pre">A',</span> <span class="pre">3.0,</span> <span class="pre">1)</span></tt>.</p>
+<p>However, it is strongly advised to convert your tracks into the SQL format before working with them for better performance. If you do this, your text files will only be parsed once. The previous code becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, let&#8217;s use our read query for comupting something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+    <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
+    <span class="c"># gene[1] is the end coordinate and gene[0] is the start coordinate</span>
+</pre></div>
+</div>
+<p>The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+    <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="s">&#39;end&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To create a new track and then write to it, you should use the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/rap1_peaks.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mypeaks</span><span class="p">:</span>
+    <span class="n">mypeaks</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;Peak A&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>To duplicate a chromosome inside the same track, you can use the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/copychrs.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chrY&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chrX&#39;</span><span class="p">,</span> <span class="n">cursor</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To make a new track from an old one, and invert the strand of every feature:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">def</span> <span class="nf">invert_strands</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">gene</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/orig.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">orig</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/inverted.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inverted</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">orig</span><span class="p">:</span>
+            <span class="n">inverted</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">invert_strands</span><span class="p">(</span><span class="n">orig</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chrom</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>To convert a track from a format (e.g. BED) to an other format (e.g. GFF) you call the <cite>track.convert</cite> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/yeast_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="c"># Specify the assembly</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">assembly</span> <span class="o">=</span> <span class="s">&#39;hg19&#39;</span>
+    <span class="c"># Or load a tab delimited file</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">load_chr_file</span><span class="p">(</span><span class="s">&#39;info/yeast.chr&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To set the chromosome metadata or the track metadata you simply assign to that attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/scores.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">chrmeta</span> <span class="o">=</span> <span class="sb">``</span><span class="p">{</span><span class="s">&#39;chr1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;length&#39;</span><span class="p">:</span> <span class="mi">197195432</span><span class="p">},</span> <span class="s">&#39;chr2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;length&#39;</span><span class="p">:</span> <span class="mi">129993255</span><span class="p">}}</span><span class="sb">``</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;datatype&#39;</span><span class="p">:</span> <span class="s">&#39;signal&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">:</span> <span class="s">&#39;UCSC&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="loading-a-track">
+<h2>Loading a track<a class="headerlink" href="#loading-a-track" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="track.load">
+<tt class="descclassname">track.</tt><tt class="descname">load</tt><big>(</big><em>path</em>, <em>format=None</em>, <em>readonly=False</em><big>)</big><a class="reference internal" href="_modules/track.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a track from disk, whatever the format is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to load or an URL. If the path is an URL, the file will be downloaded first and <cite>readonly</cite> will be set to True.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.</li>
+<li><strong>readonly</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an optional parameter that defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, any operation attempting to write to the track will silently be ignored</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Track instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/yeast_data_01&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">,</span> <span class="s">&#39;S. cer. genes&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yeast</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">yeast</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/repeats.bed&#39;</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">repeats</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">repeats</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;http://example.com/genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">genes</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">genes</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="creating-a-new-track">
+<h2>Creating a new track<a class="headerlink" href="#creating-a-new-track" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="track.new">
+<tt class="descclassname">track.</tt><tt class="descname">new</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track.html#new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new empty track in preparation for writing to it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Track instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;Gene A&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">set_chrmeta</span><span class="p">(</span><span class="s">&#39;hg19&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/peaks.sql&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">]</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr5&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="s">&#39;Peak1&#39;</span><span class="p">,</span> <span class="mf">11.3</span><span class="p">)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="converting-tracks">
+<h2>Converting tracks<a class="headerlink" href="#converting-tracks" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="track.convert">
+<tt class="descclassname">track.</tt><tt class="descname">convert</tt><big>(</big><em>source</em>, <em>destination</em>, <em>assembly=None</em><big>)</big><a class="reference internal" href="_modules/track.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a track from one format to an other. The <em>source</em> file should have a different format from the <em>destination</em> file. If either the source or destination are missing a file extension, you can specify their formats using a tuple. See examples below.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the original track to load.</li>
+<li><strong>destination</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the track to be created.</li>
+<li><strong>assembly</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the path to the track created (or a list of track paths in the case of multi-track files).</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tracks/no_extension&#39;</span><span class="p">,</span> <span class="s">&#39;gff&#39;</span><span class="p">),</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tmp/4afb0edf&#39;</span><span class="p">,</span> <span class="s">&#39;bed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;tmp/converted&#39;</span><span class="p">,</span> <span class="s">&#39;wig&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="using-the-track-object">
+<h2>Using the Track object<a class="headerlink" href="#using-the-track-object" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="track.Track">
+<em class="property">class </em><tt class="descclassname">track.</tt><tt class="descname">Track</tt><big>(</big><em>path</em>, <em>readonly=False</em>, <em>autosave=True</em>, <em>orig_path=None</em>, <em>orig_format=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track" title="Permalink to this definition">¶</a></dt>
+<dd><p>The track object itself is iterable and will yield the name of all chromosomes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/all_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">genes</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">genes</span><span class="p">:</span> <span class="k">print</span> <span class="n">chrom</span>
+    <span class="k">if</span> <span class="s">&#39;chrY&#39;</span> <span class="ow">in</span> <span class="n">genes</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Male&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">23</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Aneuploidy&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="track-attributes">
+<h3>Track attributes<a class="headerlink" href="#track-attributes" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="track.Track.fields">
+<tt class="descclassname">Track.</tt><tt class="descname">fields</tt><a class="reference internal" href="_modules/track.html#Track.fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>fields</em> is a list the value types that each feature in the track will contain. For instance:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand']</span></tt></div></blockquote>
+<p>Setting this attribute will influence the behaviour of all future read() and write() calls.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.chromosomes">
+<tt class="descclassname">Track.</tt><tt class="descname">chromosomes</tt><a class="reference internal" href="_modules/track.html#Track.chromosomes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.chromosomes" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>chromosomes</em> is a list of all available chromosome. For instance:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">['chr1,</span> <span class="pre">'chr2',</span> <span class="pre">'chr3',</span> <span class="pre">'chr4',</span> <span class="pre">'chr5',</span> <span class="pre">'chrC',</span> <span class="pre">'chrM']</span></tt></div></blockquote>
+<p>You cannot set this attribute. To add new chromosomes, just <tt class="docutils literal"><span class="pre">write()</span></tt> to them.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.info">
+<tt class="descclassname">Track.</tt><tt class="descname">info</tt><a class="reference internal" href="_modules/track.html#Track.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.info" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>info</em> is a dictionary of meta data associated to the track (information like the source, etc). For instance:</p>
+<p><tt class="docutils literal"><span class="pre">{'datatype':</span> <span class="pre">'signal',</span> <span class="pre">'source':</span> <span class="pre">'SGD',</span> <span class="pre">'orig_name':</span> <span class="pre">'splice_sites.bed'}</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.name">
+<tt class="descclassname">Track.</tt><tt class="descname">name</tt><a class="reference internal" href="_modules/track.html#Track.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Giving a name to your track is optional. The default name is <tt class="docutils literal"><span class="pre">Unnamed</span></tt>. This attribute is stored inside the <em>info</em> dictionary.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.datatype">
+<tt class="descclassname">Track.</tt><tt class="descname">datatype</tt><a class="reference internal" href="_modules/track.html#Track.datatype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.datatype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Giving a datatype to your track is optional. The default datatype is <tt class="xref docutils literal"><span class="pre">None</span></tt>. Other possible datatypes are <tt class="docutils literal"><span class="pre">features</span></tt>, <tt class="docutils literal"><span class="pre">signal</span></tt> or <tt class="docutils literal"><span class="pre">relational</span></tt>. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the <em>info</em> dictionary.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.assembly">
+<tt class="descclassname">Track.</tt><tt class="descname">assembly</tt><a class="reference internal" href="_modules/track.html#Track.assembly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.assembly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name or id. Doing so, will download the relevant information from GenRep, set the <em>chrmeta</em> attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call <tt class="docutils literal"><span class="pre">guess_assembly()</span></tt>. This attribute is also stored inside the <em>info</em> dictionary.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">assembly</span> <span class="o">=</span> <span class="s">&#39;hg19&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.chrmeta">
+<tt class="descclassname">Track.</tt><tt class="descname">chrmeta</tt><a class="reference internal" href="_modules/track.html#Track.chrmeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.chrmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>chrmeta</em> is an attribute containing extra chromosomal meta data such chromosome length information. <em>chrmeta</em> is a dictionary where each key is a chromosome names. For instance:</p>
+<blockquote>
+<div><tt class="docutils literal"><span class="pre">{'chr1':</span> <span class="pre">{'length':</span> <span class="pre">197195432},</span> <span class="pre">'chr2':</span> <span class="pre">{'length':</span> <span class="pre">129993255}}</span></tt></div></blockquote>
+<p>You would hence use it like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="k">print</span> <span class="n">t</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="s">&#39;chr1&#39;</span><span class="p">][</span><span class="s">&#39;length&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Of course, genomic formats such as <tt class="docutils literal"><span class="pre">bed</span></tt> cannot store this kind of meta data. Hence, when loading tracks in these text formats, this information is lost once the track is closed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.modified">
+<tt class="descclassname">Track.</tt><tt class="descname">modified</tt><a class="reference internal" href="_modules/track.html#Track.modified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.modified" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>modified</em> is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you <tt class="docutils literal"><span class="pre">write</span></tt>, <tt class="docutils literal"><span class="pre">rename</span></tt> or <tt class="docutils literal"><span class="pre">remove</span></tt>. Changing the <tt class="docutils literal"><span class="pre">info</span></tt> or <tt class="docutils literal"><span class="pre">chrmeta</span></tt> attributes will also make set this value to True.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="track.Track.cursor">
+<tt class="descclassname">Track.</tt><tt class="descname">cursor</tt><a class="reference internal" href="_modules/track.html#Track.cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>cursor</em> is an sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">rpgenes</span><span class="o">.</span><span class="n">cusror</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select name from sqlite_master where type=&#39;table&#39;&quot;</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">cusror</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>More information is available on the <a class="reference external" href="http://docs.python.org/library/sqlite3.html">sqlite3 documentation pages</a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="track-methods">
+<h3>Track methods<a class="headerlink" href="#track-methods" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="track.Track.read">
+<tt class="descclassname">Track.</tt><tt class="descname">read</tt><big>(</big><em>selection=None</em>, <em>fields=None</em>, <em>order='start</em>, <em>end'</em>, <em>cursor=False</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads data from the track.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>selection</strong> &#8211; A chromosome name, or a dictionary specifying a region, see below.</li>
+<li><strong>fields</strong> (<em>list of strings</em>) &#8211; is an optional list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the <em>track.fields</em> attribute is set, that will be used.</li>
+<li><strong>order</strong> (<em>list of strings</em>) &#8211; is am optional sublist of <em>fields</em> which will influence the order in which the tuples are yielded. By default results are sorted by <tt class="docutils literal"><span class="pre">start</span></tt> and, secondly, by <tt class="docutils literal"><span class="pre">end</span></tt>.</li>
+<li><strong>cursor</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an optional parameter which should be set to True if you are performing several operations on the same track at the same time. This is the case, for instance, when you are chaining a read operation to a write operation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>selection</em> can be the name of a chromosome, in which case all the data on that chromosome will be returned.</p>
+<p><em>selection</em> can be left empty, then the data from all chromosome is returned.</p>
+<p><em>selection</em> can also be a dictionary specifying: regions, score intervals or strands. If you specify a region in which case only features contained in that region will be returned. But you can also input a tuple specifying a score interval in which case only features contained in those score boundaries will be returned. You can even specify a strand. The dictionary can contain one or several of these arguments. See code example for more details.</p>
+<p>Adding the parameter <tt class="docutils literal"><span class="pre">'inclusion':'strict'</span></tt> to a region dictionary will return only features exactly contained inside the interval instead of features simply included in the interval. To combine multiple selections you can specify a list including chromosome names and region dictionaries. As expected, if such is the case, the joined data from those selections will be returned with an added <tt class="docutils literal"><span class="pre">chr</span></tt> field in front since the results may span several chromosomes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;strand&#39;</span><span class="p">])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">([</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span><span class="s">&#39;chr2&#39;</span><span class="p">,</span><span class="s">&#39;chr3&#39;</span><span class="p">])</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">100</span><span class="p">})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">10000</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span><span class="mi">15000</span><span class="p">})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">10000</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span><span class="mi">15000</span><span class="p">,</span> <span class="s">&#39;inclusion&#39;</span><span class="p">:</span><span class="s">&#39;strict&#39;</span><span class="p">})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;strand&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">:(</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">10000</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span><span class="mi">15000</span><span class="p">,</span> <span class="s">&#39;strand&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">:(</span><span class="mi">10</span><span class="p">,</span><span class="mi">100</span><span class="p">)})</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr5&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span><span class="mi">200</span><span class="p">},</span> <span class="p">[</span><span class="s">&#39;strand&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.write">
+<tt class="descclassname">Track.</tt><tt class="descname">write</tt><big>(</big><em>chromosome</em>, <em>data</em>, <em>fields=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes data to a genomic file. Will write many feature at once into a given chromosome.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.</li>
+<li><strong>data</strong> (<em>an iteratable</em>) &#8211; must be an iterable object that yields tuples or rows of the correct length. As an example, the <tt class="docutils literal"><span class="pre">read</span></tt> function of this class produces such objects. <em>data</em> can have a <em>fields</em> attribute describing what the different elements of the tuple represent. <em>data</em> can also simply be a list of tuples.</li>
+<li><strong>fields</strong> (<em>list of strings</em>) &#8211; is a parameter describing what the different elements in <em>data</em> represent. It is optional and is used only if <em>data</em> doesn&#8217;t already have a <tt class="docutils literal"><span class="pre">fields</span></tt> attribute.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)])</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">example_generator</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;X&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">,</span> <span class="n">example_generator</span><span class="p">(),</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">,</span><span class="s">&#39;name&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/new.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t2</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/orig.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t1</span><span class="p">:</span>
+        <span class="n">t1</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="n">t2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.save">
+<tt class="descclassname">Track.</tt><tt class="descname">save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as &#8216;bed&#8217;, the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling <tt class="docutils literal"><span class="pre">rollback</span></tt> will revert all changes to the track since the last call to <tt class="docutils literal"><span class="pre">save()</span></tt>. By default, when the track is closed, all changes are saved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr19_gl000209_random&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.rollback">
+<tt class="descclassname">Track.</tt><tt class="descname">rollback</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.rollback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.rollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverts all changes to the track since the last call to <tt class="docutils literal"><span class="pre">save()</span></tt>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr19_gl000209_random&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s">&#39;tmp/clean.bed&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.vacuum">
+<tt class="descclassname">Track.</tt><tt class="descname">vacuum</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.vacuum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.vacuum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rebuilds the database making it shrink in file size. This method is useful when, after having executed many inserts, updates, and deletes, the SQLite file is fragmented and full of empty space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr19_gl000209_random&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">vaccum</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.close">
+<tt class="descclassname">Track.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the current track. This method is useful when for some special reason you are not using the &#8216;with ... as&#8217; form for loading tracks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr19_gl000209_random&#39;</span><span class="p">)</span>
+<span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.export">
+<tt class="descclassname">Track.</tt><tt class="descname">export</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports the current track to a given format. A new file is created at the specified path. The current track object is unchanged</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr19_gl000209_random&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s">&#39;tmp/clean.bed&#39;</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.remove">
+<tt class="descclassname">Track.</tt><tt class="descname">remove</tt><big>(</big><em>chromosome</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes data from a given chromosome.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">([</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;chr2&#39;</span><span class="p">,</span> <span class="s">&#39;chr3&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.rename">
+<tt class="descclassname">Track.</tt><tt class="descname">rename</tt><big>(</big><em>previous_name</em>, <em>new_name</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.rename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renames a chromosome from <em>previous_name</em> to <em>new_name</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>previous_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to rename.</li>
+<li><strong>new_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name that that chromosome will now be referred by.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s">&#39;chr4&#39;</span><span class="p">,</span> <span class="s">&#39;chrIV&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.search">
+<tt class="descclassname">Track.</tt><tt class="descname">search</tt><big>(</big><em>query_dict</em>, <em>chromosome=None</em>, <em>exact_match=False</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Searches for parameters inside your tracks. You can specify several parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>query_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A dictionary specifying keys and values to search for. See examples.</li>
+<li><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Optionally, the name of the chromosome on which one wants to search. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the search is performed on all chromosomes and every feature contains a new field specifying its chromosome.</li>
+<li><strong>exact_match</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; By default, will find all entries which contain the query. If set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, will only find entries that exactly match the query.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">search</span><span class="p">({</span><span class="s">&#39;gene_id&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">})</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">search</span><span class="p">({</span><span class="s">&#39;gene_id&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s">&#39;gene_name&#39;</span><span class="p">:</span><span class="s">&#39;YCCA3&#39;</span><span class="p">},</span> <span class="s">&#39;chr1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.count">
+<tt class="descclassname">Track.</tt><tt class="descname">count</tt><big>(</big><em>selection=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Counts the number of features or entries in a given selection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>selection</strong> &#8211; is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the <em>selection</em> parameter of the <em>read</em> method. If left empty, will count every feature in a track</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">an integer.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">)</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">count</span><span class="p">([</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span><span class="s">&#39;chr2&#39;</span><span class="p">,</span><span class="s">&#39;chr3&#39;</span><span class="p">])</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">count</span><span class="p">({</span><span class="s">&#39;chr&#39;</span><span class="p">:</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span><span class="mi">10000</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span><span class="mi">15000</span><span class="p">})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.load_chr_file">
+<tt class="descclassname">Track.</tt><tt class="descname">load_chr_file</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.load_chr_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.load_chr_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the <em>chrmeta</em> attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to load.</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.export_chr_file">
+<tt class="descclassname">Track.</tt><tt class="descname">export_chr_file</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.export_chr_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.export_chr_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output the information contained in the <em>chrmeta</em> attribute into a plain text file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to create.</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.get_score_vector">
+<tt class="descclassname">Track.</tt><tt class="descname">get_score_vector</tt><big>(</big><em>chromosome</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.get_score_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.get_score_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the <em>chromosome</em> parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to create a score vector from.</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">an iterable yielding floats.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.ucsc_to_ensembl">
+<tt class="descclassname">Track.</tt><tt class="descname">ucsc_to_ensembl</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.ucsc_to_ensembl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.ucsc_to_ensembl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/example.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">ucsc_to_ensembl</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.ensembl_to_ucsc">
+<tt class="descclassname">Track.</tt><tt class="descname">ensembl_to_ucsc</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.ensembl_to_ucsc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.ensembl_to_ucsc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts all entries of a track from the Ensembl standard to the UCSC standard effectively subtracting one from every start position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">ensembl_to_ucsc</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.roman_to_integer">
+<tt class="descclassname">Track.</tt><tt class="descname">roman_to_integer</tt><big>(</big><em>names=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.roman_to_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.roman_to_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, &#8216;chrI&#8217; will become &#8216;chr1&#8217; while &#8216;chrII&#8217; will become &#8216;chr2&#8217;, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; an optional dictionary specifying how to translate particular cases. Example: <tt class="docutils literal"><span class="pre">{'chrM':'chrQ',</span> <span class="pre">'2micron':'chrR'}</span></tt></td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">roman_to_integer</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="track.Track.integer_to_roman">
+<tt class="descclassname">Track.</tt><tt class="descname">integer_to_roman</tt><big>(</big><em>names=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.integer_to_roman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.integer_to_roman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, &#8216;chr1&#8217; will become &#8216;chrI&#8217; while &#8216;chr2&#8217; will become &#8216;chrII&#8217;, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>names</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; an optional dictionary specifying how to translate particular cases. Example: <tt class="docutils literal"><span class="pre">{'chrQ':'chrM',</span> <span class="pre">'chrR':'2micron'}</span></tt></td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">roman_to_integer</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-track.memory">
+<span id="loading-into-memory"></span><h2>Loading into memory<a class="headerlink" href="#module-track.memory" title="Permalink to this headline">¶</a></h2>
+<p>This module also enables you to read tracks into memory and to write track from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in memory, you can.</p>
+<dl class="function">
+<dt id="track.memory.read">
+<tt class="descclassname">track.memory.</tt><tt class="descname">read</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track/memory.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.memory.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a dictionary containing all features of every chromosome contained in a track.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">track.memory</span> <span class="kn">import</span> <span class="n">read</span><span class="p">,</span> <span class="n">write</span>
+<span class="n">genes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">genes</span><span class="p">[</span><span class="s">&#39;chrX&#39;</span><span class="p">][</span><span class="mi">1523</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.memory.write">
+<tt class="descclassname">track.memory.</tt><tt class="descname">write</tt><big>(</big><em>dictionary</em>, <em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track/memory.html#write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.memory.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a dictionary to disk, whatever the format is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dictionary</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; contains the chromosomes and features.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to write to.</li>
+<li><strong>format</strong> &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">track.memory</span> <span class="kn">import</span> <span class="n">read</span><span class="p">,</span> <span class="n">write</span>
+<span class="n">genes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span>
+<span class="n">genes</span><span class="p">[</span><span class="s">&#39;chrX&#39;</span><span class="p">][</span><span class="mi">1523</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">183</span><span class="p">,</span> <span class="mi">195</span><span class="p">,</span> <span class="s">&#39;bra&#39;</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">)</span>
+<span class="n">write</span><span class="p">(</span><span class="s">&#39;tracks/modified.bed&#39;</span><span class="p">,</span> <span class="n">genes</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="comments">
+<h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
+<p>It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled <cite>(start=4,end=8)</cite> will span four base pairs according to UCSC but will span five base pairs according to Ensembl. The representation that the this packages sticks to is explained <a class="reference external" href="http://bbcf.epfl.ch/twiki/bin/view/BBCF/NumberingConvention">here</a>.</p>
+</div>
+<div class="section" id="reporting-bugs">
+<h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://github.com/xapple/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Package <em>&#8216;track&#8217;</em> documentation</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#quick-start">Quick start</a></li>
+<li><a class="reference internal" href="#loading-a-track">Loading a track</a></li>
+<li><a class="reference internal" href="#creating-a-new-track">Creating a new track</a></li>
+<li><a class="reference internal" href="#converting-tracks">Converting tracks</a></li>
+<li><a class="reference internal" href="#using-the-track-object">Using the Track object</a><ul>
+<li><a class="reference internal" href="#track-attributes">Track attributes</a></li>
+<li><a class="reference internal" href="#track-methods">Track methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-track.memory">Loading into memory</a></li>
+<li><a class="reference internal" href="#comments">Comments</a></li>
+<li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">track v1.0.0</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Dec 02, 2011.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>

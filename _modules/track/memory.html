@@ -1,0 +1,159 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>track.memory</title>
+    <link rel="stylesheet" href="../../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/logo.png"/>
+    <link rel="top" title="None" href="../../index.html" />
+    <link rel="up" title="track" href="../track.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">track v1.0.0</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../track.html" accesskey="U">track</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for track.memory</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module also enables you to read tracks into memory and to write track from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in memory, you can.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># Built-in modules #</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c"># Internal modules #</span>
+<span class="kn">from</span> <span class="nn">track.util</span> <span class="kn">import</span> <span class="n">determine_format</span>
+<span class="kn">from</span> <span class="nn">track.common</span> <span class="kn">import</span> <span class="n">check_path</span>
+<span class="kn">from</span> <span class="nn">track.parse</span> <span class="kn">import</span> <span class="n">get_parser</span>
+<span class="kn">from</span> <span class="nn">track.serialize</span> <span class="kn">import</span> <span class="n">get_serializer</span>
+
+<span class="c">################################################################################</span>
+<div class="viewcode-block" id="read"><a class="viewcode-back" href="../../index.html#track.memory.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks</span>
+
+<span class="sd">       :param path: is the path to track file to create.</span>
+<span class="sd">       :type  path: string</span>
+<span class="sd">       :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</span>
+<span class="sd">       :type  format: string</span>
+<span class="sd">       :returns: a dictionary containing all features of every chromosome contained in a track.</span>
+
+<span class="sd">       ::</span>
+
+<span class="sd">            from track.memory import read, write</span>
+<span class="sd">            genes = read(&#39;tracks/rp_genes.bed&#39;)</span>
+<span class="sd">            print genes[&#39;chrX&#39;][1523]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Guess the format #</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">format</span><span class="p">:</span> <span class="n">format</span> <span class="o">=</span> <span class="n">determine_format</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c"># Do the job #</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">get_serializer</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;memory&#39;</span><span class="p">)</span>
+    <span class="n">parser</span>     <span class="o">=</span> <span class="n">get_parser</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span>
+
+<span class="c">################################################################################</span></div>
+<div class="viewcode-block" id="write"><a class="viewcode-back" href="../../index.html#track.memory.write">[docs]</a><span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write a dictionary to disk, whatever the format is.</span>
+
+<span class="sd">       :param dictionary: contains the chromosomes and features.</span>
+<span class="sd">       :type  dictionary: dict</span>
+<span class="sd">       :param format: is the path to track file to write to.</span>
+<span class="sd">       :type  format: string</span>
+<span class="sd">       :param format: is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</span>
+<span class="sd">       :type  format: string</span>
+<span class="sd">       :returns: None</span>
+
+<span class="sd">       ::</span>
+
+<span class="sd">            from track.memory import read, write</span>
+<span class="sd">            genes = read(&#39;tracks/rp_genes.gff&#39;)</span>
+<span class="sd">            genes[&#39;chrX&#39;][1523] = (183, 195, &#39;bra&#39;, 1.9)</span>
+<span class="sd">            write(&#39;tracks/modified.bed&#39;, genes)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Guess the format #</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">format</span><span class="p">:</span> <span class="n">format</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">path</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">check_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c"># Do the job #</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">get_serializer</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
+    <span class="n">parser</span>     <span class="o">=</span> <span class="n">get_parser</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="s">&#39;memory&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">track v1.0.0</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../track.html" >track</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Dec 02, 2011.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>
