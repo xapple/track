@@ -3,7 +3,7 @@ Common stuff for python projects.
 """
 
 ########################### FILES FUNCTIONS ###################################
-def iterate_lines(path, comment_char="#", linebreak_char=r"\\"):
+def iterate_lines(path, comment_char="#", linebreak_char="\\"):
     """
     Iterate over the lines of a text file in an intelligent way.
     1) Empty lines are skipped.
