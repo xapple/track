@@ -124,7 +124,7 @@ __all__ = ['load', 'new', 'convert']
 formats = ('bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig')
 
 # Built-in modules #
-import os, re, sqlite3
+import os, re, sqlite3, urllib
 from itertools import imap
 
 # Internal modules #
@@ -174,7 +174,11 @@ def load(path, format=None, readonly=False):
 
     """
     # Check if URL #
-    pass
+    if path.startswith('http://'):
+            extension = os.path.splitext(path)[1]
+            tmp_path = temporary_path(extension)
+            urllib.urlretrieve(path, tmp_path)
+            path = tmp_path
     # Check not empty #
     check_file(path)
     # Guess the format #

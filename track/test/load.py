@@ -17,16 +17,15 @@ except ImportError:
     import unittest
 
 # Nosetest flag #
-__test__ = False
+__test__ = True
 
 ###################################################################################
 class TestDownload(unittest.TestCase):
     def runTest(self):
-        url = "http://sugar.epfl.ch/BED/sinclair/genomic/ChIP.bedGraph"
+        url = "http://salt.epfl.ch/BED/sinclair/genomic/ChIP.bedGraph"
         with track.load(url) as t:
-            data = t.read('1', fields=['start','end','attributes'])
-            got = list(data)
-        expected = []
+            got = t.count('chrY')
+            expected = 577
         self.assertEqual(got, expected)
 
 #-----------------------------------#
