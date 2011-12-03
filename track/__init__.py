@@ -263,6 +263,8 @@ def convert(source, destination, assembly=None):
     check_path(destination_path)
     # Check it is not empty #
     check_file(source_path)
+    # Check for compressed files #
+    if is_gzip(source_path): source_format = gzip_inner_format(source_path)
     # Get a serializer #
     serializer = get_serializer(destination_path, destination_format)
     # Get a parser #

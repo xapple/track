@@ -42,48 +42,65 @@ py_field_types  = {'start':        int,
                    'frame':        int,
                    'attributes':   str,}
 
+format_synonyms = {'db': 'sql',
+                   'bw': 'bigWig',
+                   'wiggle_0': 'wig',}
+
 ###############################################################################
 def determine_format(path):
     """Try to guess the format of a track given its path.
-       Returns a three letter extension"""
-    # Synonyms #
-    known_synonyms = {
-        'db': 'sql',
-        'bw': 'bigWig',
-    }
-    # Try our own sniffing first #
-    file_format = guess_file_format(path)
-    # Then try the extension #
-    if not file_format: file_format = os.path.splitext(path)[1][1:]
+       Returns a three letter extension."""
+    # Get the extension #
+    ext = os.path.splitext(path)[1][1:]
+    # An extension is provided #
+    if ext: return format_synonyms.get(ext, ext)
+    # Does the file exist #
+    if not os.path.exists(path):
+        raise Exception("The format of the path '%s' cannot be determined. Please specify a format or add an extension." % path)
+    # Try our own sniffing now #
+    with open(path, 'r') as file:
+        file_format = guess_file_format(file)
     # If still nothing, raise exception #
     if not file_format:
-        raise Exception("The format of the path '" + path + "' cannot be determined. Please specify a format or add an extension.")
+        raise Exception("The format of the file '%s' cannot be determined. Please specify a format or add an extension." % path)
     # Return the format #
-    return known_synonyms.get(file_format, file_format)
+    return format_synonyms.get(file_format, file_format)
 
 ###############################################################################
-def guess_file_format(path):
+def guess_file_format(handle):
     """Try to guess the format of a track given its content.
-       Returns a three letter extension"""
-    # Does the file exist #
-    if not os.path.exists(path): return ''
+       Returns a three letter extension."""
     # Check SQLite #
-    with open(path, 'r') as track_file:
-        if track_file.read(15) == "SQLite format 3": return 'sql'
+    if handle.read(15) == "SQLite format 3": return 'sql'
+    handle.seek(0)
     # Try to read the track line #
-    known_identifiers = {
-        'wiggle_0': 'wig',
-    }
-    with open(path, 'r') as track_file:
-        for number, line in enumerate(track_file):
-            line = line.strip("\n").lstrip()
-            if number > 100: break
-            if line.startswith("track "):
-                try:
-                    id = dict([p.split('=',1) for p in shlex.split(line[6:])]).get('type', '')
-                except ValueError:
-                    id = ''
-                return known_identifiers.get(id, id)
+    for number, line in enumerate(handle):
+        line = line.strip("\n").lstrip()
+        if number > 100: break
+        if line.startswith("track "):
+            try: id = dict([p.split('=',1) for p in shlex.split(line[6:])]).get('type', '')
+            except ValueError: id = ''
+            return id
+
+###############################################################################
+def gzip_inner_format(path):
+    """Try to guess the format of a file inside a
+       compressed gzip archive. Returns a three
+       letter extension"""
+    # Get the extension #
+    ext = os.path.splitext(path.strip('.gz').strip('.gzip'))[1][1:]
+    # An extension is provided #
+    if ext: return format_synonyms.get(ext, ext)
+    # Try our own sniffing now #
+    import gzip
+    file = gzip.open(path, 'r')
+    file_format = guess_file_format(file)
+    file.close()
+    # If still nothing, raise exception #
+    if not file_format:
+        raise Exception("The inner format of the gzip file '%s' cannot be determined. Please specify a format or add an extension." % path)
+    # Return the format #
+    return format_synonyms.get(file_format, file_format)
 
 ###############################################################################
 def parse_chr_file(self, path):

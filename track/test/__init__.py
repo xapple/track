@@ -80,10 +80,15 @@ samples = {
     5:            {'name':'Signal track 5',        'filename': 'scores5'},
     6:            {'name':'Signal track 6',        'filename': 'scores6'},
   },
+  'gzip_tracks': {
+    1:            {'name':'Validation features 1', 'filename': 'features1.bed'},
+    4:            {'name':'Validation features 4', 'filename': 'features4'},
+  },
+
 }
 
 # Add the path for every format #
-formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig']
+formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig', 'gzip']
 for group_key, group in sorted(samples.items()):
     for track_key, track in sorted(group.items()):
         for format in formats:

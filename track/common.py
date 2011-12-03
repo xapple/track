@@ -9,6 +9,7 @@ def iterate_lines(path, comment_char="#", linebreak_char="\\"):
     1) Empty lines are skipped.
     3) Lines starting with comments characters such as '#' are skipped.
     2) Lines ending with line break characters such as '\\' are assembled.
+    4) If the file is a GZIP, it is decompressed on the fly.
     This function yields the line number and the line content as a tuple.
     """
     # The pieces of a file are every block of data separated by the newline character.
@@ -26,8 +27,14 @@ def iterate_lines(path, comment_char="#", linebreak_char="\\"):
                 unit = unit.strip(linebreak_char)
                 unit += iterable.next()[1]
             yield number, unit
-    with open(path, 'r') as file:
+    if is_gzip(path):
+        import gzip
+        file = gzip.open(path, 'r')
         for line in lines(units(file)): yield line
+        file.close()
+    else:
+        with open(path, 'r') as file:
+            for line in lines(units(file)): yield line
 
 #------------------------------------------------------------------------------#
 def make_file_names(path):
@@ -100,6 +107,16 @@ def temporary_path(suffix=''):
     path = file.name
     file.close()
     return path
+
+#------------------------------------------------------------------------------#
+def is_gzip(path):
+    """
+    Returns true if the file at the given path is
+    compressed using the gzip compression format.
+    """
+    with open(path, 'r') as file:
+        if file.read(2) == '\x1f\x8b': return True
+    return False
 
 #------------------------------------------------------------------------------#
 def load_dump(path, kind=None):
