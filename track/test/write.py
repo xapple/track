@@ -27,11 +27,8 @@ class TestChain(unittest.TestCase):
         out_path = temporary_path('.sql')
         with track.load(in_path) as i:
             with track.new(out_path) as o:
-                for chrom in i:
-                    if i.count(chrom) != 0: o.write(chrom, i.read(chrom))
-                o.assembly = i.assembly
-                o.info = i.info
-        self.assertTrue(assert_file_equal(in_path, out_path, end=9))
+                for chrom in i: o.write(chrom, i.read(chrom))
+                self.assertEqual(list(o.read('chrI')), list(i.read('chrI')))
         os.remove(out_path)
 
 #---------------------------------------------------------------------------------#
