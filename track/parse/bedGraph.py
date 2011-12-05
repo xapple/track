@@ -1,5 +1,5 @@
 """
-This module implements the parsing of bedGraph files.
+This module implements the parsing of bedGraph files according to this standard:
 
 http://genome.ucsc.edu/goldenPath/help/bedgraph.html
 """
@@ -37,7 +37,7 @@ class ParserBedGraph(Parser):
             if len(items) == 1: items = line.split()
             # Chromosome #
             chrom = items.pop(0)
-            # Length is nine #
+            # Length is three #
             if len(items) != 3:
                 self.handler.error("The track%s doesn't have four columns", self.path, number)
             # Have we started a track already ? #

@@ -38,6 +38,7 @@ def get_serializer(path, format):
 
         ``get_serializer`` returns a Serializer instance.
     """
+    # Is the format supported ? #
     if not format in serializers: raise Exception("The format '%s' is not supported." % format)
     info = serializers[format]
     # Import the objects #
@@ -61,11 +62,10 @@ class Serializer(object):
         pass
 
     def error(self, message, path=None, line_number=None):
-        if path:
-            if not line_number: location = " '" + path + "'"
-            else: location = " '" + path + ":" + str(line_number) + "'"
-            raise Exception(message % location)
-        raise Exception(message)
+        if path and line_number:       location = " '%s:%s'" % (path, line_number)
+        elif path and not line_number: location = " '%s'"    % (path)
+        else:                          location = ""
+        raise Exception(message % location)
 
     def defineFields(self, fields):
         pass

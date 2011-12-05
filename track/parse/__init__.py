@@ -34,6 +34,7 @@ def get_parser(path, format):
 
         ``get_parser`` returns a Parser instance.
     """
+    # Is the format supported ? #
     if not format in parsers: raise Exception("The format '%s' is not supported." % format)
     info = parsers[format]
     # Import the objects #
