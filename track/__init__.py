@@ -59,7 +59,7 @@ Now, let's use our read query for comupting something. For instance, the cumulat
 
     import track
     with track.load('tracks/rp_genes.gff') as rp:
-        all_genes = rp.read('chr3')
+        all_genes = rp.read('chr2')
         base_coverage = sum([gene[1] - gene[0] for gene in all_genes])
         # gene[1] is the end coordinate and gene[0] is the start coordinate
 
@@ -67,7 +67,7 @@ The results coming from the ``read`` function can also be referenced by field na
 
     import track
     with track.load('tracks/rp_genes.gff') as rpgenes:
-        all_genes = rpgenes.read('chr3')
+        all_genes = rpgenes.read('chr2')
         base_coverage = sum([gene['end'] - gene['start'] for gene in all_genes])
 
 To create a new track and then write to it, you should use the following::
@@ -132,9 +132,10 @@ from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.util import sql_field_types, py_field_types, serialize_chr_file
+from track.util import gzip_inner_format
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
-from track.common import Color, pick_iterator_elements, get_next_item
+from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
 
 # Other modules #
 import bbcflib.genrep
@@ -282,10 +283,10 @@ class Track(object):
     ::
 
         import track
-        with track.load('tracks/all_genes.sql') as genes:
-            for chrom in genes: print chrom
-            if 'chrY' in genes: print 'Male'
-            if len(genes) != 23: print 'Aneuploidy'
+        with track.load('tracks/all_genes.sql') as t:
+            for chrom in t: print chrom
+            if 'chrY' in t: print 'Male'
+            if len(t) != 23: print 'Aneuploidy'
     """
 
     def __init__(self, path, readonly=False, autosave=True, orig_path=None, orig_format=None):
@@ -341,7 +342,7 @@ class Track(object):
 
     @property
     def modified(self):
-        """*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also make set this value to True."""
+        """*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True."""
         if self._modified or self.info.modified or self.chrmeta.modified: return True
         return False
 
@@ -900,7 +901,7 @@ class Track(object):
 
             import track
             with track.new('tmp/track.sql') as t:
-                scores = t.vector('chr1')
+                scores = t.get_score_vector('chr1')
         """
         # Conditions #
         if 'score' not in self.fields:

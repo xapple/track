@@ -1,5 +1,5 @@
 """
-This module also enables you to read tracks into memory and to write track from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in memory, you can.
+This module also enables you to read tracks into memory and to write tracks from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in the RAM, you can.
 """
 
 # Built-in modules #
@@ -13,7 +13,7 @@ from track.serialize import get_serializer
 
 ################################################################################
 def read(path, format=None):
-    """Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks
+    """Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into the RAM. Be careful when using this method on large tracks.
 
        :param path: is the path to track file to create.
        :type  path: string
