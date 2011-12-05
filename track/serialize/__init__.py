@@ -6,7 +6,8 @@ This subpackage contains one python source file per format implemented for seria
 import sys
 
 # Other modules #
-from track import genrep
+import bbcflib.genrep
+genrep = bbcflib.genrep.GenRep()
 
 # Variables #
 serializers = {
