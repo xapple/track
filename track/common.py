@@ -7,8 +7,8 @@ def iterate_lines(path, comment_char="#", linebreak_char="\\"):
     """
     Iterate over the lines of a text file in an intelligent way.
     1) Empty lines are skipped.
-    3) Lines starting with comments characters such as '#' are skipped.
     2) Lines ending with line break characters such as '\\' are assembled.
+    3) Lines starting with comments characters such as '#' are skipped.
     4) If the file is a GZIP, it is decompressed on the fly.
     This function yields the line number and the line content as a tuple.
     """
@@ -107,6 +107,22 @@ def temporary_path(suffix=''):
     path = file.name
     file.close()
     return path
+
+#------------------------------------------------------------------------------#
+def if_url_then_get_url(path):
+    """
+    If the path is an URL, download the file at that URL
+    into a temporary file and return the path to that temporary
+    file.
+    If the path isn't an URL, return the path unchanged.
+    """
+    import os, urllib
+    if path.startswith('http://'):
+        extension = os.path.splitext(path)[1]
+        tmp_path = temporary_path(extension)
+        urllib.urlretrieve(path, tmp_path)
+        return tmp_path
+    else: return path
 
 #------------------------------------------------------------------------------#
 def is_gzip(path):

@@ -136,6 +136,7 @@ from track.util import gzip_inner_format
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
+from track.common import if_url_then_get_url
 
 # Other modules #
 import bbcflib.genrep
@@ -174,11 +175,7 @@ def load(path, format=None, readonly=False):
                 data = genes.read()
     """
     # Check if URL #
-    if path.startswith('http://'):
-        extension = os.path.splitext(path)[1]
-        tmp_path = temporary_path(extension)
-        urllib.urlretrieve(path, tmp_path)
-        path = tmp_path
+    path = if_url_then_get_url(path)
     # Check not empty #
     check_file(path)
     # Guess the format #
@@ -248,18 +245,18 @@ def convert(source, destination, assembly=None):
     """
     # Parse the source parameter #
     if isinstance(source, tuple):
-        source_path   = source[0]
+        source_path   = if_url_then_get_url(source[0])
         source_format = source[1]
     else:
-        source_path   = source
-        source_format = determine_format(source)
+        source_path   = if_url_then_get_url(source)
+        source_format = determine_format(source_path)
     # Parse the destination parameter #
     if isinstance(source, tuple):
         destination_path   = destination[0]
         destination_format = destination[1]
     else:
         destination_path   = destination
-        destination_format = determine_format(destination)
+        destination_format = determine_format(destination_path)
     # Check it is not taken #
     check_path(destination_path)
     # Check it is not empty #
@@ -312,11 +309,12 @@ class Track(object):
         self._info_read()
 
     def __enter__(self):
-        """Called when evaluating the 'with' statement."""
+        """Called when entering the 'with' statement."""
         return self
 
     def __exit__(self, errtype, value, traceback):
-        """Enables us to close the database properly, even when exceptions are raised."""
+        """Called when exiting the 'with' statement.
+        Enables us to close the database properly, even when exceptions are raised."""
         self.close()
 
     def __iter__(self):
