@@ -163,22 +163,21 @@ def load(path, format=None, readonly=False):
        ::
 
             import track
-            with track.load('tracks/rp_genes.sql') as rpgenes:
+            with track.load('tracks/rp_genes.bed') as rpgenes:
                 data = rpgenes.read()
-            with track.load('tracks/yeast_data_01', 'sql', 'S. cer. genes') as yeast:
-                data = yeast.read()
+            with track.load('/tmp/ae456f0', 'sql') as t:
+                data = t.read()
             with track.load('tracks/repeats.bed', readonly=True) as repeats:
                 data = repeats.read()
             with track.load('http://example.com/genes.bed') as genes:
                 data = genes.read()
-
     """
     # Check if URL #
     if path.startswith('http://'):
-            extension = os.path.splitext(path)[1]
-            tmp_path = temporary_path(extension)
-            urllib.urlretrieve(path, tmp_path)
-            path = tmp_path
+        extension = os.path.splitext(path)[1]
+        tmp_path = temporary_path(extension)
+        urllib.urlretrieve(path, tmp_path)
+        path = tmp_path
     # Check not empty #
     check_file(path)
     # Guess the format #
@@ -268,15 +267,10 @@ def convert(source, destination, assembly=None):
     serializer = get_serializer(destination_path, destination_format)
     # Get a parser #
     parser = get_parser(source_path, source_format)
-    # Chrmeta #
-    if assembly and destination_format is not 'sql':
-        serializer.defineChrmeta(genrep.get_chrmeta(genrep.assembly(assembly).name))
+    # Assembly argument #
+    if assembly: serializer.defineAssembly(assembly)
     # Do it #
     paths = parser(serializer)
-    # Maybe add some metadata #
-    if destination_format == 'sql' and assembly:
-        with load(destination_path, destination_format) as t:
-            if assembly: t.assembly = assembly
     # Return a track path #
     return paths
 

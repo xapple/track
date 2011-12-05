@@ -5,6 +5,9 @@ This subpackage contains one python source file per format implemented for seria
 # Built-in modules #
 import sys
 
+# Other modules #
+from track import genrep
+
 # Variables #
 serializers = {
     'memory':   {'module': 'track.serialize.memory',   'class': 'SerializerRAM'},
@@ -67,7 +70,10 @@ class Serializer(object):
         pass
 
     def defineChrmeta(self, chrmeta):
-        pass
+        self.chrmeta = chrmeta
+
+    def defineAssembly(self, assembly):
+        self.defineChrmeta(genrep.get_chrmeta(genrep.assembly(assembly).name))
 
     def newTrack(self, info=None, name=None):
         pass

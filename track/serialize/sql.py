@@ -20,7 +20,6 @@ class SerializerSQL(Serializer):
         self.fields = None
         self.current_track = None
         self.current_chrom = None
-        self.current_chrmeta = None
         self.file_paths = make_file_names(self.path)
         return self
 
@@ -32,8 +31,10 @@ class SerializerSQL(Serializer):
         self.fields = fields
 
     def defineChrmeta(self, chrmeta):
-        if self.__dict__.get('current_track',''): self.current_track.chrmeta = chrmeta
-        else: self.current_chrmeta = chrmeta
+        self.current_chrmeta = chrmeta
+
+    def defineAssembly(self, assembly):
+        self.current_assembly = assembly
 
     def newTrack(self, info=None, name=None):
         # Close previous track #
@@ -66,7 +67,9 @@ class SerializerSQL(Serializer):
         # Empty buffer #
         self.flushBuffer()
         # Add chrmeta #
-        if self.current_chrmeta: self.current_track.chrmeta = self.current_chrmeta
+        if hasattr(self, 'current_chrmeta'): self.current_track.chrmeta = self.current_chrmeta
+        # Add assembly #
+        if hasattr(self, 'current_assembly'): self.current_track.assembly = self.current_assembly
         # Add the benchmark #
         #self.current_track.info['converted_in'] = time.time() - self.start_time
         # Commit changes #
@@ -74,8 +77,6 @@ class SerializerSQL(Serializer):
         self.current_track.close()
         # Reset varaibles #
         self.current_track = None
-        self.current_chrom = None
-        self.current_chrmeta = None
 
     def flushBuffer(self):
         if self.buffer:
