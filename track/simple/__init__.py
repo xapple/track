@@ -137,6 +137,10 @@ class SimpleTrack(object):
         return False
 
     @property
+    def chromosomes(self):
+        return []
+
+    @property
     def assembly(self):
         pass
 
