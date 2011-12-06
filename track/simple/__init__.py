@@ -26,7 +26,7 @@ generators = {
 }
 
 ################################################################################
-def load(path, format=None, readonly=False):
+def load(path, format=None):
     """
     Loading a track with this function will return a SimpleTrack object.
 
@@ -35,20 +35,26 @@ def load(path, format=None, readonly=False):
     there are chromosomes in the file. A tuple will contain the name of the current
     chromosome, and a FeatureStream yielding features.
 
+    :param path: is the path to track file to load or an URL. If the path is an URL, the file will be downloaded automatically. If the path is a GZIP file, it will be decompressed automatically.
+    :type  path: string
+    :param format: is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.
+    :type  format: string
+    :returns: a SimpleTrack instance
+
     ::
 
         from track.simple import load
         with load("/tracks/rp_genes.bed") as t:
             print t.next()
-            # ('chr1', <FeatureStream object at 0x109799190)
+            # ('chr1', <FeatureStream object at 0x109799190>)
             print t.next()
-            # ('chr2', <FeatureStream object at 0x1097caa50)
+            # ('chr2', <FeatureStream object at 0x1097caa50>)
 
     ::
 
         from track.simple import load
         all_features = []
-        with load(my_path) as t:
+        with load("/tracks/scores.wig") as t:
             for chrom, data in t:
                 for feature in data:
                     all_features.append([chrom] + feature)

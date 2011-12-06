@@ -154,7 +154,7 @@ relational_fields = ('start', 'end', 'name', 'score', 'strand', 'attributes', 'g
 def load(path, format=None, readonly=False):
     """Loads a track from disk, whatever the format is.
 
-       :param path: is the path to track file to load or an URL. If the path is an URL, the file will be downloaded first and `readonly` will be set to True.
+       :param path: is the path to track file to load or an URL. If the path is an URL, the file will be downloaded automatically. If the path is a GZIP file, it will be decompressed automatically.
        :type  path: string
        :param format: is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.
        :type  format: string
@@ -287,7 +287,8 @@ class Track(object):
     """
 
     def __init__(self, path, readonly=False, autosave=True, orig_path=None, orig_format=None):
-        """The track package is designed to use the 'load()' and 'new()' functions to create Track objects.
+        """The track package is designed to be accesed via the 'load()' and 'new()'
+           functions in order to create Track objects.
            Usually, the constructor is not called directly."""
         # Passed attributes #
         self.path        = path
@@ -338,6 +339,7 @@ class Track(object):
         if isinstance(key,int): return self.chromosomes[key]
         else: return self.read(key)
 
+    #-----------------------------------------------------------------------------#
     @property
     def modified(self):
         """*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True."""
