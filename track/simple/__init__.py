@@ -1,9 +1,9 @@
 """
-This subpackage contains one python source file per format implemented for simple
-reading and writing using generators.
+This subpackage enables you to load genomic files without
+converting them into SQLite format.
 
-When loading a file, instead of completly parsing the genomic file,
-these modules will return a generator ready to run. This avoids creating
+Indeed, when loading a file, instead of completely parsing the genomic file,
+these modules will only return a generator ready to run. This avoids creating
 an SQLite file, but should be used only if your genomic file is already
 sorted by chromosome, by start position and by end position.
 Also, multi-track files are not supported.
@@ -32,17 +32,26 @@ def load(path, format=None, readonly=False):
 
     The SimpleTrack is missing all the methods such as *read*, *search*, etc.
     However it can be iterated on. Doing so will return as many tuples as
-    there are chromsomes in the file. A tuple will contain the name of the current
+    there are chromosomes in the file. A tuple will contain the name of the current
     chromosome, and a FeatureStream yielding features.
 
     ::
 
-    from track.simple import load
-    with load("/tracks/rp_genes.bed") as t:
-        print t.next()
-        >> ('chr1', <FeatureStream object at 0x109799190)
-        print t.next()
-        >> ('chr2', <FeatureStream object at 0x1097caa50)
+        from track.simple import load
+        with load("/tracks/rp_genes.bed") as t:
+            print t.next()
+            # ('chr1', <FeatureStream object at 0x109799190)
+            print t.next()
+            # ('chr2', <FeatureStream object at 0x1097caa50)
+
+    ::
+
+        from track.simple import load
+        all_features = []
+        with load(my_path) as t:
+            for chrom, data in t:
+                for feature in data:
+                    all_features.append([chrom] + feature)
     """
     # Check if URL #
     path = if_url_then_get_url(path)

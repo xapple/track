@@ -41,7 +41,6 @@ class SimpleBedGraph(SimpleTrack):
             # Yield it #
             yield chrom, items
 
-
     def write_features(self, generator):
         for f in generator: yield ' '.join([str(x) for x in f]) + '\n'
 

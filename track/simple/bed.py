@@ -55,6 +55,9 @@ class SimpleBED(SimpleTrack):
                     items[6] = float(items[6])
                 except ValueError:
                     self.error("The track%s has non integers as thick ends", self.path, number)
+                # Too many fields #
+                if len(items) > 11:
+                    self.handler.error("The track%s has more than twelve columns", self.path, number)
             # All index errors are ignored since the fields above three are optional #
             except IndexError:
                 pass
@@ -90,9 +93,9 @@ class SimpleBED(SimpleTrack):
             if len(line) == 1: line = line.split()
             self.num_fields = len(line) - 1
             if self.num_fields < 2:
-                raise Exception("The file '" + self._path + "' has less than three columns and is hence not a valid BED file.")
+                self.error("The track%s has less than two columns", self.path)
             if self.num_fields > len(all_fields):
-                raise Exception("The file '" + self._path + "' has too many columns and is hence not a valid BED file.")
+                self.handler.error("The track%s has more than twelve columns", self.path)
             result = all_fields[0:max(5,self.num_fields)]
         self.file.seek(0)
         return result

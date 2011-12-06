@@ -74,6 +74,9 @@ class ParserBED(Parser):
                     items[6] = float(items[6])
                 except ValueError:
                     self.handler.error("The track%s has non integers as thick ends", self.path, number)
+                # Too many fields #
+                if len(items) > 11:
+                    self.handler.error("The track%s has more than twelve columns", self.path, number)
             # All index errors are ignored since the fields above three are optional #
             except IndexError:
                 pass
