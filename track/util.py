@@ -130,6 +130,28 @@ def serialize_chr_file(chrmeta, path=None, seperator='\t'):
     with open(path, 'w') as f: f.writelines(lines())
     return path
 
+###############################################################################
+def parse_header_line(handle):
+    """
+    Tries to parse the 'track' header line and returns a dictionary.
+    For instance for the following line:
+        track type=wiggle_0 name="DNA Footprints" source="University of Washington"
+    You will get the following dictionary:
+        {'name': 'DNA Footprints', 'source': 'University of Washington', 'type': 'wiggle_0'}
+    """
+    result = {}
+    for line in handle:
+        line = line.strip("\n").lstrip()
+        if len(line) == 0:              continue
+        if line.startswith("#"):        continue
+        if line.startswith("browser "): continue
+        if line.startswith("track "):
+            try: result = dict([p.split('=',1) for p in shlex.split(line[6:])])
+            except ValueError: pass
+        break
+    handle.seek(0)
+    return result
+
 ################################################################################
 def add_chromsome_prefix(sel, data):
     """Add the chromosome in front of every feature"""
