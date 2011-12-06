@@ -141,7 +141,7 @@ def parse_header_line(handle):
     """
     result = {}
     for line in handle:
-        line = line.strip("\n").lstrip()
+        line = line.strip()
         if len(line) == 0:              continue
         if line.startswith("#"):        continue
         if line.startswith("browser "): continue

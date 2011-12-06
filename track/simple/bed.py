@@ -84,18 +84,21 @@ class SimpleBED(SimpleTrack):
 
     def guess_fields(self):
         for line in self.file:
-            line = line.strip("\n").lstrip()
+            line = line.strip()
             if len(line) == 0:              continue
             if line.startswith("#"):        continue
             if line.startswith("track "):   continue
             if line.startswith("browser "): continue
+            # Split the line #
             line = line.split('\t')
             if len(line) == 1: line = line.split()
+            # Check the length #
             self.num_fields = len(line) - 1
             if self.num_fields < 2:
                 self.error("The track%s has less than two columns", self.path)
             if self.num_fields > len(all_fields):
                 self.handler.error("The track%s has more than twelve columns", self.path)
+            # Get the result #
             result = all_fields[0:max(5,self.num_fields)]
         self.file.seek(0)
         return result

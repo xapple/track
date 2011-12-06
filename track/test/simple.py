@@ -57,6 +57,36 @@ class TestBedGraph(unittest.TestCase):
                     ('chr1', 40, 50, -2.5)]
         self.assertEqual(got, expected)
 
+###################################################################################
+class TestGFF(unittest.TestCase):
+    def runTest(self):
+        in_path = samples['gff_tracks'][1]['gff']
+        with load(in_path) as t:
+            got = []
+            for chrom, data in t:
+                for feature in data:
+                    got.append(tuple([chrom] + feature))
+        expected = [('chr1', 'TeleGene', 'enhancer', 1000000, 1001000, 500.0,  1, None, 'touch1'),
+                    ('chr1', 'TeleGene', 'promoter', 1010000, 1010100, 900.0,  1, None, 'touch1'),
+                    ('chr1', 'TeleGene', 'promoter', 1020000, 1020010, 800.0, -1, None, 'touch2')]
+        self.assertEqual(got, expected)
+
+###################################################################################
+class TestGTF(unittest.TestCase):
+    def runTest(self):
+        in_path = samples['gtf_tracks'][1]['gtf']
+        with load(in_path) as t:
+            got = []
+            for chrom, data in t:
+                for feature in data:
+                    got.append(tuple([chrom] + feature))
+        expected = [('chr1', 'Twinscan', 'CDS', 380, 401, 0.0, 1, 0, '001.1', '001'),
+                    ('chr1', 'Twinscan', 'CDS', 501, 650, 0.0, 1, 2, '001.1', '001'),
+                    ('chr1', 'Twinscan', 'CDS', 700, 707, 0.0, 1, 2, '001.1', '001'),
+                    ('chr1', 'Twinscan', 'start_codon', 380, 382, 0.0, 1, 0, '001.1', '001'),
+                    ('chr1', 'Twinscan', 'stop_codon', 708, 710, 0.0, 1, 0, '001.1', '001')]
+        self.assertEqual(got, expected)
+
 #-----------------------------------#
 # This code was written by the BBCF #
 # http://bbcf.epfl.ch/              #

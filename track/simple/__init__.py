@@ -7,6 +7,9 @@ these modules will only return a generator ready to run. This avoids creating
 an SQLite file, but should be used only if your genomic file is already
 sorted by chromosome, by start position and by end position.
 Also, multi-track files are not supported.
+
+The simple version of the text file parsers are currently implemented for:
+BED, WIG, GFF, GTF and bedGraph
 """
 
 # Built-in modules #
@@ -22,6 +25,8 @@ from track.util import determine_format, parse_header_line
 generators = {
     'bed':      {'module': 'track.simple.bed',      'class': 'SimpleBED'},
     'wig':      {'module': 'track.simple.wig',      'class': 'SimpleWIG'},
+    'gff':      {'module': 'track.simple.gff',      'class': 'SimpleGFF'},
+    'gtf':      {'module': 'track.simple.gtf',      'class': 'SimpleGTF'},
     'bedGraph': {'module': 'track.simple.bedGraph', 'class': 'SimpleBedGraph'},
 }
 
@@ -45,10 +50,8 @@ def load(path, format=None):
 
         from track.simple import load
         with load("/tracks/rp_genes.bed") as t:
-            print t.next()
+            for i in t: print i
             # ('chr1', <FeatureStream object at 0x109799190>)
-            print t.next()
-            # ('chr2', <FeatureStream object at 0x1097caa50>)
 
     ::
 
