@@ -117,7 +117,7 @@ def if_url_then_get_url(path):
     If the path isn't an URL, return the path unchanged.
     """
     import os, urllib
-    if path.startswith('http://'):
+    if path.startswith('http://') or path.startswith('https://'):
         extension = os.path.splitext(path)[1]
         tmp_path = temporary_path(extension)
         urllib.urlretrieve(path, tmp_path)
