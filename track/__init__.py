@@ -563,8 +563,9 @@ class Track(object):
                 data = t.read({'chr':'chr1', 'start':10000, 'end':15000, 'strand':-1, 'score':(10,100)})
                 data = t.read({'chr':'chr5', 'start':0, 'end':200}, ['strand', 'start', 'score'])
         """
+        # Default values #
         where = None
-        ### SELECTION ###
+        ##### SELECTION #####
         if not selection: selection = self.chromosomes
         # Case list of things #
         if isinstance(selection, (list, tuple)):
@@ -579,7 +580,7 @@ class Track(object):
         else: raise TypeError, 'The following selection parameter: "' + selection + '" was not understood.'
         # Empty chromosome case #
         if chrom not in self.chromosomes: return ()
-        ### FIELDS ###
+        ##### FIELDS #####
         if not fields and not self._fields: query_fields = "*"
         else:
             # Columns names in the table #
@@ -588,7 +589,7 @@ class Track(object):
             if fields: query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in fields])
             # Track attribute is set #
             else:      query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in self._fields])
-        ### QUERY ###
+        ##### QUERY #####
         sql_command = "SELECT " + query_fields + " from '" + chrom + "'"
         # Add the where case #
         if where: sql_command += where
@@ -598,7 +599,7 @@ class Track(object):
         # Return the results #
         if cursor: cur = self._connection.cursor()
         else:      cur = self.cursor
-        # Execute the select #
+        ##### ERROR CATCHING #####
         try:
             cur.execute(sql_command)
         except sqlite3.OperationalError as err:
