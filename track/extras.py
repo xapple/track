@@ -2,23 +2,53 @@
 Extra functionality that can be used by other libraries.
 """
 
+# Internal modules #
+import track
+from track.util import add_chromsome_prefix
+from track.common import natural_sort
+
 ################################################################################
 class TrackCollection(object):
     """
-    The TrackCollection class can be useful for grouping many Track objects together and represent them as one.
+    The TrackCollection class can be useful for grouping many
+    Track objects together and represent them as one.
     """
     def __init__(self, tracks):
         self.tracks      = tracks
-        self.name        = 'Collection of ' + str(len(tracks)) + ' track' + ((len(tracks) > 1) and 's' or '')
-        self.chromosomes = list(reduce(set.intersection, [set(list(t)) for t in tracks]))
         self.chrmeta     = tracks[0].chrmeta
 
     def __iter__(self): return iter(self.chromosomes)
     def __contains__(self, key): return key in self.chromosomes
     def __len__(self): return len(self.chromosomes)
+    def __nonzero__(self): return True
 
-    def read(self, *args, **kwargs): return [t.read(*args, **kwargs) for t in self.tracks]
+    @property
+    def chromosomes(self):
+        chroms = list(reduce(set.intersection, [set(t.chromosomes) for t in self.tracks]))
+        chroms.sort(key=natural_sort)
+        return chroms
 
+    @property
+    def name(self):
+        plural = len(self.tracks) > 1
+        return 'Collection of %i track%s' % (len(self.tracks), plural and 's' or '')
+
+    @property
+    def chrmeta(self):
+        return dict([(chrom,meta) for chrom,meta in self.tracks[0].chrmeta if chrom in self])
+
+    @property
+    def datatype(self):
+        for t in self.tracks:
+            if t.datatype: return t.datatype
+
+    @property
+    def assembly(self):
+        for t in self.tracks:
+            if t.assembly: return t.assembly
+
+    def read(self, *args, **kwargs):
+        return [t.read(*args, **kwargs) for t in self.tracks]
 
 ################################################################################
 class VirtualTrack(object):
@@ -29,8 +59,66 @@ class VirtualTrack(object):
     Only once you issue ``virtual_track.read('chr1')`` is the result comupted just
     in time.
     """
-    def __init__(self, tracks):
-        pass
+    def __init__(self):
+        self.promises = {}
+        self.chrmeta = {}
+        self.info = {}
+        self.tracks_to_close = []
 
-    def read(self, chrom):
-        pass
+    def __iter__(self): return iter(self.chromosomes)
+    def __contains__(self, key): return key in self.chromosomes
+    def __len__(self): return len(self.chromosomes)
+    def __nonzero__(self): return True
+
+    @property
+    def chromosomes(self):
+        chroms = self.promises.keys()
+        chroms.sort(key=natural_sort)
+        return chroms
+
+    @property
+    def datatype(self):
+        return self.info.get('datatype', None)
+
+    @datatype.setter
+    def datatype(self, value):
+        self.info['datatype'] = value
+
+    @property
+    def name(self):
+        return self.info.get('name', 'Unnamed')
+
+    @name.setter
+    def name(self, value):
+        self.info['name'] = value
+
+    @property
+    def assembly(self):
+        return self.info.get('assembly', None)
+
+    @assembly.setter
+    def assembly(self, value):
+        self.info['assembly'] = value
+
+    def write(self, chromosome, data, fields):
+        self.promises[chromosome] = {'data': data, 'fields': fields}
+
+    def read(self, chromosome=None):
+        # If we have a specific chromsoome #
+        if chromosome:
+            promise = self.promises[chromosome]
+            return track.FeatureStream(promise['data'], promise['fields'])
+        # Else we want all the chromsomoes at once #
+        return self.read_all()
+
+    def read_all(self):
+        for chrom in self:
+            for f in add_chromsome_prefix(chrom, self.read(chrom)): yield f
+
+    def export(self, path, format=None):
+        with track.new(path, format) as t:
+            for chrom in self: t.write(chrom, self.read(chrom))
+        self.close()
+
+    def close(self):
+        for t in self.tracks_to_close: t.close()
