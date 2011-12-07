@@ -14,7 +14,7 @@ from track.common import iterate_lines
 # Constants #
 all_fields = ['start', 'end', 'score']
 
-##mb##############################################################################
+################################################################################
 class ParserBedGraph(Parser):
     def parse(self):
         # Initial variables #

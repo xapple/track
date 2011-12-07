@@ -11,9 +11,3 @@ The relevant documentation pages are the following:
 A nice stackoverflow post to help with implementation:
     * http://stackoverflow.com/questions/1711631/how-do-i-improve-the-performance-of-sqlite
 """
-
-#-----------------------------------#
-# This code was written by the BBCF #
-# http://bbcf.epfl.ch/              #
-# webmaster.bbcf@epfl.ch            #
-#-----------------------------------#
