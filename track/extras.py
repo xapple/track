@@ -15,7 +15,6 @@ class TrackCollection(object):
     """
     def __init__(self, tracks):
         self.tracks      = tracks
-        self.chrmeta     = tracks[0].chrmeta
 
     def __iter__(self): return iter(self.chromosomes)
     def __contains__(self, key): return key in self.chromosomes
@@ -24,6 +23,7 @@ class TrackCollection(object):
 
     @property
     def chromosomes(self):
+        if not hasattr(self.tracks[0], "chromosomes"): return []
         chroms = list(reduce(set.intersection, [set(t.chromosomes) for t in self.tracks]))
         chroms.sort(key=natural_sort)
         return chroms
@@ -35,6 +35,7 @@ class TrackCollection(object):
 
     @property
     def chrmeta(self):
+        if not hasattr(self.tracks[0], "chrmeta"): return {}
         return dict([(chrom,meta) for chrom,meta in self.tracks[0].chrmeta if chrom in self])
 
     @property
@@ -47,6 +48,14 @@ class TrackCollection(object):
         for t in self.tracks:
             if t.assembly: return t.assembly
 
+    @property
+    def fields(self):
+        return list(reduce(set.intersection, [set(t.fields) for t in self.tracks]))
+
+    @fields.setter
+    def fields(self, value):
+        for t in self.tracks: t.fields = value
+
     def read(self, *args, **kwargs):
         return [t.read(*args, **kwargs) for t in self.tracks]
 
@@ -56,7 +65,7 @@ class VirtualTrack(object):
     The VirtualTrack class is a promise of a track to come in the future. The VirtualTrack
     has methods similar to the real Track. You can query its *fields* attribute and read
     specific chromosomes. The thing is that the features don't exist until you try to read them.
-    Only once you issue ``virtual_track.read('chr1')`` is the result comupted just
+    Only once you issue ``virtual_track.read('chr1')`` is the result computed just
     in time.
     """
     def __init__(self):
@@ -104,11 +113,11 @@ class VirtualTrack(object):
         self.promises[chromosome] = {'data': data, 'fields': fields}
 
     def read(self, chromosome=None):
-        # If we have a specific chromsoome #
+        # If we have a specific chromosome #
         if chromosome:
             promise = self.promises[chromosome]
             return track.FeatureStream(promise['data'], promise['fields'])
-        # Else we want all the chromsomoes at once #
+        # Else we want all the chromosomes at once #
         return self.read_all()
 
     def read_all(self):
