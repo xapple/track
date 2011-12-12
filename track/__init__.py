@@ -27,7 +27,7 @@ and clicking on "Downloads", or by cloning the git repository with::
 Once you have the source code, run::
 
     $ cd track
-    $ sudo python setup.py build
+    $ sudo python setup.py install
 
 to install it. If you need to install it in a particular directory, use::
 
@@ -124,7 +124,7 @@ __all__ = ['load', 'new', 'convert']
 formats = ('bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig')
 
 # Built-in modules #
-import os, re, sqlite3, urllib
+import os, re, sqlite3
 from itertools import imap
 
 # Internal modules #
