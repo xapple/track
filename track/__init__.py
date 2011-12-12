@@ -526,7 +526,7 @@ class Track(object):
         return parser(serializer)
 
     #-----------------------------------------------------------------------------#
-    def read(self, selection=None, fields=None, order='start,end', cursor=False):
+    def read(self, selection=None, fields=None, order='start,end'):
         """Reads data from the track.
 
         :param selection: A chromosome name, or a dictionary specifying a region, see below.
@@ -534,8 +534,6 @@ class Track(object):
         :type  fields: list of strings
         :param order: is am optional sublist of *fields* which will influence the order in which the tuples are yielded. By default results are sorted by ``start`` and, secondly, by ``end``.
         :type  order: list of strings
-        :param cursor: is an optional parameter which should be set to True if you are performing several operations on the same track at the same time. This is the case, for instance, when you are chaining a read operation to a write operation.
-        :type  cursor: bool
 
         :returns: a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.
 
@@ -596,18 +594,17 @@ class Track(object):
         # Sorting results #
         order_by = ' order by ' + order
         sql_command += order_by
-        # Return the results #
-        if cursor: cur = self._connection.cursor()
-        else:      cur = self.cursor
+        # Make a new cursor #
+        new_cursor = self._connection.cursor()
         ##### ERROR CATCHING #####
         try:
-            cur.execute(sql_command)
+            new_cursor.execute(sql_command)
         except sqlite3.OperationalError as err:
             message = "The command <%s%s%s> on the track '%s' failed with error:\n\n %s%s%s"
             message = message % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
             raise Exception(message)
         # Make a feature stream #
-        return FeatureStream(cur)
+        return FeatureStream(new_cursor)
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
