@@ -1,4 +1,4 @@
-from distutils.core import setup
+from distutils.core import setup, Extension
 
 setup(
         name             =   'track',
@@ -17,4 +17,5 @@ setup(
                               'track.simple',
                               'track.test',
                              ],
+        ext_modules=[Extension('track.pyrow', ['src/pyrow.c'])]
     )

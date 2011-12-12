@@ -138,6 +138,9 @@ from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
 from track.common import if_url_then_get_url
 
+# Compiled modules #
+from track.pyrow import SuperRow
+
 # Other modules #
 import bbcflib.genrep
 genrep = bbcflib.genrep.GenRep()
@@ -303,7 +306,7 @@ class Track(object):
         self._info     = JournaledDict()
         # Opening the database #
         self._connection = sqlite3.connect(self.path)
-        self._connection.row_factory = sqlite3.Row
+        self._connection.row_factory = SuperRow
         self._cursor = self._connection.cursor()
         # Load some tables #
         self._chrmeta_read()
@@ -636,8 +639,8 @@ class Track(object):
         # Check track attributes #
         if self.readonly: return
         self._modified = True
-        # Check what the data genertor yields #
-        if isinstance(data, FeatureStream) and data.kind == sqlite3.Row: data.generator = imap(tuple,data)
+        # Check what the data generator yields #
+        if isinstance(data, FeatureStream) and data.kind == SuperRow: data.generator = imap(tuple,data)
         # Guess the fields we are getting #
         if fields:                           incoming_fields = fields
         elif hasattr(data, 'fields'):        incoming_fields = data.fields

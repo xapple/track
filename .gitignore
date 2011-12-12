@@ -11,12 +11,13 @@
 # IDE files #
 /.idea
 
-# Build files #
+# Build stuff #
 /MANIFEST
-
-# Build directories #
 /build/
 /dist/
+
+# Compiled files #
+/track/pyrow.so
 
 # Git files #
 /.gitattributes
