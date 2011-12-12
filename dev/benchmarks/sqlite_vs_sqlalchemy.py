@@ -13,6 +13,8 @@
 2.35765194893
 * sqlalchemy_via_names2
 1.79039287567
+* sqlalchemy_via_slice
+0.47158408165
 """
 
 import tempfile, sqlite3, os, random, string
@@ -42,7 +44,7 @@ def build_random_db(table_name='table_name', delete_on_close=True):
     c.execute('create table %s (start int, stop int, score real, name text)' % table_name)
     conn.commit()
     gen = random_line_gen(start=1, step=5, nb_line=500, name_size=5)
-    c.executemany('insert into %s values (?, ?, ? , ? )' % table_name, gen)
+    c.executemany('insert into %s values (?, ?, ?, ?)' % table_name, gen)
     conn.commit()
     c.close()
     return tmp_file
@@ -127,6 +129,14 @@ def sqlalchemy_via_names2(session, features):
         calc = start + stop + score
     session.close()
 
+#---------------------------------------------------------------------------------#
+def sqlalchemy_via_slice(engine, features):
+    conn = engine.connect()
+    sel = select([features])
+    result = conn.execute(sel)
+    for row in result:
+         calc = sum(row[0:2])
+
 ################################################################################
 db = build_random_db()
 engine = create_engine('sqlite:///%s'% os.path.abspath(db.name), echo=False)
@@ -179,6 +189,10 @@ print t.timeit(number=nb_exec)
 
 print '* sqlalchemy_via_names2'
 t = Timer("sqlalchemy_via_names2(session, features)", "from __main__ import sqlalchemy_via_names2, session, features")
+print t.timeit(number=nb_exec)
+
+print '* sqlalchemy_via_slice'
+t = Timer("sqlalchemy_via_slice(engine, features)", "from __main__ import sqlalchemy_via_slice, engine, features")
 print t.timeit(number=nb_exec)
 
 db.close()
