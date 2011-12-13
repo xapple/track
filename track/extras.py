@@ -14,12 +14,13 @@ class TrackCollection(object):
     Track objects together and represent them as one.
     """
     def __init__(self, tracks):
-        self.tracks      = tracks
+        self.tracks = tracks
 
     def __iter__(self): return iter(self.chromosomes)
     def __contains__(self, key): return key in self.chromosomes
     def __len__(self): return len(self.chromosomes)
     def __nonzero__(self): return True
+    def __repr__(self): return "TrackCollection containing %s" % self.tracks
 
     @property
     def chromosomes(self):
@@ -58,6 +59,9 @@ class TrackCollection(object):
 
     def read(self, *args, **kwargs):
         return [t.read(*args, **kwargs) for t in self.tracks]
+
+    def close(self):
+        for t in self.tracks: t.close()
 
 ################################################################################
 class VirtualTrack(object):
