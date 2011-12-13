@@ -1193,6 +1193,8 @@ class FeatureStream(object):
         if not fields and hasattr(generator, 'description'): fields = [x[0] for x in generator.description]
         self.fields = fields
 
+    def __repr__(self): return "FeatureStream containing %s" % self.generator
+
     def __iter__(self): return self.generator
 
     def next(self): return self.generator.next()

@@ -113,14 +113,12 @@ class VirtualTrack(object):
     def assembly(self, value):
         self.info['assembly'] = value
 
-    def write(self, chromosome, data, fields):
-        self.promises[chromosome] = {'data': data, 'fields': fields}
+    def write(self, chromosome, stream):
+        self.promises[chromosome] = stream
 
     def read(self, chromosome=None):
         # If we have a specific chromosome #
-        if chromosome:
-            promise = self.promises[chromosome]
-            return track.FeatureStream(promise['data'], promise['fields'])
+        if chromosome: return self.promises[chromosome]
         # Else we want all the chromosomes at once #
         return self.read_all()
 
