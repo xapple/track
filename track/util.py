@@ -43,7 +43,8 @@ py_field_types  = {'start':        int,
                    'attributes':   str,}
 
 format_synonyms = {'db': 'sql',
-                   'bw': 'bigWig',
+                   'bw': 'bigwig',
+                   'bwg': 'bigwig',
                    'wiggle_0': 'wig',}
 
 ###############################################################################
@@ -51,7 +52,7 @@ def determine_format(path):
     """Try to guess the format of a track given its path.
        Returns a three letter extension."""
     # Get the extension #
-    ext = os.path.splitext(path)[1][1:]
+    ext = os.path.splitext(path)[1][1:].lower()
     # An extension is provided #
     if ext: return format_synonyms.get(ext, ext)
     # Does the file exist #
@@ -59,7 +60,7 @@ def determine_format(path):
         raise Exception("The format of the path '%s' cannot be determined. Please specify a format or add an extension." % path)
     # Try our own sniffing now #
     with open(path, 'r') as file:
-        file_format = guess_file_format(file)
+        file_format = guess_file_format(file).lower()
     # If still nothing, raise exception #
     if not file_format:
         raise Exception("The format of the file '%s' cannot be determined. Please specify a format or add an extension." % path)

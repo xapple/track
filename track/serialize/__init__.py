@@ -5,6 +5,9 @@ This subpackage contains one python source file per format implemented for seria
 # Built-in modules #
 import sys
 
+# Internal modules #
+from track.util import format_synonyms
+
 # Other modules #
 import bbcflib.genrep
 genrep = bbcflib.genrep.GenRep()
@@ -17,8 +20,8 @@ serializers = {
     'wig':      {'module': 'track.serialize.wig',      'class': 'SerializerWIG'},
     'gff':      {'module': 'track.serialize.gff',      'class': 'SerializerGFF'},
     'gtf':      {'module': 'track.serialize.gtf',      'class': 'SerializerGTF'},
-    'bedGraph': {'module': 'track.serialize.bedGraph', 'class': 'SerializerBedGraph'},
-    'bigWig':   {'module': 'track.serialize.bigWig',   'class': 'SerializerBigWig'},
+    'bedgraph': {'module': 'track.serialize.bedgraph', 'class': 'SerializerBedgraph'},
+    'bigwig':   {'module': 'track.serialize.bigwig',   'class': 'SerializerBigwig'},
 }
 
 ################################################################################

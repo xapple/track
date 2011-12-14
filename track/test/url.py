@@ -2,13 +2,8 @@
 Contains URL download tests.
 """
 
-# Built-in modules #
-import os
-
 # Internal modules #
 import track
-from track.common import temporary_path
-from track.test import samples
 
 # Unittesting module #
 try:

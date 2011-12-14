@@ -70,12 +70,12 @@ samples = {
     1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},
     'GenRep':     {'name':'GenRep saccer GTF',     'filename': 'gtf_saccer'},
   },
-  'bedGraph_tracks': {
+  'bedgraph_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},
     5:            {'name':'Signal track 5',        'filename': 'scores5'},
     6:            {'name':'Signal track 6',        'filename': 'scores6'},
   },
-  'bigWig_tracks': {
+  'bigwig_tracks': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},
     5:            {'name':'Signal track 5',        'filename': 'scores5'},
     6:            {'name':'Signal track 6',        'filename': 'scores6'},
@@ -88,7 +88,7 @@ samples = {
 }
 
 # Add the path for every format #
-formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig', 'gzip']
+formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedgraph', 'bigwig', 'gzip']
 for group_key, group in sorted(samples.items()):
     for track_key, track in sorted(group.items()):
         for format in formats:

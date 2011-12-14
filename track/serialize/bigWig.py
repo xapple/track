@@ -1,5 +1,5 @@
 """
-This module implements the bigWig serialization.
+This module implements the bigwig serialization.
 
 It requires the binary executable "bedGraphToBigWig" to be installed and listed in the $PATH.
 This executable is available here:
@@ -8,7 +8,7 @@ http://hgdownload.cse.ucsc.edu/admin/exe/
 """
 
 # Internal modules #
-from track.serialize.bedGraph import SerializerBedGraph
+from track.serialize.bedgraph import SerializerBedgraph
 from track.common import temporary_path, check_executable, run_tool
 from track.util import serialize_chr_file
 
@@ -16,10 +16,10 @@ from track.util import serialize_chr_file
 all_fields = ['start', 'end', 'score']
 
 ################################################################################
-class SerializerBigWig(SerializerBedGraph):
+class SerializerBigwig(SerializerBedgraph):
     def __enter__(self):
         # First just serialize it as a bedGrap #
-        bedgraph_path = temporary_path('.bedGraph')
+        bedgraph_path = temporary_path('.bedgraph')
         self.file = open(bedgraph_path, 'w')
         return self
 

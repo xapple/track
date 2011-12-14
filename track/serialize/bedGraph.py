@@ -1,5 +1,5 @@
 """
-This module implements the bedGraph serialization.
+This module implements the bedgraph serialization.
 """
 
 # Internal modules #
@@ -10,7 +10,7 @@ from track.common import format_float
 all_fields = ['start', 'end', 'score']
 
 ################################################################################
-class SerializerBedGraph(Serializer):
+class SerializerBedgraph(Serializer):
     def __enter__(self):
         self.file = open(self.path, 'w')
         return self
@@ -24,12 +24,12 @@ class SerializerBedGraph(Serializer):
             try:
                 self.indices.append(fields.index(f))
             except ValueError:
-                message = "You tried to write a bedGraph file without a '%s' field. Required fields are: %s"
+                message = "You tried to write a bedgraph file without a '%s' field. Required fields are: %s"
                 self.error(message % (f, all_fields))
 
     def newTrack(self, info=None, name=None):
         if not info: info = {}
-        info['type'] = 'bedGraph'
+        info['type'] = 'bedgraph'
         info['converted_by'] = __package__
         self.file.write("track " + ' '.join([k + '="' + v + '"' for k, v in info.items()]) + '\n')
 

@@ -9,7 +9,7 @@ sorted by chromosome, by start position and by end position.
 Also, multi-track files are not supported.
 
 The simple version of the text file parsers are currently implemented for:
-BED, WIG, GFF, GTF and bedGraph
+BED, WIG, GFF, GTF and bedgraph
 """
 
 # Built-in modules #
@@ -27,7 +27,7 @@ generators = {
     'wig':      {'module': 'track.simple.wig',      'class': 'SimpleWIG'},
     'gff':      {'module': 'track.simple.gff',      'class': 'SimpleGFF'},
     'gtf':      {'module': 'track.simple.gtf',      'class': 'SimpleGTF'},
-    'bedGraph': {'module': 'track.simple.bedGraph', 'class': 'SimpleBedGraph'},
+    'bedgraph': {'module': 'track.simple.bedgraph', 'class': 'SimpleBedgraph'},
 }
 
 ################################################################################

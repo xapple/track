@@ -1,5 +1,5 @@
 """
-Contains tests for the bedGraph format.
+Contains tests for the bedgraph format.
 """
 
 # Built-in modules #
@@ -22,22 +22,22 @@ __test__ = True
 ###################################################################################
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['bedGraph_tracks'].items()):
+        for num, info in sorted(samples['bedgraph_tracks'].items()):
             # Prepare paths #
-            orig_bedGraph_path = info['bedGraph']
+            orig_bedgraph_path = info['bedgraph']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            test_bedGraph_path = temporary_path('.bedGraph')
-            # From bedGraph to SQL #
-            track.convert(orig_bedGraph_path, test_sql_path, assembly='sacCer2')
+            test_bedgraph_path = temporary_path('.bedgraph')
+            # From bedgraph to SQL #
+            track.convert(orig_bedgraph_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
-            # From SQL to bedGraph #
+            # From SQL to bedgraph #
             with track.load(test_sql_path) as t: t.roman_to_integer()
-            track.convert(test_sql_path, test_bedGraph_path)
-            self.assertTrue(assert_file_equal(orig_bedGraph_path, test_bedGraph_path, start_b=1))
+            track.convert(test_sql_path, test_bedgraph_path)
+            self.assertTrue(assert_file_equal(orig_bedgraph_path, test_bedgraph_path, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
-            os.remove(test_bedGraph_path)
+            os.remove(test_bedgraph_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

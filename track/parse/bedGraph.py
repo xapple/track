@@ -1,5 +1,5 @@
 """
-This module implements the parsing of bedGraph files according to this standard:
+This module implements the parsing of bedgraph files according to this standard:
 
 http://genome.ucsc.edu/goldenPath/help/bedgraph.html
 """
@@ -15,7 +15,7 @@ from track.common import iterate_lines
 all_fields = ['start', 'end', 'score']
 
 ################################################################################
-class ParserBedGraph(Parser):
+class ParserBedgraph(Parser):
     def parse(self):
         # Initial variables #
         info = {}

@@ -5,6 +5,9 @@ This subpackage contains one python source file per format implemented for parsi
 # Built-in modules #
 import os, sys
 
+# Internal modules #
+from track.util import format_synonyms
+
 # Variables #
 parsers = {
     'memory':   {'module': 'track.parse.memory',   'class': 'ParserRAM'},
@@ -13,8 +16,8 @@ parsers = {
     'wig':      {'module': 'track.parse.wig',      'class': 'ParserWIG'},
     'gff':      {'module': 'track.parse.gff',      'class': 'ParserGFF'},
     'gtf':      {'module': 'track.parse.gtf',      'class': 'ParserGTF'},
-    'bedGraph': {'module': 'track.parse.bedGraph', 'class': 'ParserBedGraph'},
-    'bigWig':   {'module': 'track.parse.bigWig',   'class': 'ParserBigWig'},
+    'bedgraph': {'module': 'track.parse.bedgraph', 'class': 'ParserBedgraph'},
+    'bigwig':   {'module': 'track.parse.bigwig',   'class': 'ParserBigwig'},
 }
 
 ################################################################################

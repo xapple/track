@@ -20,8 +20,8 @@ collection_conversion =  {'small_features':     {'from':'bed',      'to':'sql', 
                           'rand_signals':       {'from':'wig',      'to':'sql', 'assembly':'sacCer2'},
                           'gff_tracks':         {'from':'gff',      'to':'sql', 'assembly':'sacCer2'},
                           'gtf_tracks':         {'from':'gtf',      'to':'sql', 'assembly':'sacCer2'},
-                          'bedGraph_tracks':    {'from':'bedGraph', 'to':'sql', 'assembly':'sacCer2'},
-                          'bigWig_tracks':      {'from':'bigWig',   'to':'sql', 'assembly':'sacCer2'},
+                          'bedgraph_tracks':    {'from':'bedgraph', 'to':'sql', 'assembly':'sacCer2'},
+                          'bigwig_tracks':      {'from':'bigwig',   'to':'sql', 'assembly':'sacCer2'},
                           }
 # Same randomness #
 import random

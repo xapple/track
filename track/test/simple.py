@@ -46,7 +46,7 @@ class TestWIG(unittest.TestCase):
 ###################################################################################
 class TestBedGraph(unittest.TestCase):
     def runTest(self):
-        in_path = samples['bedGraph_tracks'][5]['bedGraph']
+        in_path = samples['bedgraph_tracks'][5]['bedgraph']
         with load(in_path) as t:
             got = []
             for chrom, data in t:

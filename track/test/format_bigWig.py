@@ -1,5 +1,5 @@
 """
-Contains tests for the bigWig format.
+Contains tests for the bigwig format.
 """
 
 # Built-in modules #
@@ -22,22 +22,22 @@ __test__ = True
 ###################################################################################
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['bigWig_tracks'].items()):
+        for num, info in sorted(samples['bigwig_tracks'].items()):
             # Prepare paths #
-            orig_bigWig_path = info['bigWig']
+            orig_bigwig_path = info['bigwig']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            test_bigWig_path = temporary_path('.bigWig')
-            # From bigWig to SQL #
-            track.convert(orig_bigWig_path, test_sql_path, assembly='sacCer2')
+            test_bigwig_path = temporary_path('.bigwig')
+            # From bigwig to SQL #
+            track.convert(orig_bigwig_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
-            # From SQL to bigWig #
+            # From SQL to bigwig #
             with track.load(test_sql_path) as t: t.roman_to_integer()
-            track.convert(test_sql_path, test_bigWig_path)
-            self.assertTrue(assert_file_equal(orig_bigWig_path, test_bigWig_path, start_a=1, start_b=1))
+            track.convert(test_sql_path, test_bigwig_path)
+            self.assertTrue(assert_file_equal(orig_bigwig_path, test_bigwig_path, start_a=1, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
-            os.remove(test_bigWig_path)
+            os.remove(test_bigwig_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

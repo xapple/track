@@ -213,7 +213,7 @@ def new(path, format=None):
                t.write('chr5', [(500, 1200, 'Peak1', 11.3)])
     """
     # Guess the format #
-    if not format: format = os.path.splitext(path)[1][1:]
+    if not format: format = os.path.splitext(path)[1][1:].lower()
     check_path(path)
     # If sql, just make a new track at the path #
     # Otherwise we need to make a temporary sql #

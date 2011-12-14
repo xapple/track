@@ -1,5 +1,5 @@
 """
-This module implements the simple parsing of bedGraph files according to this standard:
+This module implements the simple parsing of bedgraph files according to this standard:
 
 http://genome.ucsc.edu/goldenPath/help/bedgraph.html
 """
@@ -8,7 +8,7 @@ http://genome.ucsc.edu/goldenPath/help/bedgraph.html
 from track.simple import SimpleTrack
 
 ###########################################################################
-class SimpleBedGraph(SimpleTrack):
+class SimpleBedgraph(SimpleTrack):
     def read_features(self):
         for number, line in enumerate(self.file):
             # Strip #
