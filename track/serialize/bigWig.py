@@ -7,6 +7,9 @@ This executable is available here:
 http://hgdownload.cse.ucsc.edu/admin/exe/
 """
 
+# Built-in modules #
+import os
+
 # Internal modules #
 from track.serialize.bedgraph import SerializerBedgraph
 from track.common import temporary_path, check_executable, run_tool
@@ -18,27 +21,45 @@ all_fields = ['start', 'end', 'score']
 ################################################################################
 class SerializerBigwig(SerializerBedgraph):
     def __enter__(self):
-        # First just serialize it as a bedGrap #
-        bedgraph_path = temporary_path('.bedgraph')
-        self.file = open(bedgraph_path, 'w')
+        # Just serialize it as a bedgraph first #
+        if self.parser.format != 'bedgraph':
+            self.tmp_path = temporary_path('.bedgraph')
+            self.file = open(self.tmp_path, 'w')
+        # Must return self #
         return self
 
     def __exit__(self, errtype, value, traceback):
-        # The three paths #
-        bigwig_path   = self.path
-        bedgraph_path = self.file.name
-        chrfile_path  = temporary_path('.chr')
-        # Close the bedGraph #
-        self.file.close()
-        # Check the binary tools exist #
-        check_executable('bedGraphToBigWig')
-        # Make the chr file #
-        serialize_chr_file(self.chrmeta, chrfile_path)
-        # Run the tool #
-        run_tool('bedGraphToBigWig', [bedgraph_path, chrfile_path, bigwig_path])
+        # If we have a bedgraph on the other side #
+        if self.parser.format == 'bedgraph':
+            bedgraph_to_bigwig(self.parser.path, self.chrmeta, self.path)
+        # Otherwise use the temp file #
+        else:
+            self.file.close()
+            bedgraph_to_bigwig(self.tmp_path, self.chrmeta, self.path)
+            os.remove(self.tmp_path)
 
-    def defineChrmeta(self, chrmeta):
-        self.chrmeta = chrmeta
+################################################################################
+def bedgraph_to_bigwig(bedgraph_path, chrmeta, bigwig_path):
+    """
+    Converts a bedgraph file to a bigwig file.
+
+    :param bedgraph_path: The path to the bedgraph file to read.
+    :type  bedgraph_path: string
+    :param chrmeta: The chromosome metadata.
+    :type  chrmeta: dict
+    :param bigwig_path: The path to the bedbig file to create.
+    :type  bigwig_path: string
+    :returns: None
+    """
+    # Check the binary tool exists #
+    check_executable('bedGraphToBigWig')
+    # Make the chr file #
+    chrfile_path  = temporary_path('.chr')
+    serialize_chr_file(chrmeta, chrfile_path)
+    # Run the tool #
+    run_tool('bedGraphToBigWig', [bedgraph_path, chrfile_path, bigwig_path])
+    # Remove the chr file #
+    os.remove(chrfile_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

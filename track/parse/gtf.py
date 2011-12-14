@@ -17,6 +17,7 @@ all_fields = ['source', 'type', 'start', 'end', 'score', 'strand', 'frame']
 
 ################################################################################
 class ParserGTF(Parser):
+    format = 'gtf'
     def parse(self):
         # Initial variables #
         info   = {}

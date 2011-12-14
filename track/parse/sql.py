@@ -13,6 +13,7 @@ from track.parse import Parser
 
 ################################################################################
 class ParserSQL(Parser):
+    format = 'sql'
     def parse(self):
         # Core function #
         def read_whole_track(t):

@@ -11,6 +11,8 @@ all_fields = ['start', 'end', 'score']
 
 ################################################################################
 class SerializerWIG(Serializer):
+    format = 'wig'
+
     def __enter__(self):
         self.file = open(self.path, 'w')
         self.indices = None

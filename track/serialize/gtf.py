@@ -13,6 +13,8 @@ defaults   = ['.', '.', -1, -1, 0.0, '.', '.', '.']
 
 ################################################################################
 class SerializerGTF(Serializer):
+    format = 'gtf'
+
     def __enter__(self):
         self.file = open(self.path, 'w')
         self.indices = None

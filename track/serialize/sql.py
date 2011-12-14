@@ -15,6 +15,8 @@ BUFFER_SIZE = 32767
 
 ################################################################################
 class SerializerSQL(Serializer):
+    format = 'sql'
+
     def __enter__(self):
         self.buffer = []
         self.fields = None

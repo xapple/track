@@ -13,6 +13,8 @@ all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
 
 ################################################################################
 class SerializerBED(Serializer):
+    format = 'bed'
+
     def __enter__(self):
         self.file = open(self.path, 'w')
         self.indices = None

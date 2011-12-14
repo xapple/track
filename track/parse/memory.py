@@ -7,7 +7,8 @@ In this case, self.path will be a large dictionary.
 from track.parse import Parser
 
 ################################################################################
-class ParserRAM(Parser):
+class ParserMemory(Parser):
+    format = 'memory'
     def parse(self):
         self.handler.newTrack({}, self.name)
         for chrom in self.path:

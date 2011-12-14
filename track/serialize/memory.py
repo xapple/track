@@ -9,7 +9,7 @@ import collections
 from track.serialize import Serializer
 
 ################################################################################
-class SerializerRAM(Serializer):
+class SerializerMemory(Serializer):
     def newTrack(self, info=None, name=None):
         self.tracks.append(collections.defaultdict(list))
 

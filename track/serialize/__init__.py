@@ -5,16 +5,13 @@ This subpackage contains one python source file per format implemented for seria
 # Built-in modules #
 import sys
 
-# Internal modules #
-from track.util import format_synonyms
-
 # Other modules #
 import bbcflib.genrep
 genrep = bbcflib.genrep.GenRep()
 
 # Variables #
 serializers = {
-    'memory':   {'module': 'track.serialize.memory',   'class': 'SerializerRAM'},
+    'memory':   {'module': 'track.serialize.memory',   'class': 'SerializerMemory'},
     'sql':      {'module': 'track.serialize.sql',      'class': 'SerializerSQL'},
     'bed':      {'module': 'track.serialize.bed',      'class': 'SerializerBED'},
     'wig':      {'module': 'track.serialize.wig',      'class': 'SerializerWIG'},
@@ -63,6 +60,9 @@ class Serializer(object):
 
     def __exit__(self, errtype, value, traceback):
         pass
+
+    def __call__(self, parser):
+        self.parser = parser
 
     def error(self, message, path=None, line_number=None):
         if path and line_number:       location = " '%s:%s'" % (path, line_number)

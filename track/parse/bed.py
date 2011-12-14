@@ -18,6 +18,7 @@ all_fields = ['start', 'end', 'name', 'score', 'strand', 'thick_start',
 
 ################################################################################
 class ParserBED(Parser):
+    format = 'bed'
     def parse(self):
         # Initial variables #
         fields = []

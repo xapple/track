@@ -22,20 +22,35 @@ from track.common import temporary_path, check_executable, run_tool
 ################################################################################
 class ParserBigwig(Parser):
     def parse(self):
-        # Check the binary tools exist #
-        check_executable('bigWigToBedGraph')
-        # Run the tool #
+        # Special case #
+        if self.handler.format == 'bedGraph': return
+        # The two paths #
         bigwig_path   = self.path
         bedgraph_path = temporary_path('.bedgraph')
-        run_tool('bigWigToBedGraph', [bigwig_path, bedgraph_path])
-        # Now just parse the bedGraph #
+        # Run the tool #
+        bigwig_to_bedgraph(bigwig_path, bedgraph_path)
+        # Now just parse the bedgraph #
         parser = track.parse.get_parser(bedgraph_path, 'bedgraph')
         parser.name = self.name
-        paths = parser(self.handler)
+        parser(self.handler)
         # Erase the temporary file #
         os.remove(bedgraph_path)
-        # Return results #
-        return paths
+
+################################################################################
+def bigwig_to_bedgraph(bigwig_path, bedgraph_path):
+    """
+    Converts a bedgraph file to a bigwig file.
+
+    :param bigwig_path: The path to the bedbig file to read.
+    :type  bigwig_path: string
+    :param bedgraph_path: The path to the bedgraph file to create.
+    :type  bedgraph_path: string
+    :returns: None
+    """
+    # Check the binary tool exists #
+    check_executable('bigWigToBedGraph')
+    # Run the tool #
+    run_tool('bigWigToBedGraph', [bigwig_path, bedgraph_path])
 
 #-----------------------------------#
 # This code was written by the BBCF #

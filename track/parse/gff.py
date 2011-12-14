@@ -22,6 +22,7 @@ all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame', 'att
 
 ################################################################################
 class ParserGFF(Parser):
+    format = 'gff'
     def parse(self):
         # Initial variables #
         fields = []

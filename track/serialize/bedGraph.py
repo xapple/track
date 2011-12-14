@@ -5,18 +5,28 @@ This module implements the bedgraph serialization.
 # Internal modules #
 from track.serialize import Serializer
 from track.common import format_float
+from track.parse.bigwig import bigwig_to_bedgraph
 
 # Constants #
 all_fields = ['start', 'end', 'score']
 
 ################################################################################
 class SerializerBedgraph(Serializer):
+    format = 'bedgraph'
+
     def __enter__(self):
-        self.file = open(self.path, 'w')
+        # Special case #
+        if self.parser.format == 'bigWig': return self
+        # Open file #
+        else: self.file = open(self.path, 'w')
+        # Must return self #
         return self
 
     def __exit__(self, errtype, value, traceback):
-        self.file.close()
+        # Special case #
+        if self.parser.format == 'bigWig': bigwig_to_bedgraph(self.parser.path, self.path)
+        # Close file #
+        else: self.file.close()
 
     def defineFields(self, fields):
         self.indices = []

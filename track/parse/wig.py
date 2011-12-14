@@ -16,6 +16,7 @@ all_fields = ['start', 'end', 'score']
 
 ################################################################################
 class ParserWIG(Parser):
+    format = 'wig'
     def parse(self):
         # Initial variables #
         info   = {}

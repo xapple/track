@@ -266,16 +266,15 @@ def convert(source, destination, assembly=None):
     check_file(source_path)
     # Check for compressed files #
     if is_gzip(source_path): source_format = gzip_inner_format(source_path)
-    # Get a serializer #
-    serializer = get_serializer(destination_path, destination_format)
     # Get a parser #
     parser = get_parser(source_path, source_format)
-    # Assembly argument #
+    # Get a serializer #
+    serializer = get_serializer(destination_path, destination_format)
+    # Tell the serializer about the assembly #
     if assembly: serializer.defineAssembly(assembly)
-    # Do it #
-    paths = parser(serializer)
-    # Return a track path #
-    return paths
+    # The serializer has a copy of the parser and vice-versa #
+    serializer(parser)
+    return parser(serializer)
 
 ################################################################################
 class Track(object):
