@@ -29,6 +29,7 @@ class SerializerBigwig(SerializerBedgraph):
     def __exit__(self, errtype, value, traceback):
         self.file.close()
         bedgraph_to_bigwig(self.tmp_path, self.chrmeta, self.path)
+        self.tracks = [self.path]
         os.remove(self.tmp_path)
 
 ################################################################################
