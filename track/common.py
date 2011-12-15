@@ -317,6 +317,23 @@ def natural_sort(item):
     return map(try_int, re.findall(r'(\d+|\D+)', item))
 
 #------------------------------------------------------------------------------#
+def ordered_intersection(collection):
+    """
+    Given multiple list of items, will return a new list
+    containing only the items that where present in all of the lists.
+    The resulting list will be ordered in the same way as the first list given.
+
+    :param collection: a list of lists
+    :type collection: list
+    :returns: a new list
+
+    ordered_intersection([['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'e', 'f']])
+    ['a', 'b', 'c', 'd']
+    """
+    common_items = reduce(set.intersection, map(set,collection))
+    return [i for i in collection[0] if i in common_items]
+
+#------------------------------------------------------------------------------#
 def int_to_roman(input):
     """
     Convert an integer to a roman numeral.
