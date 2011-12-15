@@ -254,7 +254,7 @@ def convert(source, destination, assembly=None):
         source_path   = if_url_then_get_url(source)
         source_format = determine_format(source_path)
     # Parse the destination parameter #
-    if isinstance(source, tuple):
+    if isinstance(destination, tuple):
         destination_path   = destination[0]
         destination_format = destination[1]
     else:
@@ -262,6 +262,10 @@ def convert(source, destination, assembly=None):
         destination_format = determine_format(destination_path)
     # Check it is not taken #
     check_path(destination_path)
+    # Special cases #
+    if destination_format == 'bigwig' and source_format != 'sql':
+        source_path = convert((source_path, source_format), temporary_path('.sql'), assembly)
+        source_format = 'sql'
     # Check it is not empty #
     check_file(source_path)
     # Check for compressed files #

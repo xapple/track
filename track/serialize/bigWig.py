@@ -22,21 +22,14 @@ all_fields = ['start', 'end', 'score']
 class SerializerBigwig(SerializerBedgraph):
     def __enter__(self):
         # Just serialize it as a bedgraph first #
-        if self.parser.format != 'bedgraph':
-            self.tmp_path = temporary_path('.bedgraph')
-            self.file = open(self.tmp_path, 'w')
-        # Must return self #
+        self.tmp_path = temporary_path('.bedgraph')
+        self.file = open(self.tmp_path, 'w')
         return self
 
     def __exit__(self, errtype, value, traceback):
-        # If we have a bedgraph on the other side #
-        if self.parser.format == 'bedgraph':
-            bedgraph_to_bigwig(self.parser.path, self.chrmeta, self.path)
-        # Otherwise use the temp file #
-        else:
-            self.file.close()
-            bedgraph_to_bigwig(self.tmp_path, self.chrmeta, self.path)
-            os.remove(self.tmp_path)
+        self.file.close()
+        bedgraph_to_bigwig(self.tmp_path, self.chrmeta, self.path)
+        os.remove(self.tmp_path)
 
 ################################################################################
 def bedgraph_to_bigwig(bedgraph_path, chrmeta, bigwig_path):
@@ -54,7 +47,7 @@ def bedgraph_to_bigwig(bedgraph_path, chrmeta, bigwig_path):
     # Check the binary tool exists #
     check_executable('bedGraphToBigWig')
     # Make the chr file #
-    chrfile_path  = temporary_path('.chr')
+    chrfile_path = temporary_path('.chr')
     serialize_chr_file(chrmeta, chrfile_path)
     # Run the tool #
     run_tool('bedGraphToBigWig', [bedgraph_path, chrfile_path, bigwig_path])

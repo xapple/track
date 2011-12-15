@@ -18,8 +18,6 @@ all_fields = ['start', 'end', 'score']
 class ParserBedgraph(Parser):
     format = 'bedgraph'
     def parse(self):
-        # Special case #
-        if self.handler.format == 'bigWig': return
         # Initial variables #
         info = {}
         declare_track = True
