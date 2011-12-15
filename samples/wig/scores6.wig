@@ -1,4 +1,3 @@
-track type="wig" converted_by="track.serialize"
 fixedStep chrom=chr1 start=5 span=10
 1.0
 fixedStep chrom=chr1 start=25 span=10

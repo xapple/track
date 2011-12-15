@@ -1,4 +1,3 @@
-track type=wiggle_0 name=test
 variableStep chrom=1 span=500
 2000 10.0
 3000 15
