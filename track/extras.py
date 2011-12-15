@@ -5,7 +5,7 @@ Extra functionality that can be used by other libraries.
 # Internal modules #
 import track
 from track.util import add_chromsome_prefix
-from track.common import natural_sort
+from track.common import natural_sort, collapse
 
 ################################################################################
 class TrackCollection(object):
@@ -13,8 +13,10 @@ class TrackCollection(object):
     The TrackCollection class can be useful for grouping many
     Track objects together and represent them as one.
     """
-    def __init__(self, tracks):
+    def __init__(self, tracks, fields_collapse=None, chroms_collapse=None):
         self.tracks = tracks
+        self.fields_collapse = fields_collapse
+        self.chroms_collapse = chroms_collapse
 
     def __iter__(self): return iter(self.chromosomes)
     def __contains__(self, key): return key in self.chromosomes
@@ -25,7 +27,7 @@ class TrackCollection(object):
     @property
     def chromosomes(self):
         if not hasattr(self.tracks[0], "chromosomes"): return []
-        chroms = list(reduce(set.intersection, [set(t.chromosomes) for t in self.tracks]))
+        chroms = collapse(self.chroms_collapse, [t.chromosomes for t in self.tracks])
         chroms.sort(key=natural_sort)
         return chroms
 
@@ -51,7 +53,7 @@ class TrackCollection(object):
 
     @property
     def fields(self):
-        return list(reduce(set.intersection, [set(t.fields) for t in self.tracks]))
+        return collapse(self.fields_collapse, [t.fields for t in self.tracks])
 
     @fields.setter
     def fields(self, value):

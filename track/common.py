@@ -316,22 +316,50 @@ def natural_sort(item):
         except ValueError: return s
     return map(try_int, re.findall(r'(\d+|\D+)', item))
 
-#------------------------------------------------------------------------------#
-def ordered_intersection(collection):
+###############################################################################
+def collapse(method, collection):
     """
-    Given multiple list of items, will return a new list
-    containing only the items that where present in all of the lists.
-    The resulting list will be ordered in the same way as the first list given.
+    Collapse lists in specific ways.
 
-    :param collection: a list of lists
+    :param method: the method used to collapse. Can be one of: ``adding``, ``appending``, ``union`` or ``intersection``,
+    :type method: string
+    :param collection: a list of things
     :type collection: list
     :returns: a new list
 
-    ordered_intersection([['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'e', 'f']])
+    >>> collapse('adding',[1,5,2])
+    8
+    >>> collapse('adding',[3])
+    3
+    >>> collapse('appending',[[1,5],[5,3],[2,1]])
+    [1, 5, 5, 3, 2, 1]
+    >>> collapse('appending',[[1,2,3]])
+    [1, 2, 3]
+    >>> collapse('union',[[1,5],[5,3],[2,1]])
+    [1, 5, 3, 2]
+    >>> collapse('intersection',[[1,5,4],[5,3,3],[2,6,5]])
+    [5]
+    >>> collapse('intersection',[['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd', 'e', 'f']])
     ['a', 'b', 'c', 'd']
+    >>> collapse('first',[[1,5,4],[5,3,3],[2,6,5]])
+    [1, 5, 4]
+    >>> collapse('last',[[1,5,4],[5,3,3],[2,6,5]])
+    [2, 6, 5]
     """
-    common_items = reduce(set.intersection, map(set,collection))
-    return [i for i in collection[0] if i in common_items]
+    if method == 'adding':
+        return sum(collection)
+    elif method == 'appending':
+        return [x for y in collection for x in y]
+    elif method == 'union':
+        seen = set()
+        return [x for y in collection for x in y if x not in seen and not seen.add(x)]
+    elif method == 'intersection':
+        common_items = reduce(set.intersection, map(set,collection))
+        return [i for i in collection[0] if i in common_items]
+    elif method == 'first':
+        return collection[0]
+    elif method == 'last':
+        return collection[-1]
 
 #------------------------------------------------------------------------------#
 def int_to_roman(input):
