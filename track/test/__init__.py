@@ -46,6 +46,8 @@ samples = {
     2:            {'name':'Signal track 2',        'filename': 'scores2'},
     3:            {'name':'Signal track 3',        'filename': 'scores3'},
     4:            {'name':'Signal track 4',        'filename': 'scores4'},
+    5:            {'name':'Signal track 5',        'filename': 'scores5'},
+    6:            {'name':'Signal track 6',        'filename': 'scores6'},
     7:            {'name':'Signal track 7',        'filename': 'scores7'},
   },
   'rand_features': {
@@ -69,16 +71,6 @@ samples = {
   'gtf_tracks': {
     1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},
     'GenRep':     {'name':'GenRep saccer GTF',     'filename': 'gtf_saccer'},
-  },
-  'bedgraph_tracks': {
-    1:            {'name':'Signal track 1',        'filename': 'scores1'},
-    5:            {'name':'Signal track 5',        'filename': 'scores5'},
-    6:            {'name':'Signal track 6',        'filename': 'scores6'},
-  },
-  'bigwig_tracks': {
-    1:            {'name':'Signal track 1',        'filename': 'scores1'},
-    5:            {'name':'Signal track 5',        'filename': 'scores5'},
-    6:            {'name':'Signal track 6',        'filename': 'scores6'},
   },
   'gzip_tracks': {
     1:            {'name':'Validation features 1', 'filename': 'features1.bed'},

@@ -3,7 +3,7 @@ A script that can regenerate the SQL tracks from their text version as well as t
 """
 
 # Built-in modules #
-import sys, os, subprocess
+import sys, os
 
 # Path #
 sys.path.insert(0, os.path.abspath('../'))
@@ -14,17 +14,14 @@ from track.common import Color
 from track.test import samples
 
 # Dictionaries #
-collection_conversion =  {'small_features':     {'from':'bed',      'to':'sql',      'assembly':'sacCer2'},
-                          'yeast_features':     {'from':'bed',      'to':'sql',      'assembly':'sacCer2'},
-                          'small_signals':      {'from':'wig',      'to':'sql',      'assembly':'sacCer2'},
-                          'small_signals':      {'from':'sql',      'to':'bedGraph', 'assembly':'sacCer2'},
-                          'small_signals':      {'from':'bedGraph', 'to':'bigwig',   'assembly':'sacCer2'},
-                          'rand_signals':       {'from':'wig',      'to':'sql',      'assembly':'sacCer2'},
-                          'gff_tracks':         {'from':'gff',      'to':'sql',      'assembly':'sacCer2'},
-                          'gtf_tracks':         {'from':'gtf',      'to':'sql',      'assembly':'sacCer2'},
-                          'bedgraph_tracks':    {'from':'bedgraph', 'to':'sql',      'assembly':'sacCer2'},
-                          'bigwig_tracks':      {'from':'bigwig',   'to':'sql',      'assembly':'sacCer2'},
-                          }
+collection_conversion = {
+    'small_features':     {'from':'bed',      'to':'sql',      'assembly':'sacCer2'},
+    'yeast_features':     {'from':'bed',      'to':'sql',      'assembly':'sacCer2'},
+    'small_signals':      {'from':'wig',      'to':'sql',      'assembly':'sacCer2'},
+    'rand_signals':       {'from':'wig',      'to':'sql',      'assembly':'sacCer2'},
+    'gff_tracks':         {'from':'gff',      'to':'sql',      'assembly':'sacCer2'},
+    'gtf_tracks':         {'from':'gtf',      'to':'sql',      'assembly':'sacCer2'}}
+
 # Same randomness #
 import random
 random.seed(0)

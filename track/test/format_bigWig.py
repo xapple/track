@@ -22,7 +22,7 @@ __test__ = True
 ###################################################################################
 class TestRoundtrip(unittest.TestCase):
     def runTest(self):
-        for num, info in sorted(samples['bigwig_tracks'].items()):
+        for num, info in sorted(samples['small_signals'].items()):
             # Prepare paths #
             orig_bigwig_path = info['bigwig']
             orig_sql_path = info['sql']
