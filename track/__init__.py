@@ -1133,7 +1133,7 @@ class Track(object):
         pass
 
     #-----------------------------------------------------------------------------#
-    def aggregated_read(self, selection, base_fields, cursor=False):
+    def aggregated_read(self, selection, base_fields):
         """
         Read the track with the *base_fields*, and aggregate all supplementary fields
         found in a string.
@@ -1164,7 +1164,7 @@ class Track(object):
         supplementary_fields = tuple(set(track_fields) - set(base_fields))
         blen = len(base_fields)
         ll = range(blen)
-        for feature in self.read(selection, base_fields + supplementary_fields, cursor=cursor):
+        for feature in self.read(selection, base_fields + supplementary_fields):
             d = [{field : feature[field]} for field in supplementary_fields]
             yield [feature[i] for i in ll] + [json.dumps(d)]
 
