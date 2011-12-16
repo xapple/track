@@ -651,15 +651,6 @@ class Track(object):
         elif self._fields:                   incoming_fields = self._fields
         elif chromosome in self.chromosomes: incoming_fields = self._get_fields_of_table(chromosome)
         else:                                incoming_fields = default_fields
-        # Just try to write that and see if it fails #
-        outgoing_fields = ['"' + f + '"' for f in incoming_fields]
-        question_marks = '(' + ','.join(['?' for x in xrange(len(outgoing_fields))]) + ')'
-        sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
-        try:
-            self.cursor.executemany(sql_command, data)
-            return None
-        except (sqlite3.OperationalError, sqlite3.ProgrammingError):
-            pass
         # Current fields present in table #
         chrom_exists = chromosome in self.chromosomes
         current_fields = chrom_exists and self._get_fields_of_table(chromosome) or []
