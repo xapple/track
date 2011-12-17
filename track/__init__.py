@@ -598,8 +598,7 @@ class Track(object):
         # Add the where case #
         if where: sql_command += where
         # Sorting results #
-        order_by = ' order by ' + order
-        sql_command += order_by
+        if order: sql_command += ' order by ' + order
         # Make a new cursor #
         new_cursor = self._connection.cursor()
         ##### ERROR CATCHING #####
