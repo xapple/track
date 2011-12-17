@@ -3,7 +3,7 @@ Contains chained write tests.
 """
 
 # Built-in modules #
-import os
+import os, shutil
 
 # Internal modules #
 import track
@@ -46,6 +46,24 @@ class TestMissingFields(unittest.TestCase):
                 expected = (0, 10, None, None, None)
         self.assertEqual(got, expected)
         os.remove(out_path)
+
+#---------------------------------------------------------------------------------#
+class TestBindings(unittest.TestCase):
+    """Tracking down a bug relating to binding numbers"""
+    def runTest(self):
+        old_path = samples['small_features'][1]['sql']
+        new_path = temporary_path('.sql')
+        shutil.copyfile(old_path, new_path)
+        old_table = 'chrI'
+        new_table = 'tmp_chrI'
+        query = 'CREATE table "%s" (id text, subs text, foreign key(id) references "%s" (id));'
+        data = [('abc','def'),('ghi','jkl')]
+        with track.load(new_path) as t:
+           t.cursor.execute(query % (new_table, old_table))
+           t.write(new_table, data, ('id', 'subs'))
+           got = map(tuple, t.read(new_table, order=None))
+        self.assertEqual(got, data)
+        os.remove(new_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #
