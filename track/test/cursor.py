@@ -22,8 +22,9 @@ class TestNewTables(unittest.TestCase):
         out_path = temporary_path('.sql')
         with track.new(out_path) as t:
             for chrom in range(5): t.write(str(chrom), [(0,10,'A',0.0,-1)])
-            t.cursor.execute("CREATE table tmp (koopa text,troopa text)")
-            t.cursor.execute("INSERT into  tmp values (?,?)", (1,2))
+            cur = t.cursor()
+            cur.execute("CREATE table tmp (koopa text,troopa text)")
+            cur.execute("INSERT into  tmp values (?,?)", (1,2))
 
 #-----------------------------------#
 # This code was written by the BBCF #

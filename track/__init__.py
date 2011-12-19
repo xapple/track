@@ -79,7 +79,7 @@ To create a new track and then write to it, you should use the following::
 To duplicate a chromosome inside the same track, you can use the following::
 
     with track.load('tracks/copychrs.sql') as t:
-        t.write('chrY', t.read('chrX', cursor=True))
+        t.write('chrY', t.read('chrX'))
 
 To make a new track from an old one, and invert the strand of every feature::
 
@@ -310,7 +310,9 @@ class Track(object):
         # Opening the database #
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = SuperRow
-        self._cursor = self._connection.cursor()
+        # Make two cursors #
+        self._cursor       = self.cursor()
+        self._write_cursor = self.cursor()
         # Load some tables #
         self._chrmeta_read()
         self._info_read()
@@ -374,8 +376,8 @@ class Track(object):
     @property
     def tables(self):
         """Returns the complete list of SQL tables."""
-        self.cursor.execute("select name from sqlite_master where type='table'")
-        return [x[0].encode('ascii') for x in self.cursor.fetchall()]
+        self._cursor.execute("select name from sqlite_master where type='table'")
+        return [x[0].encode('ascii') for x in self._cursor.fetchall()]
 
     @property
     def chromosomes(self):
@@ -389,25 +391,29 @@ class Track(object):
         chroms.sort(key=natural_sort)
         return chroms
 
-    @property
-    def cursor(self):
-        """*cursor* is an sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results::
-
-            import track
-            with track.load('tracks/rp_genes.sql') as rpgenes:
-                rpgenes.cusror.execute("select name from sqlite_master where type='table'")
-                results = rpgenes.cusror.fetchall()
-
-           More information is available on the `sqlite3 documentation pages <http://docs.python.org/library/sqlite3.html>`_."""
-        return self._cursor
-
     def _get_fields_of_table(self, chrom):
         """Returns the list of fields for a particular table by querying the SQL for the complete list of column names"""
         # Check the table exists #
         if not chrom in self.tables: return []
         # A pragma statement will implicitly issue a commit, don't use #
-        self.cursor.execute("SELECT * from '%s'" % chrom)
-        return [x[0] for x in self.cursor.description]
+        self._cursor.execute("SELECT * from '%s'" % chrom)
+        return [x[0] for x in self._cursor.description]
+
+    #-----------------------------------------------------------------------------#
+    def cursor(self):
+        """*cursor* will create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the `sqlite3 documentation pages <http://docs.python.org/library/sqlite3.html>`_.
+
+        :returns: A new sqlite3 cursor object
+
+        ::
+
+        import track
+        with track.load('tracks/rp_genes.sql') as rpgenes:
+            cursor = rpgenes.cursor()
+            cursor.execute("select name from sqlite_master where type='table'")
+            results = cursor.fetchall()
+        """
+        return self._connection.cursor()
 
     #-----------------------------------------------------------------------------#
     def save(self):
@@ -438,11 +444,11 @@ class Track(object):
         try:
             for ch in self:
                 if 'start' in self._get_fields_of_table(ch):
-                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
+                    self._cursor.execute("CREATE INDEX if not exists '" + ch + "_range_idx' on '" + ch + "' (start,end)")
                 if 'score' in self._get_fields_of_table(ch):
-                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
+                    self._cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
                 if 'name' in self._get_fields_of_table(ch):
-                    self.cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
+                    self._cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" +  ch + "' (name)")
         except sqlite3.OperationalError as err:
             message = "The index creation on the track '%s' failed with the following error: %s"
             raise Exception(message % (self.path, err))
@@ -452,7 +458,7 @@ class Track(object):
         fields = self.fields or minimum_fields
         fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in fields])
         for chrom_name in sorted(self.chrmeta, key=natural_sort):
-            self.cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
+            self._cursor.execute('CREATE table if not exists "' + chrom_name + '" (' + fields + ')')
 
     #-----------------------------------------------------------------------------#
     def rollback(self):
@@ -483,7 +489,7 @@ class Track(object):
                t.remove('chr19_gl000209_random')
                t.vaccum()
         """
-        self.cursor.execute("VACUUM")
+        self._cursor.execute("VACUUM")
 
     #-----------------------------------------------------------------------------#
     def close(self):
@@ -600,16 +606,16 @@ class Track(object):
         # Sorting results #
         if order: sql_command += ' order by ' + order
         # Make a new cursor #
-        new_cursor = self._connection.cursor()
+        cursor = self.cursor()
         ##### ERROR CATCHING #####
         try:
-            new_cursor.execute(sql_command)
+            cursor.execute(sql_command)
         except sqlite3.OperationalError as err:
             message = "The command <%s%s%s> on the track '%s' failed with error:\n\n %s%s%s"
             message = message % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
             raise Exception(message)
         # Make a feature stream #
-        return FeatureStream(new_cursor)
+        return FeatureStream(cursor)
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
@@ -663,12 +669,12 @@ class Track(object):
         # Maybe we need to create the table #
         if not chrom_exists:
             fields = ','.join(['"' + field + '"' + ' ' + sql_field_types.get(field, 'text') for field in outgoing_fields])
-            self.cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
+            self._write_cursor.execute('CREATE table "' + chromosome + '" (' + fields + ')')
             current_fields = outgoing_fields
         # Or maybe we need to create new columns #
         else:
             for field in outgoing_set - current_set:
-                self.cursor.execute('ALTER table "' + chromosome + '" ADD "' + field + '" ' + sql_field_types.get(field, 'text'))
+                self._write_cursor.execute('ALTER table "' + chromosome + '" ADD "' + field + '" ' + sql_field_types.get(field, 'text'))
         # Adjust size #
         if outgoing_set > incoming_set:
             outgoing_fields = incoming_fields
@@ -681,7 +687,7 @@ class Track(object):
         sql_command = 'INSERT into "' + chromosome + '" (' + ','.join(outgoing_fields) + ') values ' + question_marks
         # Execute the insertion #
         try:
-            self.cursor.executemany(sql_command, data)
+            self._write_cursor.executemany(sql_command, data)
         except (ValueError, sqlite3.OperationalError, sqlite3.ProgrammingError) as err:
             message1 = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
             message1 = message1 % (Color.cyn, sql_command, Color.end, self.path, Color.u_red, err, Color.end)
@@ -709,7 +715,7 @@ class Track(object):
                 t.insert('chr1', (10, 20, 'A')
         """
         question_marks = '(' + ','.join(['?' for x in xrange(len(feature))]) + ')'
-        self.cursor.execute('insert into "' + chromosome + '" values ' + question_marks, feature)
+        self._write_cursor.execute('insert into "' + chromosome + '" values ' + question_marks, feature)
 
     #-----------------------------------------------------------------------------#
     def remove(self, chromosome):
@@ -735,7 +741,7 @@ class Track(object):
         if isinstance(chromosome, list):
             for x in chromosome: self.remove(x)
         else:
-            self.cursor.execute("DROP table '" + chromosome + "'")
+            self._cursor.execute("DROP table '" + chromosome + "'")
             if chromosome in self.chrmeta: self.chrmeta.pop(chromosome)
 
     #-----------------------------------------------------------------------------#
@@ -771,15 +777,15 @@ class Track(object):
         # SQL query #
         command = "ALTER TABLE '" + previous_name + "' RENAME TO '" + new_name + "'"
         try:
-            self.cursor.execute(command)
+            self._cursor.execute(command)
         except sqlite3.OperationalError as err:
             message = "The command <%s%s%s> on the track '%s' failed with error:\n %s%s%s"
             message = message % (Color.cyn, command, Color.end, self.path, Color.u_red, err, Color.end)
             raise Exception(message)
         # Drop indexes #
-        self.cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
-        self.cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
-        self.cursor.execute("drop index IF EXISTS '" + previous_name + "_name_idx'")
+        self._cursor.execute("drop index IF EXISTS '" + previous_name + "_range_idx'")
+        self._cursor.execute("drop index IF EXISTS '" + previous_name + "_score_idx'")
+        self._cursor.execute("drop index IF EXISTS '" + previous_name + "_name_idx'")
         # Rename the chrmeta #
         if previous_name in self.chrmeta:
             self.chrmeta[new_name] = self.chrmeta[previous_name]
@@ -817,7 +823,8 @@ class Track(object):
         if chromosome: query_str = 'SELECT * from "%s"' % chromosome + where
         else:          query_str = ' UNION '.join(['SELECT "%s",* from "%s"' % (chrom, chrom) + where for chrom in self])
         # Execute it #
-        return self.cursor.execute(query_str)
+        cursor = self.cursor()
+        return cursor.execute(query_str)
 
     #-----------------------------------------------------------------------------#
     def count(self, selection=None):
@@ -853,7 +860,8 @@ class Track(object):
         # Other cases #
         else: raise TypeError, 'The following selection parameter: "' + selection + '" was not understood'
         # Return the results #
-        return self.cursor.execute(sql_request).fetchone()[0]
+        cursor = self.cursor()
+        return cursor.execute(sql_request).fetchone()[0]
 
     #-----------------------------------------------------------------------------#
     def ucsc_to_ensembl(self):
@@ -867,7 +875,7 @@ class Track(object):
            with track.load('tracks/example.sql') as t:
                t.ucsc_to_ensembl()
         """
-        for chrom in self.chromosomes: self.cursor.execute("update '" + chrom + "' set start=start+1")
+        for chrom in self.chromosomes: self._cursor.execute("update '" + chrom + "' set start=start+1")
 
     def ensembl_to_ucsc(self):
         """Converts all entries of a track from the Ensembl standard to the UCSC standard effectively subtracting one from every start position.
@@ -880,7 +888,7 @@ class Track(object):
            with track.load('tracks/rp_genes.bed') as t:
                t.ensembl_to_ucsc()
         """
-        for chrom in self.chromosomes: self.cursor.execute("update '" + chrom + "' set start=start-1")
+        for chrom in self.chromosomes: self._cursor.execute("update '" + chrom + "' set start=start-1")
 
     #-----------------------------------------------------------------------------#
     def get_score_vector(self, chromosome):
@@ -978,7 +986,7 @@ class Track(object):
         """Populates the *self.info* attribute with information found in the 'attributes' table."""
         if not 'attributes' in self.tables: return
         # Make a dictionary directly from the table #
-        query = self.cursor.execute('SELECT key, value from "attributes"')
+        query = self._cursor.execute('SELECT key, value from "attributes"')
         self.info = dict(query.fetchall())
         # Freshly loaded, so not modified #
         self.info.modified = False
@@ -986,12 +994,12 @@ class Track(object):
     def _info_write(self):
         """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
-        self.cursor.execute('DROP table IF EXISTS "attributes"')
+        self._cursor.execute('DROP table IF EXISTS "attributes"')
         if not self.info: return
         # Write every dictionary entry #
-        self.cursor.execute('CREATE table "attributes" ("key" text, "value" text)')
+        self._cursor.execute('CREATE table "attributes" ("key" text, "value" text)')
         for k in sorted(self.info.keys(), key=natural_sort):
-            self.cursor.execute('INSERT into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
+            self._cursor.execute('INSERT into "attributes" ("key","value") values (?,?)', (k, self.info[k]))
 
     @property
     def datatype(self):
@@ -1044,7 +1052,7 @@ class Track(object):
         columns = self._get_fields_of_table("chrNames")
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
-        query = self.cursor.execute('SELECT * from "chrNames"').fetchall()
+        query = self._cursor.execute('SELECT * from "chrNames"').fetchall()
         rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
         # Make a pretty dictionary of dictionaries #
         # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
@@ -1056,17 +1064,17 @@ class Track(object):
     def _chrmeta_write(self):
         """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
-        self.cursor.execute('DROP table IF EXISTS "chrNames"')
+        self._cursor.execute('DROP table IF EXISTS "chrNames"')
         if not self.chrmeta: return
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
         rows = [dict([('name', chrom)] + [(k,v) for k,v in self.chrmeta[chrom].items()]) for chrom in self.chrmeta]
-        self.cursor.execute('CREATE table "chrNames" ("name" text, "length" integer)')
+        self._cursor.execute('CREATE table "chrNames" ("name" text, "length" integer)')
         for r in sorted(rows, key=lambda x: natural_sort(x['name'])):
             question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'
             cell_values    = tuple(r.values())
-            self.cursor.execute('INSERT into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
+            self._cursor.execute('INSERT into "chrNames" ' + column_names + ' values ' + question_marks, cell_values)
 
     def load_chr_file(self, path):
         """Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.
