@@ -39,7 +39,6 @@ Track attributes
 .. autoattribute:: Track.assembly
 .. autoattribute:: Track.chrmeta
 .. autoattribute:: Track.modified
-.. autoattribute:: Track.cursor
 
 Track methods
 """""""""""""
@@ -50,6 +49,7 @@ Track methods
 .. automethod:: Track.rollback
 .. automethod:: Track.vacuum
 .. automethod:: Track.close
+.. automethod:: Track.cursor
 .. automethod:: Track.export
 .. automethod:: Track.remove
 .. automethod:: Track.rename

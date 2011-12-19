@@ -407,11 +407,11 @@ class Track(object):
 
         ::
 
-        import track
-        with track.load('tracks/rp_genes.sql') as rpgenes:
-            cursor = rpgenes.cursor()
-            cursor.execute("select name from sqlite_master where type='table'")
-            results = cursor.fetchall()
+            import track
+            with track.load('tracks/rp_genes.sql') as rpgenes:
+                cursor = rpgenes.cursor()
+                cursor.execute("select name from sqlite_master where type='table'")
+                results = cursor.fetchall()
         """
         return self._connection.cursor()
 
