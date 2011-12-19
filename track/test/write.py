@@ -3,12 +3,12 @@ Contains chained write tests.
 """
 
 # Built-in modules #
-import os, shutil
+import os
 
 # Internal modules #
 import track
 from track.test import samples
-from track.common import temporary_path, assert_file_equal
+from track.common import temporary_path
 
 # Unittesting module #
 try:
