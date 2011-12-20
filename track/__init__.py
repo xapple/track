@@ -1110,20 +1110,18 @@ class Track(object):
 
     @assembly.setter
     def assembly(self, value):
-        # Get the name #
         assembly = genrep.Assembly(value)
-        # Check it is valid #
-        if not assembly_name: return
-        # Check if the tables need renaming or deleting #
-        for orig_name in self.chromosomes:
-            mapped_name = assembly.map_chromosome_names(orig_name)
-            new_name = assembly.chromosomes[mapped_name[orig_name]]['name']
-            if new_name != orig_name: self.rename(orig_name, new_name)
-            else: self.remove(orig_name)
-        # Add the chrmeta #
+        if not assembly.name: return
+        mismatch_chr = [c for c in self.chromosomes if not(c in assembly.chrnames)]
         self.chrmeta = assembly.chrmeta
-        # Add the attribute #
         self.info['assembly'] = assembly.name
+        if not(mismatch_chr): return
+        mapped_names = assembly.map_chromosome_names(mismatch_chr)
+        for old, new in [(c,mapped_names.get(c)) for c in mismatch_chr]:
+            if new is None:
+                self.remove(old)
+            else: 
+                self.rename(old,assembly.chromosomes[new]['name'])
 
     def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
