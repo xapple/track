@@ -1184,7 +1184,7 @@ class FeatureStream(object):
        @param fields: the list of fields
     """
 
-    def __init__(self, generator, kind=None, fields=None):
+    def __init__(self, generator, fields=None, kind=None):
         # The generator itself #
         self.generator = generator
         # The type of elements yielded #
