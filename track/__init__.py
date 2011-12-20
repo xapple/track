@@ -1118,7 +1118,7 @@ class Track(object):
         for orig_name in self.chromosomes:
             mapped_name = assembly.map_chromosome_names(orig_name)
             new_name = assembly.chromosomes[mapped_name[orig_name]]['name']
-            if new_name != orig_name: self.rename(orig_name, cannonical_name)
+            if new_name != orig_name: self.rename(orig_name, new_name)
             else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
