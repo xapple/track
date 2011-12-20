@@ -142,8 +142,7 @@ from track.common import if_url_then_get_url
 from track.pyrow import SuperRow
 
 # Other modules #
-import bbcflib.genrep
-genrep = bbcflib.genrep.GenRep()
+from bbcflib import genrep
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -1112,18 +1111,19 @@ class Track(object):
     @assembly.setter
     def assembly(self, value):
         # Get the name #
-        assembly_name = genrep.assembly(value).name
+        assembly = genrep.Assembly(value)
         # Check it is valid #
         if not assembly_name: return
         # Check if the tables need renaming or deleting #
         for orig_name in self.chromosomes:
-            cannonical_name = genrep.guess_chromosome_name(assembly_name, orig_name)
-            if cannonical_name: self.rename(orig_name, cannonical_name)
+            mapped_name = assembly.map_chromosome_names(orig_name)
+            new_name = assembly.chromosomes[mapped_name[orig_name]]['name']
+            if new_name != orig_name: self.rename(orig_name, cannonical_name)
             else: self.remove(orig_name)
         # Add the chrmeta #
-        self.chrmeta = genrep.get_chrmeta(assembly_name)
+        self.chrmeta = assembly.chrmeta
         # Add the attribute #
-        self.info['assembly'] = assembly_name
+        self.info['assembly'] = assembly.name
 
     def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.

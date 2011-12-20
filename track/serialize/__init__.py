@@ -6,8 +6,7 @@ This subpackage contains one python source file per format implemented for seria
 import sys
 
 # Other modules #
-import bbcflib.genrep
-genrep = bbcflib.genrep.GenRep()
+from bbcflib import genrep
 
 # Variables #
 serializers = {
@@ -77,7 +76,9 @@ class Serializer(object):
         self.chrmeta = chrmeta
 
     def defineAssembly(self, assembly):
-        self.defineChrmeta(genrep.get_chrmeta(genrep.assembly(assembly).name))
+        a = genrep.Assembly(assembly)
+        self.info['assembly'] = a.name
+        self.chrmeta = a.chrmeta
 
     def newTrack(self, info=None, name=None):
         pass
