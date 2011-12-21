@@ -25,8 +25,9 @@ class TestSQLtoBED(unittest.TestCase):
     def runTest(self):
         in_path = samples['small_features'][1]['sql']
         out_path = temporary_path('.bed')
-        track.convert(in_path, out_path, assembly='sacCer2')
+        track.convert(in_path, out_path)
         #assert_file_equal(out_path, samples['small_features'][1]['bed'])
+        os.remove(out_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #
