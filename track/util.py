@@ -8,6 +8,9 @@ import os, shlex
 # Internal modules #
 from track.common import temporary_path, iterate_lines
 
+# Other modules #
+from bbcflib.genrep import Assembly
+
 ###############################################################################
 # Constants #
 sql_field_types = {'start':        'integer',
@@ -201,6 +204,40 @@ def int_to_strand(num):
     if num == 1: return  '+'
     if num == -1: return '-'
     return '.'
+
+################################################################################
+def guess_chromosome_name(assembly, chromosome_name):
+    """Searches the assembly for chromosome synonym names,
+       and returns the canonical name of the chromosome.
+       Returns None if the chromosome is not known about.
+
+       :param assembly: The Assembly object.
+       :type  assembly: Assembly
+       :param chromosome_name: Any given name for a chromosome in that assembly.
+       :type  chromosome_name: string
+
+       :returns: The same or an other name for the chromosome.
+
+       ::
+
+           >>> from bbcflib.genrep import Assembly
+           >>> a = Assembly('sacCer2')
+           >>> guess_chromosome_name(a, '2520_NC_001224.1')
+           'chrM'
+           >>> guess_chromosome_name(a, 'chrI')
+           'chrI'
+           >>> guess_chromosome_name(a, 'LOLOLOL')
+
+    """
+    # Is it a known name ? #
+    if chromosome_name in assembly.chrnames: return chromosome_name
+    # Can we guess the cannoncial name ? #
+    mapped_dict = assembly.map_chromosome_names(chromosome_name)
+    mapped_chr_key = mapped_dict[chromosome_name]
+    # If we cannot guess it #
+    if mapped_chr_key is None: return None
+    # Otherwise get the name from the chromosome dict #
+    return assembly.chromosomes[mapped_chr_key]['name']
 
 #-----------------------------------#
 # This code was written by the BBCF #
