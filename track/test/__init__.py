@@ -91,14 +91,15 @@ bed_samples = samples['small_features'].values() + \
               samples['yeast_features'].values()
 
 # Specially hard to parse tracks for testing #
-formats = ['bed', 'wig']
-outcomes = ['pass', 'fail']
-challanges = {}
-for format in formats:
-    challanges[format] = {}
-    for outcome in outcomes:
-        directory = samples_path + format + '/' + 'should_' + outcome + '/'
-        challanges[format][outcome] = [directory + file for file in os.listdir(directory) if file.endswith('.' + format)]
+if os.exists(samples_path):
+    formats = ['bed', 'wig']
+    outcomes = ['pass', 'fail']
+    challanges = {}
+    for format in formats:
+        challanges[format] = {}
+        for outcome in outcomes:
+            directory = samples_path + format + '/' + 'should_' + outcome + '/'
+            challanges[format][outcome] = [directory + file for file in os.listdir(directory) if file.endswith('.' + format)]
 
 #-----------------------------------#
 # This code was written by the BBCF #
