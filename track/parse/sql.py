@@ -27,7 +27,7 @@ class ParserSQL(Parser):
         if isinstance(self.path, Track):
             read_whole_track(self.path)
         else:
-            with load(self.path, 'sql') as t: read_whole_track(t)
+            with load(self.path, 'sql', readonly=True) as t: read_whole_track(t)
 
 #-----------------------------------#
 # This code was written by the BBCF #
