@@ -91,7 +91,7 @@ bed_samples = samples['small_features'].values() + \
               samples['yeast_features'].values()
 
 # Specially hard to parse tracks for testing #
-if os.exists(samples_path):
+if os.path.exists(samples_path):
     formats = ['bed', 'wig']
     outcomes = ['pass', 'fail']
     challanges = {}
