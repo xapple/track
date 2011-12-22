@@ -312,6 +312,8 @@ class Track(object):
         # Make two cursors #
         self._cursor       = self.cursor()
         self._write_cursor = self.cursor()
+        # A list to hold other created cursors #
+        self.extra_cursors = []
         # Load some tables #
         self._chrmeta_read()
         self._info_read()
@@ -395,8 +397,10 @@ class Track(object):
         # Check the table exists #
         if not chrom in self.tables: return []
         # A pragma statement will implicitly issue a commit, don't use #
-        self._cursor.execute("SELECT * from '%s'" % chrom)
-        return [x[0] for x in self._cursor.description]
+        self._cursor.execute("SELECT * from '%s' LIMIT 1" % chrom)
+        fields = [x[0] for x in self._cursor.description]
+        self._cusor.fetchall()
+        return fields
 
     #-----------------------------------------------------------------------------#
     def cursor(self):
@@ -412,7 +416,9 @@ class Track(object):
                 cursor.execute("select name from sqlite_master where type='table'")
                 results = cursor.fetchall()
         """
-        return self._connection.cursor()
+        new_cursor = self._connection.cursor()
+        self.extra_cursors.append(new_cursor)
+        return new_cursor
 
     #-----------------------------------------------------------------------------#
     def save(self):
@@ -504,7 +510,11 @@ class Track(object):
             t.close()
         """
         if self.modified and self.autosave: self.save()
+        # Close all cursors #
         self._cursor.close()
+        self._write_cursor.close()
+        for cur in self.extra_cursors: cur.close()
+        # Close the connection #
         self._connection.close()
 
     #-----------------------------------------------------------------------------#
