@@ -131,6 +131,8 @@ class VirtualTrack(object):
     def export(self, path, format=None):
         with track.new(path, format) as t:
             for chrom in self: t.write(chrom, self.read(chrom))
+            t.chrmeta = self.chrmeta
+            t.info    = self.info
         self.close()
 
     def close(self):
