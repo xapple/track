@@ -399,7 +399,7 @@ class Track(object):
         # A pragma statement will implicitly issue a commit, don't use #
         self._cursor.execute("SELECT * from '%s' LIMIT 1" % chrom)
         fields = [x[0] for x in self._cursor.description]
-        self._cusor.fetchall()
+        self._cursor.fetchall()
         return fields
 
     #-----------------------------------------------------------------------------#
