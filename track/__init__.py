@@ -309,11 +309,11 @@ class Track(object):
         # Opening the database #
         self._connection = sqlite3.connect(self.path)
         self._connection.row_factory = SuperRow
+        # A list to hold all cursors #
+        self.all_cursors = []
         # Make two cursors #
         self._cursor       = self.cursor()
         self._write_cursor = self.cursor()
-        # A list to hold other created cursors #
-        self.extra_cursors = []
         # Load some tables #
         self._chrmeta_read()
         self._info_read()
@@ -417,7 +417,7 @@ class Track(object):
                 results = cursor.fetchall()
         """
         new_cursor = self._connection.cursor()
-        self.extra_cursors.append(new_cursor)
+        self.all_cursors.append(new_cursor)
         return new_cursor
 
     #-----------------------------------------------------------------------------#
@@ -511,9 +511,7 @@ class Track(object):
         """
         if self.modified and self.autosave: self.save()
         # Close all cursors #
-        self._cursor.close()
-        self._write_cursor.close()
-        for cur in self.extra_cursors: cur.close()
+        for cur in self.all_cursors: cur.close()
         # Close the connection #
         self._connection.close()
 
