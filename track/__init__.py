@@ -1124,9 +1124,9 @@ class Track(object):
         if not assembly.name: return
         # Check if the tables need renaming or deleting #
         for orig_name in self.chromosomes:
-             cannonical_name = guess_chromosome_name(assembly, orig_name)
-             if cannonical_name: self.rename(orig_name, cannonical_name)
-             else: self.remove(orig_name)
+            cannonical_name = guess_chromosome_name(assembly, orig_name)
+            if cannonical_name: self.rename(orig_name, cannonical_name)
+            else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
         # Add the attribute #
