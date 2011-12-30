@@ -58,11 +58,11 @@ class ParserWIG(Parser):
                     self.handler.error("The track%s has a negative or null span value.", self.path, number)
                 if line.startswith("fixedStep "):
                     if not 'start' in params:
-                       self.handler.error("The track%s has a fixedStep directive without a start.", self.path, number)
+                        self.handler.error("The track%s has a fixedStep directive without a start.", self.path, number)
                     try:
                         params['start'] = int(params['start'])
                     except ValueError:
-                         self.handler.error("The track%s has a non integer as start value.", self.path, number)
+                        self.handler.error("The track%s has a non integer as start value.", self.path, number)
                     try:
                         params['step'] = int(params.get('step',1))
                     except ValueError:
