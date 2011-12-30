@@ -10,6 +10,7 @@ import shlex
 # Internal modules #
 from track.parse import Parser
 from track.common import iterate_lines
+from track.util import floats_eq, overlapping
 
 # Constants #
 all_fields = ['start', 'end', 'score']
@@ -94,7 +95,7 @@ class ParserWIG(Parser):
                 except ValueError:
                     self.handler.error("The track%s has invalid values.", self.path, number)
                 except IndexError:
-                  self.handler.error("The track%s has missing values.", self.path, number)
+                    self.handler.error("The track%s has missing values.", self.path, number)
                 chrom   = params['chrom']
                 feature = [line[0], line[0] + params['span'], line[1]]
             # Ignore null scores #
@@ -105,8 +106,9 @@ class ParserWIG(Parser):
                 if last_chrom == chrom:
                     if last_feature[1] > feature[0]:
                         self.handler.error("The track%s has a start or span larger than its end or step.", self.path, number)
-                    if last_feature[1] == feature[0] and last_feature[2] == feature[2]:
-                        last_feature[1] = feature[1]
+                    if floats_eq(last_feature[2], feature[2]) and overlapping(last_feature[0], last_feature[1], feature[0], feature[1]):
+                        last_feature[0] = min(last_feature[0], feature[0])
+                        last_feature[1] = max(last_feature[1], feature[1])
                         continue
                 self.handler.newFeature(last_chrom, last_feature)
             last_feature = feature
