@@ -21,6 +21,7 @@ from track.common import temporary_path, check_executable, run_tool
 
 ################################################################################
 class ParserBigwig(Parser):
+    format = 'bigwig'
     def parse(self):
         # Special case #
         if self.handler.format == 'bedGraph': return
