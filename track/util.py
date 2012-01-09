@@ -239,21 +239,18 @@ def guess_chromosome_name(assembly, chromosome_name):
     # Otherwise get the name from the chromosome dict #
     return assembly.chromosomes[mapped_chr_key]['name']
 
-
+################################################################################
 def floats_eq(a,b, epsilon=0.000001):
-    '''
+    """
     Return true if two floats are equals
-    '''
+    """
     return abs(a-b) < epsilon
 
 def overlapping(start1, stop1, start2, stop2):
-    '''
+    """
     Return true if the two features 1 & 2 are overlapping.
-    '''
+    """
     return start1 <= stop2 and stop1 >= start2
-
-
-
 
 #-----------------------------------#
 # This code was written by the BBCF #
