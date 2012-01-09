@@ -10,6 +10,9 @@ from track.serialize import Serializer
 
 ################################################################################
 class SerializerMemory(Serializer):
+    def __init__(self):
+        self.tracks = []
+
     def newTrack(self, info=None, name=None):
         self.tracks.append(collections.defaultdict(list))
 

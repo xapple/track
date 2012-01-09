@@ -55,11 +55,8 @@ class Parser(object):
     def __call__(self, handler=None):
         # Default handler #
         if not handler:
-            raise SyntaxError('must be call with a Serializer as first parameter')
-#            cannot work : Serializer take a path as first param
-#            from track.seralize import Serializer
-#            handler = Serializer()
-
+            from track.seralize.memory import SerializerMemory
+            handler = SerializerMemory()
         # Enter the handler #
         with handler as self.handler: self.parse()
         # Return a list of paths or a single path #
