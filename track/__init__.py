@@ -55,7 +55,7 @@ However, it is strongly advised to convert your tracks into the SQL format befor
     with track.load('tracks/rp_genes.sql') as rp:
         data = rp.read('chr3')
 
-Now, let's use our read query for comupting something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this::
+Now, let's use our read query for computing something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this::
 
     import track
     with track.load('tracks/rp_genes.gff') as rp:
