@@ -242,6 +242,7 @@ def convert(source, destination, assembly=None):
 
            import track
            track.convert('tracks/genes.bed', 'tracks/genes.sql')
+           track.convert('tracks/genes.sql', 'tracks/genes.bigWig', assembly='hg19')
            track.convert(('tracks/no_extension', 'gff'), 'tracks/genes.sql')
            track.convert(('tmp/4afb0edf', 'bed'), ('tmp/converted', 'wig'))
     """
