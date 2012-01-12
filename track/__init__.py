@@ -1054,19 +1054,22 @@ class Track(object):
 
     def _chrmeta_read(self):
         """Populates the self.chrmeta attribute with information found in the 'chrNames' table."""
-        if not 'chrNames' in self.tables: return
-        # Columns are the chromosome attributes #
-        # ['name', 'length']
-        columns = self._get_fields_of_table("chrNames")
-        # Rows are the chromosome names #
-        # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
-        query = self._cursor.execute('SELECT * from "chrNames"').fetchall()
-        rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
-        # Make a pretty dictionary of dictionaries #
-        # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
-        dictionary = dict([(r['name'], dict([(k, r[k]) for k in columns if k != 'name'])) for r in rows])
-        self.chrmeta = dictionary
+        # If the table doesn't exist, just use the names
+        if not 'chrNames' in self.tables:
+            dictionary = dict([(chrom, dict()) for chrom in self])
+        else:
+            # Columns are the chromosome attributes #
+            # ['name', 'length']
+            columns = self._get_fields_of_table("chrNames")
+            # Rows are the chromosome names #
+            # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
+            query = self._cursor.execute('SELECT * from "chrNames"').fetchall()
+            rows = [dict([(k,r[i]) for i, k in enumerate(columns)]) for r in query]
+            # Make a pretty dictionary of dictionaries #
+            # {'chr1': {'length': 1000}, 'chr2': {'length': 2000}}
+            dictionary = dict([(r['name'], dict([(k, r[k]) for k in columns if k != 'name'])) for r in rows])
         # Freshly loaded, so not modified #
+        self.chrmeta = dictionary
         self.chrmeta.modified = False
 
     def _chrmeta_write(self):
