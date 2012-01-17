@@ -837,6 +837,29 @@ class Track(object):
         return cursor.execute(query_str)
 
     #-----------------------------------------------------------------------------#
+    def find_column_name(self, putatives, table_name=None):
+        '''
+        Search for column name in the database. It will give you the first result that match.
+        It can be useful when a term you search for can be aliased by many others.
+        :param putatives: a list of names
+        :param table_name: specify a specific table to search on.
+        :returns : the first field it match on, else an empty string.
+        ::
+            for a track that have ['start', 'end', 'score', 'gene_name'] as fields
+
+            with track.load('tracks/rp_genes.bed') as t:
+                foo = t.find_column_name(['name', 'gene_name', 'gname', 'gene name'])
+                print foo
+                > gene_name
+        '''
+
+        if table_name is not None: fields = self.fields
+        else :                     fields = self._get_fields_of_table(table_name)
+
+        for test in putatives:
+            if test in self.fields : return test
+        return ''
+    #-----------------------------------------------------------------------------#
     def count(self, selection=None):
         """Counts the number of features or entries in a given selection.
 
