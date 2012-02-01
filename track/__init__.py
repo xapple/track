@@ -607,6 +607,7 @@ class Track(object):
             if fields: query_fields = ','.join([f in available_fields and f or str(py_field_types[f]()) for f in fields])
             # Track attribute is set #
             else:      query_fields = ','.join([f in available_fields and f or py_field_types[f]().__repr__() for f in self._fields])
+
         ##### QUERY #####
         sql_command = "SELECT " + query_fields + " from '" + chrom + "'"
         # Add the where case #

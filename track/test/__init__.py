@@ -40,6 +40,7 @@ samples = {
     2:            {'name':'Validation features 2', 'filename': 'features2'},
     3:            {'name':'Validation features 3', 'filename': 'features3'},
     4:            {'name':'Validation features 4', 'filename': 'features4'},
+    5:            {'name':'Validation features 5', 'filename': 'features5'},
   },
   'small_signals': {
     1:            {'name':'Signal track 1',        'filename': 'scores1'},

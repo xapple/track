@@ -41,6 +41,16 @@ class TestWithChrom(unittest.TestCase):
                     ('chrI', 125, 135, u'Validation feature 12', 5.0)]
         self.assertEqual(got, expected)
 
+class TestWithoutName(unittest.TestCase):
+    """Read some features from a track"""
+    def runTest(self):
+        in_path = samples['small_features'][5]['sql']
+        with track.load(in_path) as t:
+            data = t.read('chr1', ('start', 'end', 'name', 'score'), order='start asc, stop asc limit 1')
+            got = list(data)
+        expected = [('chr1', 14, 19, ' ', 0.0),]
+        self.assertEqual(got, expected)
+        
 #-----------------------------------#
 # This code was written by the BBCF #
 # http://bbcf.epfl.ch/              #
