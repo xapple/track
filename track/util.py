@@ -63,11 +63,12 @@ def determine_format(path):
         raise Exception("The format of the path '%s' cannot be determined. Please specify a format or add an extension." % path)
     # Try our own sniffing now #
     with open(path, 'r') as file:
-        file_format = guess_file_format(file).lower()
+        file_format = guess_file_format(file)
     # If still nothing, raise exception #
     if not file_format:
         raise Exception("The format of the file '%s' cannot be determined. Please specify a format or add an extension." % path)
     # Return the format #
+    file_format = file_format.lower()
     return format_synonyms.get(file_format, file_format)
 
 ###############################################################################
