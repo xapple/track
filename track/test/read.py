@@ -46,11 +46,11 @@ class TestWithoutName(unittest.TestCase):
     def runTest(self):
         in_path = samples['small_features'][5]['sql']
         with track.load(in_path) as t:
-            data = t.read('chr1', ('start', 'end', 'name', 'score'), order='start asc, stop asc limit 1')
-            got = list(data)
-        expected = [('chr1', 14, 19, ' ', 0.0),]
+            data = t.read('chrI', ('start', 'end', 'name', 'score'))
+            got = tuple(data.next())
+        expected = (14, 19, u'', 0.0)
         self.assertEqual(got, expected)
-        
+
 #-----------------------------------#
 # This code was written by the BBCF #
 # http://bbcf.epfl.ch/              #
