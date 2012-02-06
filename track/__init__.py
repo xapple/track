@@ -29,12 +29,9 @@ Once you have the source code, run::
     $ cd track
     $ sudo python setup.py install
 
-to install it. If you need to install it in a particular directory, use::
+to install it. If you don't have permission to install it in the default directory, you can simply build the source in-place and use the package from the git repository::
 
-    $ python setup.py install --prefix=/prefix/path
-
-Then the modules will go in ``/prefix/path/lib/pythonX.Y/site-packages``
-where X.Y is the version of Python you run it with.
+    $ python python setup.py build_ext --inplace
 
 ###########
 Quick start
