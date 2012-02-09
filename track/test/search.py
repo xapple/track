@@ -19,7 +19,6 @@ __test__ = True
 class TestTwoParameters(unittest.TestCase):
     """A simple case with two fields"""
     def runTest(self):
-        self.maxDiff = None
         in_path = samples['small_features'][1]['sql']
         with track.load(in_path) as t:
             data = t.search({'start':'2','name':'feature'})

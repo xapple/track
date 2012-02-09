@@ -22,6 +22,7 @@ class SerializerWIG(Serializer):
         self.file.close()
 
     def defineFields(self, fields):
+        if not 'score' in fields: self.error("You tried to write a WIG files without a score field.")
         for i in range(len(fields)):
             if fields[i] != all_fields[i]:
                 try:
