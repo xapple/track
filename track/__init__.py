@@ -507,11 +507,19 @@ class Track(object):
             t.remove('chr19_gl000209_random')
             t.close()
         """
+        # Commit changes to the database #
         if self.modified and self.autosave: self.save()
         # Close all cursors #
         for cur in self.all_cursors: cur.close()
         # Close the connection #
         self._connection.close()
+        # If the original file was not an sql #
+        if not self.readonly and self.orig_path:
+            # Rewrite the file #
+            if os.path.exists(self.orig_path): os.remove(self.orig_path)
+            convert(self.path, (self.orig_path, self.orig_format))
+            # Remove the temporary SQL #
+            os.remove(self.path)
 
     #-----------------------------------------------------------------------------#
     def export(self, path, format=None):
