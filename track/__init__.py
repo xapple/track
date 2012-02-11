@@ -838,29 +838,6 @@ class Track(object):
         return cursor.execute(query_str)
 
     #-----------------------------------------------------------------------------#
-    def find_column_name(self, putatives, table_name=None):
-        '''
-        Search for column name in the database. It will give you the first result that match.
-        It can be useful when a term you search for can be aliased by many others.
-        :param putatives: a list of names
-        :param table_name: specify a specific table to search on.
-        :returns : the first field it match on, else an empty string.
-        ::
-            for a track that have ['start', 'end', 'score', 'gene_name'] as fields
-
-            with track.load('tracks/rp_genes.bed') as t:
-                foo = t.find_column_name(['name', 'gene_name', 'gname', 'gene name'])
-                print foo
-                > gene_name
-        '''
-
-        if table_name is not None: fields = self.fields
-        else :                     fields = self._get_fields_of_table(table_name)
-
-        for test in putatives:
-            if test in self.fields : return test
-        return ''
-    #-----------------------------------------------------------------------------#
     def count(self, selection=None):
         """Counts the number of features or entries in a given selection.
 
@@ -1164,56 +1141,6 @@ class Track(object):
         self.chrmeta = assembly.chrmeta
         # Add the attribute #
         self.info['assembly'] = assembly.name
-
-    def guess_assembly(self):
-        """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
-
-        :returns: None.
-
-        ::
-
-            import track
-            track.convert('tracks/genes.bed', 'tracks/genes.sql')
-            with track.load('tracks/genes.sql') as t:
-                t.guess_assembly()
-        """
-        pass
-
-    #-----------------------------------------------------------------------------#
-    def aggregated_read(self, selection, base_fields, order_by=None):
-        """
-        Read the track with the *base_fields*, and aggregate all supplementary fields
-        found in a string.
-
-        :param selection: the selection you want to read
-        :param base_fields: the columns you want to read.
-        :returns: a generator.
-
-        ::
-
-            >> import track
-            >> t = track.load('tmp/track.sql')
-            >> t.fields
-            ['start', 'stop', 'score', 'name', 'type', 'strand']
-            >> for feature in t.read('chr1'): print feature
-            [1,  10, 2.2, 'tc36', 'transcript', '+']
-            [1,  10, 3.4, 'tc36', 'transcript', '-']
-            [11, 12, 3.4, 'tc37', 'transcript', '+']
-            >> data = t.aggregated_read('chr1', ('start', 'stop', 'score'))
-            >> for feature in data: print feature
-            [1,  10, 2.2, "{name :'tc36', type:'transcript', strand:'+'}"]
-            [1,  10, 3.4, "{name :'tc36', type:'transcript', strand:'-'}"]
-            [11, 12, 3.4, "{name :'tc37', type:'transcript', strand:'+'}"]
-        """
-        import json
-        base_fields = tuple(base_fields)
-        track_fields = self.fields
-        supplementary_fields = tuple(set(track_fields) - set(base_fields))
-        blen = len(base_fields)
-        ll = range(blen)
-        for feature in self.read(selection, base_fields + supplementary_fields, order=order_by):
-            d = [{field : feature[field]} for field in supplementary_fields]
-            yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
 class FeatureStream(object):
