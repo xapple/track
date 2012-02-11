@@ -71,13 +71,6 @@ Loading into memory
 .. autofunction:: track.memory.read
 .. autofunction:: track.memory.write
 
-#####################
-Using only generators
-#####################
-
-.. automodule:: track.simple
-.. autofunction:: track.simple.load
-
 ########
 Comments
 ########
