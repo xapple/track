@@ -13,7 +13,6 @@ setup(
         packages         =   ['track',
                               'track.parse',
                               'track.serialize',
-                              'track.simple',
                               'track.test',
                              ],
         ext_modules=[Extension('track.pyrow', ['src/pyrow.c'])]
