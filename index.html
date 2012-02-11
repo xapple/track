@@ -6,18 +6,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script type="text/javascript">
-
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-24167610-15']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
-    </script>
+    
     <title>Package ‘track’ documentation</title>
     <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -71,18 +60,15 @@ Currently the following formats are implemented:</p>
 <p>More formats can be added easily.</p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>To install you should download the latest source code from GitHub, either by going to:</p>
-<div class="highlight-python"><pre>http://github.com/bbcf/track</pre>
+<p>To install you can simply type:</p>
+<div class="highlight-python"><pre>$ sudo easy_install track</pre>
 </div>
-<p>and clicking on &#8220;Downloads&#8221;, or by cloning the git repository with:</p>
-<div class="highlight-python"><pre>$ git clone https://github.com/bbcf/track.git</pre>
-</div>
-<p>Once you have the source code, run:</p>
-<div class="highlight-python"><pre>$ cd track
-$ sudo python setup.py install</pre>
-</div>
-<p>to install it. If you don&#8217;t have permission to install it in the default directory, you can simply build the source in-place and use the package from the git repository:</p>
-<div class="highlight-python"><pre>$ python python setup.py build_ext --inplace</pre>
+<p>If you don&#8217;t have permission to install it in the default directory, you can simply clone the github repository, build the source in-place, and include the git repository in your path:</p>
+<div class="highlight-python"><pre>$ git clone https://github.com/xapple/track.git
+$ cd track
+$ python setup.py build_ext --inplace
+$ cat &gt;&gt; ~/.bashrc
+export PYTHONPATH=/path/to/repo/track/:$PYTHONPATH</pre>
 </div>
 </div>
 <div class="section" id="quick-start">
@@ -859,11 +845,7 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
 </div>
 <div class="section" id="reporting-bugs">
 <h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
-<p>Our <a class="reference external" href="https://github.com/bbcf/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
-</div>
-<div class="section" id="developer-documentation">
-<h2>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h2>
-<p>A full <a class="reference external" href="http://bbcf.github.com/track/">developer documentation</a> detailing all methods and classes is available.</p>
+<p>Our <a class="reference external" href="https://github.com/xapple/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
 </div>
 </div>
 
@@ -892,7 +874,6 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
 <li><a class="reference internal" href="#module-track.memory">Loading into memory</a></li>
 <li><a class="reference internal" href="#comments">Comments</a></li>
 <li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
-<li><a class="reference internal" href="#developer-documentation">Developer documentation</a></li>
 </ul>
 </li>
 </ul>
@@ -901,11 +882,7 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
            rel="nofollow">Show Source</a></li>
-  </ul><h3>Other BBCF projects</h3>
-<ul>
-<li><a href="http://bbcftools.vital-it.ch/">BBCFtools</a></li>
-<li><a href="http://htsstation.vital-it.ch/">HTSstation</a></li>
-</ul>
+  </ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -936,8 +913,7 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2011, EPFL BBCF.
-      Last updated on Feb 11, 2012.
+      Last updated on Feb 12, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>
