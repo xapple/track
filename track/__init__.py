@@ -129,17 +129,15 @@ from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.util import sql_field_types, py_field_types, serialize_chr_file
-from track.util import gzip_inner_format, guess_chromosome_name
+from track.util import gzip_inner_format
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
 from track.common import if_url_then_get_url
+from track.genrep import Assembly
 
 # Compiled modules #
 from track.pyrow import SuperRow
-
-# Other modules #
-from bbcflib.genrep import Assembly
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -1159,7 +1157,7 @@ class Track(object):
         if not assembly.name: return
         # Check if the tables need renaming or deleting #
         for orig_name in self.chromosomes:
-            cannonical_name = guess_chromosome_name(assembly, orig_name)
+            cannonical_name = assembly.guess_chromosome_name(orig_name)
             if cannonical_name: self.rename(orig_name, cannonical_name)
             else: self.remove(orig_name)
         # Add the chrmeta #

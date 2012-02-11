@@ -5,8 +5,8 @@ This subpackage contains one python source file per format implemented for seria
 # Built-in modules #
 import sys
 
-# Other modules #
-from bbcflib.genrep import Assembly
+# Internal modules #
+from track.genrep import Assembly
 
 # Variables #
 serializers = {
