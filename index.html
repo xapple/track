@@ -6,7 +6,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-24167610-15']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>Package ‘track’ documentation</title>
     <link rel="stylesheet" href="_static/rtd.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -68,13 +79,11 @@ Currently the following formats are implemented:</p>
 </div>
 <p>Once you have the source code, run:</p>
 <div class="highlight-python"><pre>$ cd track
-$ sudo python setup.py build</pre>
+$ sudo python setup.py install</pre>
 </div>
-<p>to install it. If you need to install it in a particular directory, use:</p>
-<div class="highlight-python"><pre>$ python setup.py install --prefix=/prefix/path</pre>
+<p>to install it. If you don&#8217;t have permission to install it in the default directory, you can simply build the source in-place and use the package from the git repository:</p>
+<div class="highlight-python"><pre>$ python python setup.py build_ext --inplace</pre>
 </div>
-<p>Then the modules will go in <tt class="docutils literal"><span class="pre">/prefix/path/lib/pythonX.Y/site-packages</span></tt>
-where X.Y is the version of Python you run it with.</p>
 </div>
 <div class="section" id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
@@ -92,10 +101,10 @@ where X.Y is the version of Python you run it with.</p>
     <span class="n">data</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now, let&#8217;s use our read query for comupting something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this:</p>
+<p>Now, let&#8217;s use our read query for computing something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
-    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
     <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
     <span class="c"># gene[1] is the end coordinate and gene[0] is the start coordinate</span>
 </pre></div>
@@ -103,7 +112,7 @@ where X.Y is the version of Python you run it with.</p>
 <p>The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
-    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
     <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="s">&#39;end&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -115,7 +124,7 @@ where X.Y is the version of Python you run it with.</p>
 </div>
 <p>To duplicate a chromosome inside the same track, you can use the following:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/copychrs.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
-    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chrY&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chrX&#39;</span><span class="p">,</span> <span class="n">cursor</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chrY&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chrX&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>To make a new track from an old one, and invert the strand of every feature:</p>
@@ -162,8 +171,8 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to load or an URL. If the path is an URL, the file will be downloaded first and <cite>readonly</cite> will be set to True.</li>
-<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.</li>
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to load or an URL. If the path is an URL, the file will be downloaded automatically. If the path is a GZIP file, it will be decompressed automatically.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.</li>
 <li><strong>readonly</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an optional parameter that defaults to <tt class="xref docutils literal"><span class="pre">False</span></tt>. When set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, any operation attempting to write to the track will silently be ignored</li>
 </ul>
 </td>
@@ -174,10 +183,10 @@ where X.Y is the version of Python you run it with.</p>
 </tbody>
 </table>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
-<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/yeast_data_01&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">,</span> <span class="s">&#39;S. cer. genes&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">yeast</span><span class="p">:</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">yeast</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/tmp/ae456f0&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/repeats.bed&#39;</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">repeats</span><span class="p">:</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">repeats</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;http://example.com/genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">genes</span><span class="p">:</span>
@@ -198,8 +207,8 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
-<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
 </ul>
 </td>
 </tr>
@@ -231,9 +240,9 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>source</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the original track to load.</li>
-<li><strong>destination</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the track to be created.</li>
-<li><strong>assembly</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</li>
+<li><strong>source</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the original track to load.</li>
+<li><strong>destination</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the track to be created.</li>
+<li><strong>assembly</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</li>
 </ul>
 </td>
 </tr>
@@ -244,6 +253,7 @@ where X.Y is the version of Python you run it with.</p>
 </table>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.bigWig&#39;</span><span class="p">,</span> <span class="n">assembly</span><span class="o">=</span><span class="s">&#39;hg19&#39;</span><span class="p">)</span>
 <span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tracks/no_extension&#39;</span><span class="p">,</span> <span class="s">&#39;gff&#39;</span><span class="p">),</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
 <span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tmp/4afb0edf&#39;</span><span class="p">,</span> <span class="s">&#39;bed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;tmp/converted&#39;</span><span class="p">,</span> <span class="s">&#39;wig&#39;</span><span class="p">))</span>
 </pre></div>
@@ -258,10 +268,10 @@ where X.Y is the version of Python you run it with.</p>
 <em class="property">class </em><tt class="descclassname">track.</tt><tt class="descname">Track</tt><big>(</big><em>path</em>, <em>readonly=False</em>, <em>autosave=True</em>, <em>orig_path=None</em>, <em>orig_format=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track" title="Permalink to this definition">¶</a></dt>
 <dd><p>The track object itself is iterable and will yield the name of all chromosomes.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
-<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/all_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">genes</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">genes</span><span class="p">:</span> <span class="k">print</span> <span class="n">chrom</span>
-    <span class="k">if</span> <span class="s">&#39;chrY&#39;</span> <span class="ow">in</span> <span class="n">genes</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Male&#39;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">genes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">23</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Aneuploidy&#39;</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/all_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span> <span class="k">print</span> <span class="n">chrom</span>
+    <span class="k">if</span> <span class="s">&#39;chrY&#39;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Male&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">23</span><span class="p">:</span> <span class="k">print</span> <span class="s">&#39;Aneuploidy&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -302,7 +312,11 @@ where X.Y is the version of Python you run it with.</p>
 <dl class="attribute">
 <dt id="track.Track.datatype">
 <tt class="descclassname">Track.</tt><tt class="descname">datatype</tt><a class="reference internal" href="_modules/track.html#Track.datatype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.datatype" title="Permalink to this definition">¶</a></dt>
-<dd><p>Giving a datatype to your track is optional. The default datatype is <tt class="xref docutils literal"><span class="pre">None</span></tt>. Other possible datatypes are <tt class="docutils literal"><span class="pre">features</span></tt>, <tt class="docutils literal"><span class="pre">signal</span></tt> or <tt class="docutils literal"><span class="pre">relational</span></tt>. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the <em>info</em> dictionary.</p>
+<dd><p>Giving a datatype to your track is optional. The default datatype is <tt class="xref docutils literal"><span class="pre">None</span></tt>. Other possible datatypes are <tt class="docutils literal"><span class="pre">features</span></tt>, <tt class="docutils literal"><span class="pre">signal</span></tt> or <tt class="docutils literal"><span class="pre">relational</span></tt>. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the <em>info</em> dictionary:</p>
+<p>import track
+with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
+<blockquote>
+<div>t.datatype = &#8216;signal&#8217;</div></blockquote>
 </dd></dl>
 
 <dl class="attribute">
@@ -335,20 +349,7 @@ where X.Y is the version of Python you run it with.</p>
 <dl class="attribute">
 <dt id="track.Track.modified">
 <tt class="descclassname">Track.</tt><tt class="descname">modified</tt><a class="reference internal" href="_modules/track.html#Track.modified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.modified" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>modified</em> is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you <tt class="docutils literal"><span class="pre">write</span></tt>, <tt class="docutils literal"><span class="pre">rename</span></tt> or <tt class="docutils literal"><span class="pre">remove</span></tt>. Changing the <tt class="docutils literal"><span class="pre">info</span></tt> or <tt class="docutils literal"><span class="pre">chrmeta</span></tt> attributes will also make set this value to True.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="track.Track.cursor">
-<tt class="descclassname">Track.</tt><tt class="descname">cursor</tt><a class="reference internal" href="_modules/track.html#Track.cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.cursor" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>cursor</em> is an sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
-<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
-    <span class="n">rpgenes</span><span class="o">.</span><span class="n">cusror</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select name from sqlite_master where type=&#39;table&#39;&quot;</span><span class="p">)</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">cusror</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>More information is available on the <a class="reference external" href="http://docs.python.org/library/sqlite3.html">sqlite3 documentation pages</a>.</p>
+<dd><p><em>modified</em> is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you <tt class="docutils literal"><span class="pre">write</span></tt>, <tt class="docutils literal"><span class="pre">rename</span></tt> or <tt class="docutils literal"><span class="pre">remove</span></tt>. Changing the <tt class="docutils literal"><span class="pre">info</span></tt> or <tt class="docutils literal"><span class="pre">chrmeta</span></tt> attributes will also set this value to True.</p>
 </dd></dl>
 
 </div>
@@ -356,7 +357,7 @@ where X.Y is the version of Python you run it with.</p>
 <h3>Track methods<a class="headerlink" href="#track-methods" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
 <dt id="track.Track.read">
-<tt class="descclassname">Track.</tt><tt class="descname">read</tt><big>(</big><em>selection=None</em>, <em>fields=None</em>, <em>order='start</em>, <em>end'</em>, <em>cursor=False</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Track.</tt><tt class="descname">read</tt><big>(</big><em>selection=None</em>, <em>fields=None</em>, <em>order='start</em>, <em>end'</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads data from the track.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -366,7 +367,6 @@ where X.Y is the version of Python you run it with.</p>
 <li><strong>selection</strong> &#8211; A chromosome name, or a dictionary specifying a region, see below.</li>
 <li><strong>fields</strong> (<em>list of strings</em>) &#8211; is an optional list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the <em>track.fields</em> attribute is set, that will be used.</li>
 <li><strong>order</strong> (<em>list of strings</em>) &#8211; is am optional sublist of <em>fields</em> which will influence the order in which the tuples are yielded. By default results are sorted by <tt class="docutils literal"><span class="pre">start</span></tt> and, secondly, by <tt class="docutils literal"><span class="pre">end</span></tt>.</li>
-<li><strong>cursor</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an optional parameter which should be set to True if you are performing several operations on the same track at the same time. This is the case, for instance, when you are chaining a read operation to a write operation.</li>
 </ul>
 </td>
 </tr>
@@ -405,7 +405,7 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.</li>
+<li><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.</li>
 <li><strong>data</strong> (<em>an iteratable</em>) &#8211; must be an iterable object that yields tuples or rows of the correct length. As an example, the <tt class="docutils literal"><span class="pre">read</span></tt> function of this class produces such objects. <em>data</em> can have a <em>fields</em> attribute describing what the different elements of the tuple represent. <em>data</em> can also simply be a list of tuples.</li>
 <li><strong>fields</strong> (<em>list of strings</em>) &#8211; is a parameter describing what the different elements in <em>data</em> represent. It is optional and is used only if <em>data</em> doesn&#8217;t already have a <tt class="docutils literal"><span class="pre">fields</span></tt> attribute.</li>
 </ul>
@@ -513,6 +513,27 @@ where X.Y is the version of Python you run it with.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="track.Track.cursor">
+<tt class="descclassname">Track.</tt><tt class="descname">cursor</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/track.html#Track.cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>cursor</em> will create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the <a class="reference external" href="http://docs.python.org/library/sqlite3.html">sqlite3 documentation pages</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">A new sqlite3 cursor object</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select name from sqlite_master where type=&#39;table&#39;&quot;</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="track.Track.export">
 <tt class="descclassname">Track.</tt><tt class="descname">export</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.export" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exports the current track to a given format. A new file is created at the specified path. The current track object is unchanged</p>
@@ -521,8 +542,8 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
-<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
 </ul>
 </td>
 </tr>
@@ -548,7 +569,7 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.</td>
 </tr>
 <tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
 </tr>
@@ -572,8 +593,8 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>previous_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to rename.</li>
-<li><strong>new_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name that that chromosome will now be referred by.</li>
+<li><strong>previous_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome that one wishes to rename.</li>
+<li><strong>new_name</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name that that chromosome will now be referred by.</li>
 </ul>
 </td>
 </tr>
@@ -591,21 +612,20 @@ where X.Y is the version of Python you run it with.</p>
 
 <dl class="method">
 <dt id="track.Track.search">
-<tt class="descclassname">Track.</tt><tt class="descname">search</tt><big>(</big><em>query_dict</em>, <em>chromosome=None</em>, <em>exact_match=False</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.search" title="Permalink to this definition">¶</a></dt>
-<dd><p>Searches for parameters inside your tracks. You can specify several parameters.</p>
+<tt class="descclassname">Track.</tt><tt class="descname">search</tt><big>(</big><em>query_dict</em>, <em>fields=None</em>, <em>chromosome=None</em>, <em>exact_match=False</em><big>)</big><a class="reference internal" href="_modules/track.html#Track.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Searches for parameters inside your tracks. You can specify several parameters.
+:param selection: list of the fields you want to have in the result (to insure that all result will have the same number of columns)
+:param query_dict: A dictionary specifying keys and values to search for. See examples.
+:type  query_dict: dict
+:param chromosome: Optionally, the name of the chromosome on which one wants to search. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the search is performed on all chromosomes and every feature contains a new field specifying its chromosome.
+:type  chromosome: string
+:param exact_match: By default, will find all entries which contain the query. If set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, will only find entries that exactly match the query.
+:type  exact_match: bool</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>query_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; A dictionary specifying keys and values to search for. See examples.</li>
-<li><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Optionally, the name of the chromosome on which one wants to search. If <tt class="xref docutils literal"><span class="pre">None</span></tt>, the search is performed on all chromosomes and every feature contains a new field specifying its chromosome.</li>
-<li><strong>exact_match</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; By default, will find all entries which contain the query. If set to <tt class="xref docutils literal"><span class="pre">True</span></tt>, will only find entries that exactly match the query.</li>
-</ul>
-</td>
-</tr>
-<tr class="field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.</p>
-</td>
+<tr class="field"><th class="field-name">Returns:</th><td class="field-body">a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.</td>
 </tr>
 </tbody>
 </table>
@@ -648,7 +668,7 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to load.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to load.</td>
 </tr>
 <tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
 </tr>
@@ -664,7 +684,7 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to create.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the file path to the chromosome file to create.</td>
 </tr>
 <tr class="field"><th class="field-name">Returns:</th><td class="field-body">None.</td>
 </tr>
@@ -680,7 +700,7 @@ where X.Y is the version of Python you run it with.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to create a score vector from.</td>
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chromosome</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the name of the chromosome on which one wants to create a score vector from.</td>
 </tr>
 <tr class="field"><th class="field-name">Returns:</th><td class="field-body">an iterable yielding floats.</td>
 </tr>
@@ -688,7 +708,7 @@ where X.Y is the version of Python you run it with.</p>
 </table>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
-    <span class="n">scores</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">vector</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">get_score_vector</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -777,18 +797,18 @@ where X.Y is the version of Python you run it with.</p>
 </div>
 <div class="section" id="module-track.memory">
 <span id="loading-into-memory"></span><h2>Loading into memory<a class="headerlink" href="#module-track.memory" title="Permalink to this headline">¶</a></h2>
-<p>This module also enables you to read tracks into memory and to write track from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in memory, you can.</p>
+<p>This submodule enables you to read tracks into memory and to write tracks from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in the RAM, you can.</p>
 <dl class="function">
 <dt id="track.memory.read">
 <tt class="descclassname">track.memory.</tt><tt class="descname">read</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="_modules/track/memory.html#read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.memory.read" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks</p>
+<dd><p>Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into the RAM. Be careful when using this method on large tracks.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
-<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
 </ul>
 </td>
 </tr>
@@ -814,7 +834,7 @@ where X.Y is the version of Python you run it with.</p>
 <tbody valign="top">
 <tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dictionary</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; contains the chromosomes and features.</li>
-<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to write to.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to write to.</li>
 <li><strong>format</strong> &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
 </ul>
 </td>
@@ -839,7 +859,11 @@ where X.Y is the version of Python you run it with.</p>
 </div>
 <div class="section" id="reporting-bugs">
 <h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://github.com/xapple/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
+<p>Our <a class="reference external" href="https://github.com/bbcf/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
+</div>
+<div class="section" id="developer-documentation">
+<h2>Developer documentation<a class="headerlink" href="#developer-documentation" title="Permalink to this headline">¶</a></h2>
+<p>A full <a class="reference external" href="http://bbcf.github.com/track/">developer documentation</a> detailing all methods and classes is available.</p>
 </div>
 </div>
 
@@ -868,6 +892,7 @@ where X.Y is the version of Python you run it with.</p>
 <li><a class="reference internal" href="#module-track.memory">Loading into memory</a></li>
 <li><a class="reference internal" href="#comments">Comments</a></li>
 <li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
+<li><a class="reference internal" href="#developer-documentation">Developer documentation</a></li>
 </ul>
 </li>
 </ul>
@@ -876,7 +901,11 @@ where X.Y is the version of Python you run it with.</p>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
            rel="nofollow">Show Source</a></li>
-  </ul>
+  </ul><h3>Other BBCF projects</h3>
+<ul>
+<li><a href="http://bbcftools.vital-it.ch/">BBCFtools</a></li>
+<li><a href="http://htsstation.vital-it.ch/">HTSstation</a></li>
+</ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
@@ -907,7 +936,8 @@ where X.Y is the version of Python you run it with.</p>
       </ul>
     </div>
     <div class="footer">
-      Last updated on Dec 02, 2011.
+        &copy; Copyright 2011, EPFL BBCF.
+      Last updated on Feb 11, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>

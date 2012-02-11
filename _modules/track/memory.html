@@ -6,7 +6,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-24167610-15']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
     <title>track.memory</title>
     <link rel="stylesheet" href="../../_static/rtd.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -49,7 +60,7 @@
             
   <h1>Source code for track.memory</h1><div class="highlight"><pre>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module also enables you to read tracks into memory and to write track from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in memory, you can.</span>
+<span class="sd">This submodule enables you to read tracks into memory and to write tracks from memory using dictionaries. Doing this can quickly create memory problems, and is discouraged. However, if you know your track is not very large, and you want to load in the RAM, you can.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c"># Built-in modules #</span>
@@ -63,7 +74,7 @@
 
 <span class="c">################################################################################</span>
 <div class="viewcode-block" id="read"><a class="viewcode-back" href="../../index.html#track.memory.read">[docs]</a><span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into memory. Be careful when using this method on large tracks</span>
+    <span class="sd">&quot;&quot;&quot;Loads a track from disk, whatever the format is and puts it in an enourmous dictionary. Contrary to most of the algorithms in this package, this method will load everything into the RAM. Be careful when using this method on large tracks.</span>
 
 <span class="sd">       :param path: is the path to track file to create.</span>
 <span class="sd">       :type  path: string</span>
@@ -109,7 +120,13 @@
     <span class="c"># Do the job #</span>
     <span class="n">serializer</span> <span class="o">=</span> <span class="n">get_serializer</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="p">)</span>
     <span class="n">parser</span>     <span class="o">=</span> <span class="n">get_parser</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="s">&#39;memory&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span>
+
+<span class="c">#-----------------------------------#</span>
+<span class="c"># This code was written by the BBCF #</span>
+<span class="c"># http://bbcf.epfl.ch/              #</span>
+<span class="c"># webmaster.bbcf@epfl.ch            #</span>
+<span class="c">#-----------------------------------#</span></div>
 </pre></div>
 
           </div>
@@ -119,7 +136,11 @@
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../../index.html">
               <img class="logo" src="../../_static/logo.png" alt="Logo"/>
-            </a></p>
+            </a></p><h3>Other BBCF projects</h3>
+<ul>
+<li><a href="http://bbcftools.vital-it.ch/">BBCFtools</a></li>
+<li><a href="http://htsstation.vital-it.ch/">HTSstation</a></li>
+</ul>
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
@@ -152,7 +173,8 @@
       </ul>
     </div>
     <div class="footer">
-      Last updated on Dec 02, 2011.
+        &copy; Copyright 2011, EPFL BBCF.
+      Last updated on Feb 11, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>
