@@ -639,3 +639,29 @@ class Timer:
         line1 = "%.6f seconds for %s" % (total_time, self.name or 'Unnamed')
         line2 = "(%.3f usec per entry)" % entry_time
         print line1, line2
+
+############################## DECORATORS #####################################
+def property_cached(f):
+    """Decorator for properties evaluated only once.
+    It can be used to created a cached property like this::
+
+        class Employee(object):
+            @property_cached
+            def salary(self):
+                return 8000
+
+        bob = Employee()
+        print bob.salary
+    """
+    def get_method(self):
+        try:
+            return self.__cache__[f]
+        except AttributeError:
+            self.__cache__ = {}
+            x = self.__cache__[f] = f(self)
+            return x
+        except KeyError:
+            x = self.__cache__[f] = f(self)
+            return x
+    get_method.__doc__ = f.__doc__
+    return property(get_method)
