@@ -14,4 +14,4 @@ of this license is in the LICENSE.txt file.
 Full documentation
 ==================
 
-The full documentation can be found [on our website](http://bbcf.epfl.ch/track).
+The full documentation can be found [on our website](http://xapple.github.com/track/).

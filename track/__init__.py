@@ -18,11 +18,11 @@ Installation
 
 To install you should download the latest source code from GitHub, either by going to::
 
-    http://github.com/bbcf/track
+    http://github.com/xapple/track
 
 and clicking on "Downloads", or by cloning the git repository with::
 
-    $ git clone https://github.com/bbcf/track.git
+    $ git clone https://github.com/xapple/track.git
 
 Once you have the source code, run::
 
