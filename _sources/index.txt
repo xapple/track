@@ -80,3 +80,10 @@ It is important to note that the general numbering convention of features on a c
 Reporting bugs
 ##############
 Our `issue tracking system <https://github.com/xapple/track/issues>`_  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don't already have one to open a new issue, sorry.
+
+#########
+Licensing
+#########
+The code is free and open source, licensed under the GNU General Public License version 3. You can download, copy or fork the source code on github:
+
+    https://github.com/xapple/track

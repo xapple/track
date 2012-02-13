@@ -13,7 +13,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0.0',
+        VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">track v1.0.0</a> &raquo;</li> 
+        <li><a href="#">track v1.0.1</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -63,12 +63,14 @@ Currently the following formats are implemented:</p>
 <p>To install you can simply type:</p>
 <div class="highlight-python"><pre>$ sudo easy_install track</pre>
 </div>
-<p>If you don&#8217;t have permission to install it in the default directory, you can simply clone the github repository, build the source in-place, and include the git repository in your path:</p>
-<div class="highlight-python"><pre>$ git clone https://github.com/xapple/track.git
-$ cd track
+<p>If you don&#8217;t have permission to install it like that, you can simply download the code, build the source in-place, and include the directory in your python path:</p>
+<div class="highlight-python"><pre>$ wget http://pypi.python.org/packages/source/t/track/track-1.0.0.tar.gz
+$ tar -xzf track-1.0.0.tar.gz
+$ cd track-1.0.0/
 $ python setup.py build_ext --inplace
-$ cat &gt;&gt; ~/.bashrc
-export PYTHONPATH=/path/to/repo/track/:$PYTHONPATH</pre>
+$ sed -i "$ a\export PYTHONPATH=`pwd`/:\$PYTHONPATH" ~/.bashrc
+$ source ~/.bashrc
+$ python -c "import track; print track"</pre>
 </div>
 </div>
 <div class="section" id="quick-start">
@@ -298,11 +300,12 @@ export PYTHONPATH=/path/to/repo/track/:$PYTHONPATH</pre>
 <dl class="attribute">
 <dt id="track.Track.datatype">
 <tt class="descclassname">Track.</tt><tt class="descname">datatype</tt><a class="reference internal" href="_modules/track.html#Track.datatype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.Track.datatype" title="Permalink to this definition">¶</a></dt>
-<dd><p>Giving a datatype to your track is optional. The default datatype is <tt class="xref docutils literal"><span class="pre">None</span></tt>. Other possible datatypes are <tt class="docutils literal"><span class="pre">features</span></tt>, <tt class="docutils literal"><span class="pre">signal</span></tt> or <tt class="docutils literal"><span class="pre">relational</span></tt>. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the <em>info</em> dictionary:</p>
-<p>import track
-with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
-<blockquote>
-<div>t.datatype = &#8216;signal&#8217;</div></blockquote>
+<dd><p>Giving a datatype to your track is optional. The default datatype is <tt class="xref docutils literal"><span class="pre">None</span></tt>. Other possible datatypes are <tt class="docutils literal"><span class="pre">features</span></tt>, <tt class="docutils literal"><span class="pre">signal</span></tt> or <tt class="docutils literal"><span class="pre">relational</span></tt>. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the <em>info</em> dictionary.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">datatype</span> <span class="o">=</span> <span class="s">&#39;signal&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="attribute">
@@ -847,6 +850,12 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
 <h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
 <p>Our <a class="reference external" href="https://github.com/xapple/track/issues">issue tracking system</a>  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don&#8217;t already have one to open a new issue, sorry.</p>
 </div>
+<div class="section" id="licensing">
+<h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
+<p>The code is free and open source, licensed under the GNU General Public License version 3. You can download, copy or fork the source code on github:</p>
+<blockquote>
+<div><a class="reference external" href="https://github.com/xapple/track">https://github.com/xapple/track</a></div></blockquote>
+</div>
 </div>
 
 
@@ -874,6 +883,7 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
 <li><a class="reference internal" href="#module-track.memory">Loading into memory</a></li>
 <li><a class="reference internal" href="#comments">Comments</a></li>
 <li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
+<li><a class="reference internal" href="#licensing">Licensing</a></li>
 </ul>
 </li>
 </ul>
@@ -909,11 +919,11 @@ with track.new(&#8216;tmp/track.sql&#8217;) as t:</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="#">track v1.0.0</a> &raquo;</li> 
+        <li><a href="#">track v1.0.1</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Last updated on Feb 12, 2012.
+      Last updated on Feb 13, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>
