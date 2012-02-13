@@ -76,6 +76,7 @@
 <span class="sd">    $ cd track-1.0.0/</span>
 <span class="sd">    $ python setup.py build_ext --inplace</span>
 <span class="sd">    $ sed -i &quot;$ a\export PYTHONPATH=`pwd`/:\$PYTHONPATH&quot; ~/.bashrc</span>
+<span class="sd">    $ source ~/.bashrc</span>
 <span class="sd">    $ python -c &quot;import track; print track&quot;</span>
 
 <span class="sd">###########</span>
@@ -1059,12 +1060,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">datatype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Giving a datatype to your track is optional. The default datatype is ``None``. Other possible datatypes are ``features``, ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary::</span>
+        <span class="sd">&quot;&quot;&quot;Giving a datatype to your track is optional. The default datatype is ``None``. Other possible datatypes are ``features``, ``signal`` or ``relational``. Changing the datatype imposes some conditions on the entries that the track contains. This attribute is stored inside the *info* dictionary.</span>
+
+<span class="sd">        ::</span>
 
 <span class="sd">            import track</span>
 <span class="sd">            with track.new(&#39;tmp/track.sql&#39;) as t:</span>
 <span class="sd">                t.datatype = &#39;signal&#39;</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;datatype&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 

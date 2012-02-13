@@ -842,9 +842,19 @@ $ python -c "import track; print track"</pre>
 </dd></dl>
 
 </div>
-<div class="section" id="comments">
-<h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
-<p>It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled <cite>(start=4,end=8)</cite> will span four base pairs according to UCSC but will span five base pairs according to Ensembl. The representation that the this packages sticks to is explained <a class="reference external" href="http://bbcf.epfl.ch/twiki/bin/view/BBCF/NumberingConvention">here</a>.</p>
+<div class="section" id="numbering-convention">
+<h2>Numbering convention<a class="headerlink" href="#numbering-convention" title="Permalink to this headline">¶</a></h2>
+<p>It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled <cite>(start=4,end=8)</cite> will span four base pairs according to UCSC but will span five base pairs according to Ensembl.</p>
+<p>A numbering convention for describing continuous intervals of base pairs on a chromosome can be defined by three characteristics:</p>
+<ol class="arabic simple">
+<li><strong>Do we start at zero or one ?</strong> In <cite>track</cite>, the smallest authorized number is 0. A feature labeled <cite>(start=0,end=4)</cite> is legal.</li>
+<li><strong>Are the start and end included ?</strong> In <cite>track</cite>, the start is included and the end is included. A feature labeled <cite>(start=X,end=Y)</cite> spans Y-X nucleotides.</li>
+<li><strong>Are we counting on the nucleotides or between the nucleotides ?</strong> In <cite>track</cite>, we number between the nucleotides. Two features labeled <cite>(start=0,end=4)</cite> and <cite>(start=4,end=8)</cite> have no overlap.</li>
+</ol>
+<p>In the following visual examples, we use a feature labeled <cite>(start=4,end=8)</cite>. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the phosphate groups while the image on the right numbers the sugar groups. This produces different results. This packages sticks to standard depicted on the image labeled &#8220;Correct&#8221;.</p>
+<img alt="_images/convention_wrong.png" src="_images/convention_wrong.png" />
+<img alt="_images/convention_correct.png" src="_images/convention_correct.png" />
+<p><em>TL;DR</em>: This package uses the UCSC standard for all its representations.</p>
 </div>
 <div class="section" id="reporting-bugs">
 <h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
@@ -881,7 +891,7 @@ $ python -c "import track; print track"</pre>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-track.memory">Loading into memory</a></li>
-<li><a class="reference internal" href="#comments">Comments</a></li>
+<li><a class="reference internal" href="#numbering-convention">Numbering convention</a></li>
 <li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
 <li><a class="reference internal" href="#licensing">Licensing</a></li>
 </ul>
