@@ -609,7 +609,7 @@ class Track(object):
             # Columns names in the table #
             available_fields = self._get_fields_of_table(chrom)
             # Fields attribute is set or not #
-            query_fields = ','.join([f in available_fields and f or py_field_types[f]().__repr__() for f in fields and fields or self._fields])
+            query_fields = ','.join([f in available_fields and f or py_field_types.get(f, str)().__repr__() for f in fields and fields or self._fields])
         ##### QUERY #####
         sql_command = "SELECT " + query_fields + " from '" + chrom + "'"
         # Add the where case #
@@ -1214,7 +1214,7 @@ class Track(object):
         blen = len(base_fields)
         ll = range(blen)
         for feature in self.read(selection, base_fields + supplementary_fields, order=order_by):
-            d = [{field : feature[field]} for field in supplementary_fields]
+            d = [{field : feature[field]} for field in supplementary_fields if field in feature.keys()]
             yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
