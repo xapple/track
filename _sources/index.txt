@@ -71,6 +71,8 @@ Loading into memory
 .. autofunction:: track.memory.read
 .. autofunction:: track.memory.write
 
+.. _convention:
+
 ####################
 Numbering convention
 ####################

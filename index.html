@@ -97,7 +97,8 @@ $ python -c "import track; print track"</pre>
     <span class="c"># gene[1] is the end coordinate and gene[0] is the start coordinate</span>
 </pre></div>
 </div>
-<p>The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
+<p>Be sure to read the chapter about <a class="reference internal" href="#convention"><em>Numbering convention</em></a> to understand the result.
+The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
     <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
@@ -843,7 +844,7 @@ $ python -c "import track; print track"</pre>
 
 </div>
 <div class="section" id="numbering-convention">
-<h2>Numbering convention<a class="headerlink" href="#numbering-convention" title="Permalink to this headline">¶</a></h2>
+<span id="convention"></span><h2>Numbering convention<a class="headerlink" href="#numbering-convention" title="Permalink to this headline">¶</a></h2>
 <p>It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled <cite>(start=4,end=8)</cite> will span four base pairs according to UCSC but will span five base pairs according to Ensembl.</p>
 <p>A numbering convention for describing continuous intervals of base pairs on a chromosome can be defined by three characteristics:</p>
 <ol class="arabic simple">
@@ -933,7 +934,7 @@ $ python -c "import track; print track"</pre>
       </ul>
     </div>
     <div class="footer">
-      Last updated on Feb 13, 2012.
+      Last updated on Feb 14, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>
