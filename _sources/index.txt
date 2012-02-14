@@ -86,7 +86,7 @@ A numbering convention for describing continuous intervals of base pairs on a ch
 
 3. **Are we counting on the nucleotides or between the nucleotides ?** In `track`, we number between the nucleotides. Two features labeled `(start=0,end=4)` and `(start=4,end=8)` have no overlap.
 
-In the following visual examples, we use a feature labeled `(start=4,end=8)`. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the phosphate groups while the image on the right numbers the sugar groups. This produces different results. This packages sticks to standard depicted on the image labeled "Correct".
+In the following visual examples, we use a feature labeled `(start=4,end=8)`. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the sugar groups while the image on the right numbers the phosphate groups. This produces different results. This packages sticks to standard depicted on the image labeled "Correct".
 
 .. image:: /images/convention_wrong.png
 .. image:: /images/convention_correct.png
@@ -103,4 +103,4 @@ Licensing
 #########
 The code is free and open source, licensed under the GNU General Public License version 3. You can download, copy or fork the source code on github:
 
-    https://github.com/xapple/track
+    https://github.com/xapple/track/tree/standalone

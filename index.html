@@ -97,8 +97,8 @@ $ python -c "import track; print track"</pre>
     <span class="c"># gene[1] is the end coordinate and gene[0] is the start coordinate</span>
 </pre></div>
 </div>
-<p>Be sure to read the chapter about <a class="reference internal" href="#convention"><em>Numbering convention</em></a> to understand the result.
-The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
+<p>Be sure to read the chapter about <a class="reference internal" href="#convention"><em>Numbering convention</em></a> to understand the result.</p>
+<p>The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
 <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
     <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
@@ -852,7 +852,7 @@ The results coming from the <tt class="docutils literal"><span class="pre">read<
 <li><strong>Are the start and end included ?</strong> In <cite>track</cite>, the start is included and the end is included. A feature labeled <cite>(start=X,end=Y)</cite> spans Y-X nucleotides.</li>
 <li><strong>Are we counting on the nucleotides or between the nucleotides ?</strong> In <cite>track</cite>, we number between the nucleotides. Two features labeled <cite>(start=0,end=4)</cite> and <cite>(start=4,end=8)</cite> have no overlap.</li>
 </ol>
-<p>In the following visual examples, we use a feature labeled <cite>(start=4,end=8)</cite>. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the phosphate groups while the image on the right numbers the sugar groups. This produces different results. This packages sticks to standard depicted on the image labeled &#8220;Correct&#8221;.</p>
+<p>In the following visual examples, we use a feature labeled <cite>(start=4,end=8)</cite>. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the sugar groups while the image on the right numbers the phosphate groups. This produces different results. This packages sticks to standard depicted on the image labeled &#8220;Correct&#8221;.</p>
 <img alt="_images/convention_wrong.png" src="_images/convention_wrong.png" />
 <img alt="_images/convention_correct.png" src="_images/convention_correct.png" />
 <p><em>TL;DR</em>: This package uses the UCSC standard for all its representations.</p>
@@ -865,7 +865,7 @@ The results coming from the <tt class="docutils literal"><span class="pre">read<
 <h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
 <p>The code is free and open source, licensed under the GNU General Public License version 3. You can download, copy or fork the source code on github:</p>
 <blockquote>
-<div><a class="reference external" href="https://github.com/xapple/track">https://github.com/xapple/track</a></div></blockquote>
+<div><a class="reference external" href="https://github.com/xapple/track/tree/standalone">https://github.com/xapple/track/tree/standalone</a></div></blockquote>
 </div>
 </div>
 
