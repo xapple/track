@@ -228,7 +228,7 @@ def convert(source, destination, assembly=None):
        :type  source: string
        :param destination: is the path to the track to be created.
        :type  destination: string
-       :param assembly: an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.
+       :param assembly: an optional compatible assembly name. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.
        :type  assembly: string
 
        :returns: the path to the track created (or a list of track paths in the case of multi-track files).
@@ -1138,7 +1138,7 @@ class Track(object):
 
     @property
     def assembly(self):
-        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name or id. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
+        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input a valid assembly name such as 'sacCer2'. Doing so will set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
 
         ::
 
@@ -1162,20 +1162,6 @@ class Track(object):
             else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
-
-    def guess_assembly(self):
-        """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
-
-        :returns: None.
-
-        ::
-
-            import track
-            track.convert('tracks/genes.bed', 'tracks/genes.sql')
-            with track.load('tracks/genes.sql') as t:
-                t.guess_assembly()
-        """
-        pass
 
     #-----------------------------------------------------------------------------#
     def aggregated_read(self, selection, base_fields, order_by=None):
