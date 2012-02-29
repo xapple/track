@@ -17,5 +17,6 @@ setup(
                               'track.simple',
                               'track.test',
                              ],
-        ext_modules=[Extension('track.pyrow', ['src/pyrow.c'])]
+        package_data     = {'track': ['genomes.db']},
+        ext_modules      = [Extension('track.pyrow', ['src/pyrow.c'])]
     )

@@ -129,17 +129,15 @@ from track.parse import get_parser
 from track.serialize import get_serializer
 from track.util import determine_format, join_read_queries, make_cond_from_sel, parse_chr_file
 from track.util import sql_field_types, py_field_types, serialize_chr_file
-from track.util import gzip_inner_format, guess_chromosome_name
+from track.util import gzip_inner_format
 from track.common import check_path, check_file, empty_file, empty_sql_file, temporary_path
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
 from track.common import if_url_then_get_url
+from track.genomes import Assembly
 
 # Compiled modules #
 from track.pyrow import SuperRow
-
-# Other modules #
-from bbcflib.genrep import Assembly
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -1155,17 +1153,15 @@ class Track(object):
     def assembly(self, value):
         # Get the assembly #
         assembly = Assembly(value)
-        # Check that it is valid #
-        if not assembly.name: return
+        # Add the attribute #
+        self.info['assembly'] = value
         # Check if the tables need renaming or deleting #
         for orig_name in self.chromosomes:
-            cannonical_name = guess_chromosome_name(assembly, orig_name)
+            cannonical_name = assembly.guess_chromosome_name(orig_name)
             if cannonical_name: self.rename(orig_name, cannonical_name)
             else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
-        # Add the attribute #
-        self.info['assembly'] = assembly.name
 
     def guess_assembly(self):
         """An attempt at guessing the assembly name will be made using the names of the chromosomes in the track in combination with all the information stored on the GenRep server. If a suitable assembly is found, the *assembly* and *chrmeta* attributes will be set. The chromosomes will also be renamed to the their canonical names.
