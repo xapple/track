@@ -2,93 +2,35 @@
 Package *'track'* documentation
 ===============================
 
-.. automodule:: track
+Provides easy read/write access to genomic tracks in a fashion that is independent from the underlying format. Requires Python 2.6 or higher.
+Currently the following formats are implemented:
 
-###############
-Loading a track
-###############
+* `BioSQLite <http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite>`_, `BED <http://genome.ucsc.edu/FAQ/FAQformat.html#format1>`_, `WIG <http://genome.ucsc.edu/goldenPath/help/wiggle.html>`_, `GFF <http://genome.ucsc.edu/FAQ/FAQformat.html#format3>`_, `GTF <http://genome.ucsc.edu/FAQ/FAQformat.html#format4>`_, `bedGraph <http://genome.ucsc.edu/goldenPath/help/bedgraph.html>`_, `bigWig <http://genome.ucsc.edu/goldenPath/help/bigWig.html>`_
 
-.. autofunction:: load
+More formats can be added easily.
 
-####################
-Creating a new track
-####################
+=======
+Example
+=======
 
-.. autofunction:: new
+To get access to the information contained inside an already existing genomic track, you would do the following whatever the format of the track is::
 
-#################
-Converting tracks
-#################
+    import track
+    with track.load('tracks/rp_genes.bed') as rp:
+        data = rp.read('chr3')
 
-.. autofunction:: convert
+=================
+Table of contents
+=================
+.. toctree::
+   :maxdepth: 1
 
-######################
-Using the Track object
-######################
-
-.. autoclass:: Track
-
-Track attributes
-""""""""""""""""
-
-.. autoattribute:: Track.fields
-.. autoattribute:: Track.chromosomes
-.. autoattribute:: Track.info
-.. autoattribute:: Track.name
-.. autoattribute:: Track.datatype
-.. autoattribute:: Track.assembly
-.. autoattribute:: Track.chrmeta
-.. autoattribute:: Track.modified
-
-Track methods
-"""""""""""""
-
-.. automethod:: Track.read
-.. automethod:: Track.write
-.. automethod:: Track.save
-.. automethod:: Track.rollback
-.. automethod:: Track.vacuum
-.. automethod:: Track.close
-.. automethod:: Track.cursor
-.. automethod:: Track.export
-.. automethod:: Track.remove
-.. automethod:: Track.rename
-.. automethod:: Track.search
-.. automethod:: Track.count
-.. automethod:: Track.load_chr_file
-.. automethod:: Track.export_chr_file
-.. automethod:: Track.get_score_vector
-.. automethod:: Track.ucsc_to_ensembl
-.. automethod:: Track.ensembl_to_ucsc
-.. automethod:: Track.roman_to_integer
-.. automethod:: Track.integer_to_roman
-
-###################
-Loading into memory
-###################
-
-.. automodule:: track.memory
-.. autofunction:: track.memory.read
-.. autofunction:: track.memory.write
-
-#####################
-Using only generators
-#####################
-
-.. automodule:: track.simple
-.. autofunction:: track.simple.load
-
-########
-Comments
-########
-It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled `(start=4,end=8)` will span four base pairs according to UCSC but will span five base pairs according to Ensembl. The representation that the this packages sticks to is explained `here <http://bbcf.epfl.ch/twiki/bin/view/BBCF/NumberingConvention>`_.
-
-##############
-Reporting bugs
-##############
-Our `issue tracking system <https://github.com/bbcf/track/issues>`_  is found in the github repository. You are welcome to open a new ticket in it if you think you have found a bug. You will however need to create a github account if you don't already have one to open a new issue, sorry.
-
-#######################
-Developer documentation
-#######################
-A full `developer documentation <http://bbcf.github.com/track/>`_ detailing all methods and classes is available.
+   content/installation
+   content/quick_start
+   content/handeling
+   content/track
+   content/manipulate
+   content/memory
+   content/numbering
+   content/bugs
+   content/licensing
