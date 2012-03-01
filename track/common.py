@@ -316,7 +316,21 @@ def natural_sort(item):
         except ValueError: return s
     return map(try_int, re.findall(r'(\d+|\D+)', item))
 
-###############################################################################
+#------------------------------------------------------------------------------#
+def andify_strings(list_of_strings):
+    """
+    Given a list of strings will join them with commas
+    and a final "and" word.
+
+    >>> andify_strings(['Apples', 'Oranges', 'Mangos'])
+    'Apples, Oranges and Mangos'
+    """
+    result = ', '.join(list_of_strings)
+    comma_index = result.rfind(',')
+    if comma_index > -1: result = result[:comma_index] + ' and' + result[comma_index+1:]
+    return result
+
+#------------------------------------------------------------------------------#
 def collapse(method, collection):
     """
     Collapse lists in specific ways.
@@ -431,6 +445,16 @@ def profile_it(command):
     results.print_stats(20)
     os.remove(result_file)
     return results
+
+#------------------------------------------------------------------------------#
+def import_module(name):
+    """
+    Import a module that given it's name
+    and return that module.
+    """
+    __import__(name)
+    import sys
+    return sys.modules[name]
 
 ############################## CLASSES #########################################
 class Color:
