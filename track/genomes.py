@@ -24,7 +24,7 @@ class Assembly(object):
 
     def __init__(self, assembly):
         # Check the input type #
-        if not isinstance(assembly, str):
+        if not isinstance(assembly, basestring):
             raise TypeError('The assembly paramater needs to be a string such as "sacCer2".')
         if not assembly in assemblies:
             raise TypeError('The assembly "%s" was not found in the database.' % assembly)
