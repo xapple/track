@@ -838,7 +838,7 @@ class Track(object):
         fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
         data = self.read(selection, fields)
         # Special function for tracks without score #
-        add_ones = lambda X: (x + (1.0,) for x in X)
+        add_ones = lambda X: (tuple(x) + (1.0,) for x in X)
         if 'score' not in self.fields: data = add_ones(data)
         # Core loop #
         x = (start, start)

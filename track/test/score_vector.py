@@ -43,9 +43,9 @@ class TestNoScore(unittest.TestCase):
     def runTest(self):
         in_path = samples['small_features'][5]['sql']
         with track.load(in_path) as t:
-            data = t.get_score_vector('chrI', 12, 30)
+            data = t.get_score_vector('chrI', 10, 30)
             got = list(data)
-        expected = [1.0]*2 + [0.0]*10 + [1.0]*2
+        expected = [0.0]*4 + [1.0]*5 + [0.0]*8 + [1.0]*3
         self.assertEqual(got, expected)
 
 ###################################################################################
