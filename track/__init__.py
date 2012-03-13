@@ -812,11 +812,15 @@ class Track(object):
         for chrom in self.chromosomes: self._cursor.execute("update '" + chrom + "' set start=start-1")
 
     #-----------------------------------------------------------------------------#
-    def get_score_vector(self, chromosome):
-        """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
+    def get_score_vector(self, chromosome, start=0, end=None):
+        """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Or if a *start* and *end* are given, an iterable of just the length of that interval. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
         :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
         :type  chromosome: string
+        :param start: Optionally, the base pair position where scores will start being read from. Defaults to 0.
+        :type  start: int
+        :param end: Optionally, the base pair position where scores will stop being read from. Defaults to the length of the chromosome.
+        :type  end: int
 
         :returns: an iterable yielding floats.
 
@@ -826,24 +830,32 @@ class Track(object):
             with track.new('tmp/track.sql') as t:
                 scores = t.get_score_vector('chr1')
         """
-        # Conditions #
-        if 'score' not in self.fields:
-            def add_ones(X):
-                for x in X: yield x + (1.0,)
-            data = add_ones(self.read(chromosome, ['start','end']))
-        else:
-            data = self.read(chromosome, ['start','end','score'])
-        # Initialization #
-        last_end = 0
-        x = (-1,0)
+        # Check chromosome end #
+        chr_length = self.chrmeta[chromosome]['length'] if chromosome in self.chrmeta else None
+        if not end: end = chr_length
+        # Call read #
+        selection = {'chr': chromosome, 'start': start, 'end': end}
+        fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
+        data = self.read(selection, fields)
+        # Special function for tracks without score #
+        add_ones = lambda X: (x + (1.0,) for x in X)
+        if 'score' not in self.fields: data = add_ones(data)
         # Core loop #
+        x = (start, start)
         for x in data:
-            for i in xrange(last_end, x[0]): yield 0.0
-            for i in xrange(x[0],     x[1]): yield x[2]
-            last_end = x[1]
+            if start >= x[1]: continue
+            if start < x[0]:
+                for i in xrange(start, x[0]): yield 0.0
+                start = x[0]
+            if end <= x[1]:
+                for i in xrange(start, end): yield x[2]
+                break
+            else:
+                for i in xrange(start,  x[1]): yield x[2]
+                start = x[1]
         # End piece #
-        if self.chrmeta.get(chromosome):
-            for i in xrange(x[1], self.chrmeta[chromosome]['length']): yield 0.0
+        if end or chr_length:
+            for i in xrange(x[1], end or chr_length): yield 0.0
 
     #-----------------------------------------------------------------------------#
     def roman_to_integer(self, names=None):
