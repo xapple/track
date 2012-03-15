@@ -812,6 +812,86 @@ class Track(object):
         for chrom in self.chromosomes: self._cursor.execute("update '" + chrom + "' set start=start-1")
 
     #-----------------------------------------------------------------------------#
+    def get_full_score_vector(self, chromosome):
+        """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
+
+        :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
+        :type  chromosome: string
+
+        :returns: an iterable yielding floats.
+
+        ::
+
+            import track
+            with track.new('tmp/track.sql') as t:
+                scores = t.get_full_score_vector('chr1')
+        """
+        # Check chromosome existence #
+        if chromosome not in self: return
+        chr_length = self.chrmeta[chromosome]['length'] if chromosome in self.chrmeta else None
+        # Call read #
+        fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
+        data = self.read(chromosome, fields)
+        # Special function for tracks without score #
+        add_ones = lambda X: (tuple(x) + (1.0,) for x in X)
+        if 'score' not in self.fields: data = add_ones(data)
+        # Initialization #
+        last_end = 0
+        x = (-1,0)
+        # Core loop #
+        for x in data:
+            for i in xrange(last_end, x[0]): yield 0.0
+            for i in xrange(x[0],     x[1]): yield x[2]
+            last_end = x[1]
+        # End piece #
+        if chr_length:
+            for i in xrange(x[1], chr_length): yield 0.0
+
+    #-----------------------------------------------------------------------------#
+    def get_partial_score_vector(self, chromosome, start, end):
+        """Returns an iterable with as many elements as there are base pairs in the interval between *start* and *end*. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
+
+        :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
+        :type  chromosome: string
+        :param start: The base pair position where scores will start being read from. Defaults to 0.
+        :type  start: int
+        :param end: The base pair position where scores will stop being read from. Defaults to the length of the chromosome.
+        :type  end: int
+
+        :returns: an iterable yielding floats.
+
+        ::
+
+            import track
+            with track.new('tmp/track.sql') as t:
+                scores = t.get_score_vector('chr1')
+        """
+        # Check chromosome existence #
+        if chromosome not in self: return
+        # Call read #
+        selection = {'chr': chromosome, 'start': start, 'end': end}
+        fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
+        data = self.read(selection, fields)
+        # Special function for tracks without score #
+        add_ones = lambda X: (tuple(x) + (1.0,) for x in X)
+        if 'score' not in self.fields: data = add_ones(data)
+        # Core loop #
+        x = (start, start)
+        for x in data:
+            if start >= x[1]: continue
+            if start < x[0]:
+                for i in xrange(start, x[0]): yield 0.0
+                start = x[0]
+            if end <= x[1]:
+                for i in xrange(start, end): yield x[2]
+                break
+            else:
+                for i in xrange(start,  x[1]): yield x[2]
+                start = x[1]
+        # End piece #
+        for i in xrange(x[1], end): yield 0.0
+
+    #-----------------------------------------------------------------------------#
     def get_score_vector(self, chromosome, start=0, end=None):
         """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Or if a *start* and *end* are given, an iterable of just the length of that interval. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
