@@ -830,12 +830,17 @@ class Track(object):
             with track.new('tmp/track.sql') as t:
                 scores = t.get_score_vector('chr1')
         """
+        # Check chromosome existence #
+        if chromosome not in self: return
         # Check chromosome end #
         chr_length = self.chrmeta[chromosome]['length'] if chromosome in self.chrmeta else None
         if not end: end = chr_length
-        # Call read #
-        selection = {'chr': chromosome, 'start': start, 'end': end}
+        # Selection #
+        if not end: selection = {'chr': chromosome, 'start': start}
+        else: selection = {'chr': chromosome, 'start': start, 'end': end}
+        # Fields #
         fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
+        # Call read #
         data = self.read(selection, fields)
         # Special function for tracks without score #
         add_ones = lambda X: (tuple(x) + (1.0,) for x in X)
@@ -847,7 +852,7 @@ class Track(object):
             if start < x[0]:
                 for i in xrange(start, x[0]): yield 0.0
                 start = x[0]
-            if end <= x[1]:
+            if end and end <= x[1]:
                 for i in xrange(start, end): yield x[2]
                 break
             else:

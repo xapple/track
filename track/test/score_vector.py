@@ -59,6 +59,18 @@ class TestOverlaps(unittest.TestCase):
         expected = [10.0]*10 + [0.0]*10 + [10.0]*10 + [0.0]*15 + [10.0]*5
         self.assertEqual(got, expected)
 
+###################################################################################
+class TestNoEnd(unittest.TestCase):
+    """A simple case on a track without specifying an end"""
+    def runTest(self):
+        in_path = samples['small_features'][4]['sql']
+        with track.load(in_path, readonly=True) as t:
+            t.chrmeta = {}
+            data = t.get_score_vector('chrI')
+            got = list(data)
+        expected = [0.0]*10 + [1.0]*10 + [0.0]*10 + [2.0]*10
+        self.assertEqual(got, expected)
+
 #-----------------------------------#
 # This code was written by the BBCF #
 # http://bbcf.epfl.ch/              #
