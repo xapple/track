@@ -15,7 +15,7 @@ import os
 import track
 from track import manipulate
 from track.manipulate import window_smoothing, mean_score_by_feature
-from track.manipulate import complement, merge_scores
+from track.manipulate import complement, merge_scores, threshold
 from track.common import temporary_path
 from track.test import samples
 
@@ -128,5 +128,19 @@ class TestMeanScores(unittest.TestCase):
             got = map(tuple, data)
         expected = [(10, 20, 15.0, u'Lorem', 1),
                     (30, 40, 50.0, u'Ipsum', 1)]
+        self.assertEqual(got, expected)
+        os.remove(out_path)
+
+class TestThreshold(unittest.TestCase):
+    """Test a threshold call via files."""
+    def runTest(self):
+        in_path = samples['small_signals'][4]['sql']
+        out_path = temporary_path('.sql')
+        t = threshold(in_path, 8000.0)
+        t.export(out_path)
+        with track.load(out_path) as t:
+            data = t.read('chrI')
+            got = map(tuple, data)
+        expected = [(120, 122, 9000.0)]
         self.assertEqual(got, expected)
         os.remove(out_path)

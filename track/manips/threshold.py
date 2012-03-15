@@ -56,4 +56,4 @@ tests = [
 ############################### Implementation #################################
 def generate(X, s):
     for x in X:
-        if x[2] >= s: yield x
+        if x[2] >= s: yield tuple(x)
