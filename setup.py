@@ -15,6 +15,7 @@ setup(
                               'track.serialize',
                               'track.simple',
                               'track.test',
+                              'track.manips',
                              ],
         package_data     = {'track': ['genomes.db']},
         ext_modules      = [Extension('track.pyrow', ['src/pyrow.c'])]
