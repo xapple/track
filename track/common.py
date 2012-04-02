@@ -74,9 +74,7 @@ def check_file(path):
 
 #------------------------------------------------------------------------------#
 def check_executable(tool_name):
-    """
-    Raises an exception if the executable *tool_name* is not found.
-    """
+    """Raises an exception if the executable *tool_name* is not found."""
     import subprocess
     try:
         subprocess.Popen([tool_name], stderr=subprocess.PIPE)

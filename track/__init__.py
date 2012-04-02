@@ -5,7 +5,7 @@ __version__ = '1.0.0'
 __all__ = ['load', 'new', 'convert']
 
 # Other variables #
-formats = ('bed', 'wig', 'gff', 'gtf', 'bedGraph', 'bigWig')
+formats = ('sql', 'bed', 'wig', 'gff', 'gtf', 'bedgraph', 'bigwig', 'gzip', 'sga')
 
 # Built-in modules #
 import os, re, sqlite3
@@ -342,7 +342,7 @@ class Track(object):
             raise Exception(message % (self.path, err))
 
     def _make_missing_tables(self):
-        """Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
+        """Makes sure every chromosome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
         fields = self.fields or minimum_fields
         fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in fields])
         for chrom_name in sorted(self.chrmeta, key=natural_sort):

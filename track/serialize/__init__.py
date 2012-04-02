@@ -18,6 +18,7 @@ serializers = {
     'gtf':      {'module': 'track.serialize.gtf',      'class': 'SerializerGTF'},
     'bedgraph': {'module': 'track.serialize.bedgraph', 'class': 'SerializerBedgraph'},
     'bigwig':   {'module': 'track.serialize.bigwig',   'class': 'SerializerBigwig'},
+    'sga':      {'module': 'track.serialize.sga',      'class': 'SerializerSGA'},
 }
 
 ################################################################################

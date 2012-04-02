@@ -64,6 +64,7 @@ class Assembly(object):
                >>> print a.guess_chromosome_name('chrR')
                2micron
         """
+        # TODO: guess chromsoome with names such as "NC_000001.10"
         # Convert to unicode #
         chromosome_name = unicode(chromosome_name)
         # Check for synonyms #

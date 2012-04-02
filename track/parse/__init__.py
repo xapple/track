@@ -15,6 +15,7 @@ parsers = {
     'gtf':      {'module': 'track.parse.gtf',      'class': 'ParserGTF'},
     'bedgraph': {'module': 'track.parse.bedgraph', 'class': 'ParserBedgraph'},
     'bigwig':   {'module': 'track.parse.bigwig',   'class': 'ParserBigwig'},
+    'sga':      {'module': 'track.parse.sga',      'class': 'ParserSGA'},
 }
 
 ################################################################################

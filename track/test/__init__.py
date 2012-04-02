@@ -12,6 +12,9 @@ This dictionariy is then used by the unittests themselves.
 # Built-in modules #
 import os
 
+# Internal modules #
+from track import formats
+
 ################################################################################
 # Tracks path #
 try:
@@ -69,6 +72,9 @@ samples = {
   'gff_tracks': {
     1:            {'name':'UCSC GFF example',      'filename': 'gff_test1'},
   },
+  'sga_tracks': {
+    1:            {'name':'SGA example',           'filename': 'sga_test1'},
+  },
   'gtf_tracks': {
     1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},
     'GenRep':     {'name':'GenRep saccer GTF',     'filename': 'gtf_saccer'},
@@ -81,7 +87,6 @@ samples = {
 }
 
 # Add the path for every format #
-formats = ['sql', 'bed', 'wig', 'gff', 'gtf', 'bedgraph', 'bigwig', 'gzip']
 for group_key, group in sorted(samples.items()):
     for track_key, track in sorted(group.items()):
         for format in formats:
