@@ -1,6 +1,5 @@
 """
-Contains tests for the BED format.
-We will do a roundtrips for several sample validation tracks.
+Contains tests for the SGA format.
 """
 
 # Built-in modules #
