@@ -9,7 +9,7 @@ from track.util import int_to_strand
 
 # Constants #
 all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame', 'attributes']
-defaults   = ['.', '.', -1, -1, 0.0, '.', '.', '.']
+defaults   = ['.', '.', -1, -1, 0.0, 0, '.', '.']
 
 ################################################################################
 class SerializerGFF(Serializer):
@@ -17,14 +17,13 @@ class SerializerGFF(Serializer):
 
     def __enter__(self):
         self.file = open(self.path, 'w')
-        self.indices = None
+        self.indices = []
         return self
 
     def __exit__(self, errtype, value, traceback):
         self.file.close()
 
     def defineFields(self, fields):
-        self.indices = []
         for f in all_fields:
             try: self.indices.append(fields.index(f))
             except ValueError: self.indices.append(-1)
