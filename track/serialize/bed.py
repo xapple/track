@@ -17,21 +17,25 @@ class SerializerBED(Serializer):
 
     def __enter__(self):
         self.file = open(self.path, 'w')
-        self.indices = None
+        self.indices = []
         return self
 
     def __exit__(self, errtype, value, traceback):
         self.file.close()
 
     def defineFields(self, fields):
-        for i in range(len(fields)):
-            if fields[i] != all_fields[i]:
-                try:
-                    self.indices = [all_fields.index(f) for f in fields]
-                except ValueError:
-                    message = "You tried to write a '%s' field to a BED file. Possible fields are: %s"
-                    self.error(message % (f, all_fields))
-                break
+        # Check that all fields are legal #
+        if not all([f in all_fields for f in fields]):
+            message = "You tried to write a '%s' field to a BED file. Possible fields are: %s"
+            self.error(message % (f, all_fields))
+        # Check for the simple case  #
+        if all([fields[i] == all_fields[i] for i in range(len(fields))]): return
+        # Find the highest ranked field #
+        number_of_columns = max(all_fields.index(f) for f in fields) + 1
+        # Check for availability #
+        for f in all_fields[:number_of_columns]:
+            if f in fields: self.indices.append(fields.index(f))
+            else: self.indices.append(None)
 
     def newTrack(self, info=None, name=None):
         if not info: info = {}
@@ -42,7 +46,7 @@ class SerializerBED(Serializer):
 
     def newFeature(self, chrom, feature):
         # Put the fields in the right order #
-        if self.indices: line = [feature[i] for i in self.indices]
+        if self.indices: line = [feature[i] if i != None else '' for i in self.indices]
         else:            line = list(feature)
         # Convert the score #
         try: line[3] = format_float(line[3])
