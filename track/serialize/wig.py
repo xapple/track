@@ -16,21 +16,22 @@ class SerializerWIG(Serializer):
     def __enter__(self):
         self.file = open(self.path, 'w')
         self.indices = None
+        self.previous_end = None
+        self.previous_span = None
         return self
 
     def __exit__(self, errtype, value, traceback):
         self.file.close()
 
     def defineFields(self, fields):
-        if not 'score' in fields: self.error("You tried to write a WIG files without a score field.")
-        for i in range(len(fields)):
-            if fields[i] != all_fields[i]:
-                try:
-                    self.indices = [all_fields.index(f) for f in fields]
-                except ValueError:
-                    message = "You tried to write a '%s' field to a WIG file. Possible fields are: %s"
-                    self.error(message % (f, all_fields))
-                break
+        # Check that we have what we need #
+        if not 'start' in fields: self.error("You tried to write a WIG file without a start field.")
+        if not 'end' in fields:   self.error("You tried to write a WIG file without a end field.")
+        if not 'score' in fields: self.error("You tried to write a WIG file without a score field.")
+        # Check for the simple case  #
+        if fields == tuple(all_fields): return
+        # What indexes should we take #
+        self.indices = [fields.index(f) for f in all_fields]
 
     def newTrack(self, info=None, name=None):
         if not info: info = {}
@@ -43,11 +44,22 @@ class SerializerWIG(Serializer):
         # Put the fields in the right order #
         if self.indices: f = [feature[i] for i in self.indices]
         else:            f = list(feature)
-        # Convert the score #
-        try: f[2] = format_float(f[2])
-        except IndexError: pass
-        # Write one line #
-        self.file.write("fixedStep chrom=%s start=%s span=%s\n%s\n" % (chrom,f[0],f[1]-f[0],f[2]))
+        start, end, span, score = f[0], f[1], f[1]-f[0], format_float(f[2])
+        # Look ahead #
+        if not self.previous_end:
+            self.writeFixedStep(chrom, start, end, span, score)
+            return
+        # If we have the same span just add the score #
+        if start == self.previous_end and span == self.previous_span:
+            self.file.write(score + '\n')
+            self.previous_end += span
+        else:
+            self.writeFixedStep(chrom, start, end, span, score)
+
+    def writeFixedStep(self, chrom, start, end, span, score):
+        self.file.write("fixedStep chrom=%s start=%s span=%s\n%s\n" % (chrom, start, span, score))
+        self.previous_end = end
+        self.previous_span = span
 
 #-----------------------------------#
 # This code was written by the BBCF #

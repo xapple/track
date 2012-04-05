@@ -1,12 +1,10 @@
 fixedStep chrom=chr1 start=10 span=5
 10.0
-fixedStep chrom=chr1 start=15 span=5
 20.0
 fixedStep chrom=chr1 start=25 span=10
 100.0
 fixedStep chrom=chr1 start=45 span=10
 20.0
-fixedStep chrom=chr1 start=55 span=10
 40.0
 fixedStep chrom=chr1 start=72 span=5
 50.0

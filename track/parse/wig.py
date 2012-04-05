@@ -70,7 +70,6 @@ class ParserWIG(Parser):
                         self.handler.error("The track%s has a non integer as step value.", self.path, number)
                     if params['step'] < 1:
                         self.handler.error("The track%s has a negative or null step value.", self.path, number)
-                    params['count'] = 0
                 continue
             # Not a directive line #
             if not params:
@@ -81,12 +80,11 @@ class ParserWIG(Parser):
                     line = float(line)
                 except ValueError:
                     self.handler.error("The track%s has non floats as score values.", self.path, number)
-                base = params['start'] + params['count'] * params['step']
                 chrom   = params['chrom']
-                feature = [base, base + params['span'], line]
-                params['count'] += 1
+                feature = [params['start'], params['start'] + params['span'], line]
+                params['start'] += params['span'] + params['step'] - 1
             # Variable #
-            if params['mode'] == 'variableStep':
+            elif params['mode'] == 'variableStep':
                 line = line.split('\t')
                 if len(line) == 1: line = line[0].split()
                 try:
