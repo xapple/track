@@ -637,17 +637,15 @@ class JournaledDict(object):
         self.data = d
 
 #------------------------------------------------------------------------------#
-class Timer:
-    """Times a given code block. Use it like this:
+class Timer(object):
+    """Time a given code block. Use it like this::
 
-            with Timer('my batch process'): batch_benchmark(args)
-
+            with Timer() as t: cool_benchmark(args)
+            print t.total_time
     """
 
-    def __init__(self, name=None, entries=1):
+    def __init__(self):
         import timeit
-        self.name = name
-        self.entries = entries
         self.timer = timeit.default_timer
 
     def __enter__(self):
@@ -656,8 +654,64 @@ class Timer:
 
     def __exit__(self, *args):
         self.end = self.timer()
-        total_time = self.end - self.start
-        entry_time = (1000000*total_time / self.entries)
-        line1 = "%.6f seconds for %s" % (total_time, self.name or 'Unnamed')
-        line2 = "(%.3f usec per entry)" % entry_time
-        print line1, line2
+        self.total_time = self.end - self.start
+
+#------------------------------------------------------------------------------#
+class Path(object):
+    """
+    Easy access to the to functions provided by the os.path module
+    Use it like this::
+
+        path = path("tmp/images/lena.png")
+        print path.extension
+        print path.filename
+        print path.directory
+    """
+
+    def __init__(self, path):
+        import os
+        self.path = path
+        self.extension = os.path.splitext(path)[0]
+        self.directory = os.path.dirname(path) + '/'
+        self.filename = os.path.splitext(os.path.basename(path))[0]
+
+    def __str__(self, path):
+        return self.path
+
+#------------------------------------------------------------------------------#
+class Filesize(object):
+    """
+    Container for a size in bytes with a human readable representation
+    Use it like this::
+
+        >>> size = Filesize(123123123)
+        >>> print size
+        '117.4 MB'
+    """
+
+    chunk = 1024
+    units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+    precisions = [0, 0, 1, 2, 2, 2]
+
+    def __init__(self, value):
+        import os
+        if isinstance(value, int): self.size = value
+        else: self.size = os.path.getsize(str(value))
+
+    def __int__(self):
+        return self.size
+
+    def __str__(self):
+        if self.size == 0: return '0 bytes'
+        from math import log
+        unit = self.units[min(int(log(self.size, self.chunk)), len(self.units) - 1)]
+        return self.format(unit)
+
+    def format(self, unit):
+        if unit not in self.units: raise Exception("Not a valid file size unit: %s" % unit)
+        if self.size == 1 and unit == 'bytes': return '1 byte'
+        exponent = self.units.index(unit)
+        quotient = float(self.size) / self.chunk**exponent
+        precision = self.precisions[exponent]
+        format_string = '{:.%sf} {}' % (precision)
+        return format_string.format(quotient, unit)
