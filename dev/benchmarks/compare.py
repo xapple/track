@@ -34,8 +34,8 @@ if not os.path.exists(output_directory): os.makedirs(output_directory)
 
 # Input files #
 input_files = {
+    'SGA with 159':      {'path': Path('/db/chipseq/mm9/fts/Mus_EPD.sga')},
     'SGA with 121353':   {'path': Path('/db/chipseq/sacCer/albert07/H2AZ.sga')},
-    'SGA with 1311747':  {'path': Path('/db/chipseq/mm9/cage/cage_mus.sga')},
     'SGA with 5941142':  {'path': Path('/db/chipseq/hg18/barski07/H3K9me3.sga')},
 }
 
@@ -66,11 +66,6 @@ def run(state='before'):
         file[state+'_creation'] = benchmark_creation(file)
         file[state+'_access'] = benchmark_access(file)
         file[state+'_size'] = benchmark_size(file)
-    # Print the results #
-    for label, file in input_files.items():
-        print label, 'creation:', file[state + '_creation'], 'seconds'
-        print label, 'access:', file[state + '_access'], 'seconds'
-        print label, 'size:', file[state + '_size']
 
 ################################################################################
 def plot_results(output_path = output_directory):
@@ -98,11 +93,21 @@ def plot_results(output_path = output_directory):
         series_before_x = numpy.arange(0, 3*len(series_before_y), 3)
         series_after_x = numpy.arange(1, 3*len(series_after_y)+1, 3)
         # Plotting #
-        axes.scatter(series_before_x, series_before_y, c='r', s=100)
-        axes.scatter(series_after_x, series_after_y, s=100)
+        axes.scatter(series_before_x, series_before_y, c='r', s=100, label='before')
+        axes.scatter(series_after_x, series_after_y, s=100, label='after')
         axes.set_xticks((series_before_x+series_after_x)/2.)
         axes.set_xticklabels(names)
+        axes.legend()
         # Exporting #
         path = output_directory + metric + '_results.pdf'
         if os.path.exists(path): os.remove(path)
         fig.savefig(path, transparent=True)
+        # Text dump #
+        path = output_directory + metric + '_results.text'
+        with open(path, 'w') as f:
+            f.write('BEFORE\n')
+            for label, file in input_files.items():
+                f.write(label + ' ' + metric + ' ' + str(file['before_' + metric]) + '\n')
+            f.write('AFTER\n')
+            for label, file in input_files.items():
+                f.write(label + ' ' + metric + ' ' + str(file['after_' + metric]) + '\n')
