@@ -675,7 +675,7 @@ class Path(object):
         self.directory = os.path.dirname(path) + '/'
         self.filename = os.path.splitext(os.path.basename(path))[0]
 
-    def __str__(self, path):
+    def __repr__(self):
         return self.path
 
 #------------------------------------------------------------------------------#
@@ -701,7 +701,10 @@ class Filesize(object):
     def __int__(self):
         return self.size
 
-    def __str__(self):
+    def __float__(self):
+        return float(int(self))
+
+    def __repr__(self):
         if self.size == 0: return '0 bytes'
         from math import log
         unit = self.units[min(int(log(self.size, self.chunk)), len(self.units) - 1)]
@@ -713,5 +716,5 @@ class Filesize(object):
         exponent = self.units.index(unit)
         quotient = float(self.size) / self.chunk**exponent
         precision = self.precisions[exponent]
-        format_string = '{:.%sf} {}' % (precision)
+        format_string = '{0:.%sf} {1}' % (precision)
         return format_string.format(quotient, unit)

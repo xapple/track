@@ -6,6 +6,19 @@ We would like to measure three characteristics when creating SQLite files:
    * the size of resulting file,
    * the speed of file creation,
    * the speed of data access.
+
+Use it like this::
+    $ ipython
+    > cd /dev/benchmarks
+    > import compare
+    > compare.run(state='before')
+    [[[edit the source code of track]]]
+    > import track
+    > reload(track)
+    > compare.run(state='after')
+    > compare.plot_results()
+    > cd compare.output_directory
+    > ls
 """
 
 # Built-in modules #
@@ -16,46 +29,48 @@ import track
 from track.common import Path, Timer, Filesize
 
 # Output directory #
-output_directory = "/scratch/ul/daily/%s/" % os.environ['USER']
+output_directory = "/scratch/local/daily/%s/" % os.environ['USER']
 if not os.path.exists(output_directory): os.makedirs(output_directory)
 
 # Input files #
 input_files = {
-    'Sample SGA 1':   {'path': Path('/db/chipseq/hg18/barski07/H3K9me3.sga')},
+    'SGA with 121353':   {'path': Path('/db/chipseq/sacCer/albert07/H2AZ.sga')},
+    'SGA with 1311747':  {'path': Path('/db/chipseq/mm9/cage/cage_mus.sga')},
+    'SGA with 5941142':  {'path': Path('/db/chipseq/hg18/barski07/H3K9me3.sga')},
 }
 
 ################################################################################
 def benchmark_creation(file):
     old_path = file['path']
     new_path = Path(output_directory + old_path.filename + '.sql')
-    if os.path.exists(new_path): os.remove(new_path)
-    with Timer() as t: track.convert(str(old_path), str(new_path))
+    if os.path.exists(str(new_path)): os.remove(str(new_path))
+    with Timer() as timer: track.convert(str(old_path), str(new_path))
     file['new_path'] = new_path
-    return t.total_time
+    return timer.total_time
 
 def benchmark_access(file):
-    with track.load(str(file['new_path'])):
-        with Timer() as t:
-            data = track.read()
+    with track.load(str(file['new_path'])) as t:
+        with Timer() as timer:
+            data = t.read()
             for entry in data: pass
-    return t.total_time
+    return timer.total_time
 
 def benchmark_size(file):
     return Filesize(file['new_path'])
 
 ################################################################################
-def run(path, state='before'):
+def run(state='before'):
     """Run all the benchmarks"""
     # Iterate on every file #
-    for file in input_files.items():
+    for file in input_files.values():
         file[state+'_creation'] = benchmark_creation(file)
         file[state+'_access'] = benchmark_access(file)
         file[state+'_size'] = benchmark_size(file)
     # Print the results #
-    for label, file in input_files.values():
-        print label, 'creation:', file['creation'], 'seconds'
-        print label, 'access:', file['access'], 'seconds'
-        print label, 'size:', file['size']
+    for label, file in input_files.items():
+        print label, 'creation:', file[state + '_creation'], 'seconds'
+        print label, 'access:', file[state + '_access'], 'seconds'
+        print label, 'size:', file[state + '_size']
 
 ################################################################################
 def plot_results(output_path = output_directory):
@@ -77,14 +92,17 @@ def plot_results(output_path = output_directory):
         if metric == 'size': axes.set_ylabel('File size [bytes]')
         # Data gathering #
         names = input_files.keys()
-        series_before_y = [file['before_'+metric] for file in input_files]
-        series_after_y = [file['after_'+metric] for file in input_files]
+        series_before_y = [float(file['before_' + metric]) for file in input_files.values()]
+        series_after_y = [float(file['after_' + metric]) for file in input_files.values()]
         # Step of 3: red dot, blue dot, empty space
         series_before_x = numpy.arange(0, 3*len(series_before_y), 3)
         series_after_x = numpy.arange(1, 3*len(series_after_y)+1, 3)
         # Plotting #
         axes.scatter(series_before_x, series_before_y, c='r', s=100)
         axes.scatter(series_after_x, series_after_y, s=100)
-        axes.xticks((series_before_x+series_after_x)/2., names)
+        axes.set_xticks((series_before_x+series_after_x)/2.)
+        axes.set_xticklabels(names)
         # Exporting #
-        fig.savefig(output_directory + metric + '_results.pdf', transparent=True)
+        path = output_directory + metric + '_results.pdf'
+        if os.path.exists(path): os.remove(path)
+        fig.savefig(path, transparent=True)
