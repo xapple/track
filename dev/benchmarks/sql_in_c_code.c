@@ -1,5 +1,8 @@
+// Benchmark the execution times of accesing a SQLite3 database
+// using pure C code (to be compared with the python version).
+
 // Execute in your terminal:
-// $ gcc sql_readwrite.c -lsqlite3 -o c_readwrite
+// $ gcc sql_in_c_code.c -lsqlite3 -o sql_in_c_code
 // $ time c_readwrite
 
 #include <stdio.h>

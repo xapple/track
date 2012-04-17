@@ -1,4 +1,10 @@
 """
+This module evaluates the performance of the python sqlalchemy pacakge.
+One can compare the execution times when using the library in different ways.
+It also offers comparisions against the built-in sqlite3 pacakge.
+
+Last time this was run, we got these results:
+
 * sqlite3_via_index
 0.158075094223
 * sqlite3_via_names

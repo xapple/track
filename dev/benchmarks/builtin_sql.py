@@ -1,10 +1,41 @@
+"""
+This module evaluates the performance of the built-in python sqlite3 pacakge.
+One can compare the execution times when using the library in different ways.
+"""
+
 # Modules #
 import sqlite3, os, timeit, random, tempfile
-from track.common import Timer
 
 # Variables #
 global num_entries, connection, cursor
 num_entries = 1000000
+
+################################################################################
+# Classes #
+class Timer(object):
+    """Times a given code block. Use it like this:
+
+            with Timer('my batch process'): batch_benchmark(args)
+
+    """
+
+    def __init__(self, name=None, entries=1):
+        import timeit
+        self.name = name
+        self.entries = entries
+        self.timer = timeit.default_timer
+
+    def __enter__(self):
+        self.start = self.timer()
+        return self
+
+    def __exit__(self, *args):
+        self.end = self.timer()
+        total_time = self.end - self.start
+        entry_time = (1000000*total_time / self.entries)
+        line1 = "%.6f seconds for %s" % (total_time, self.name or 'Unnamed')
+        line2 = "(%.3f usec per entry)" % entry_time
+        print line1, line2
 
 ################################################################################
 # General Functions #
@@ -185,3 +216,4 @@ with Timer('read_row'): read_row(command)
 cursor.close()
 connection.close()
 destroy_database(path)
+
