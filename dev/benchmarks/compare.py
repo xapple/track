@@ -97,7 +97,7 @@ def plot_results(output_path = output_directory):
         axes.scatter(series_after_x, series_after_y, s=100, label='after')
         axes.set_xticks((series_before_x+series_after_x)/2.)
         axes.set_xticklabels(names)
-        axes.legend()
+        axes.legend(loc=2)
         # Exporting #
         path = output_directory + metric + '_results.pdf'
         if os.path.exists(path): os.remove(path)
