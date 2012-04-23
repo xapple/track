@@ -26,8 +26,8 @@ class SerializerBED(Serializer):
     def defineFields(self, fields):
         # Check that all fields are legal #
         if not all([f in all_fields for f in fields]):
-            message = "You tried to write a '%s' field to a BED file. Possible fields are: %s"
-            self.error(message % (f, all_fields))
+            message = "You tried to write a '%s' fields to a BED file. Possible fields are: %s"
+            self.error(message % (fields, all_fields))
         # Check for the simple case  #
         if all([fields[i] == all_fields[i] for i in range(len(fields))]): return
         # Find the highest ranked field #

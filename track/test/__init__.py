@@ -32,8 +32,8 @@ if not samples_path.endswith('/'): samples_path += '/'
 
 # Chromosome files #
 chr_files = {
-    'yeast': samples_path + 'chrmeta/yeast.chr',
-    'small': samples_path + 'chrmeta/yeast.chr'
+    'yeast': samples_path + 'chrmeta/sacCer2.chr',
+    'small': samples_path + 'chrmeta/small.chr'
 }
 
 # Tracks collection #
@@ -74,6 +74,9 @@ samples = {
   },
   'sga_tracks': {
     1:            {'name':'SGA example',           'filename': 'sga_test1'},
+    1:            {'name':'SGA scores 1',          'filename': 'sga_scores1'},
+    1:            {'name':'SGA scores 2',          'filename': 'sga_scores2'},
+    1:            {'name':'SGA scores 3',          'filename': 'sga_scores3'},
   },
   'gtf_tracks': {
     1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},

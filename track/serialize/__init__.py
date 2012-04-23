@@ -65,10 +65,9 @@ class Serializer(object):
         self.parser = parser
 
     def error(self, message, path=None, line_number=None):
-        if path and line_number:       location = " '%s:%s'" % (path, line_number)
-        elif path and not line_number: location = " '%s'"    % (path)
-        else:                          location = ""
-        raise Exception(message % location)
+        if path and line_number:       message % (" '%s:%s'" % (path, line_number))
+        elif path and not line_number: message % (" '%s'"    % (path))
+        raise Exception(message)
 
     def defineFields(self, fields):
         pass

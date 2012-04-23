@@ -686,7 +686,7 @@ class Filesize(object):
 
         >>> size = Filesize(123123123)
         >>> print size
-        '117.4 MB'
+        117.4 MB
     """
 
     chunk = 1024

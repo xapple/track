@@ -1094,7 +1094,11 @@ class Track(object):
         # Rows are the chromosome names #
         # [{'name': 'chr1', 'length': 1000}, {'name': 'chr2', 'length': 2000}]
         rows = [dict([('name', chrom)] + [(k,v) for k,v in self.chrmeta[chrom].items()]) for chrom in self.chrmeta]
-        self._cursor.execute('CREATE table "chrNames" ("name" text, "length" integer)')
+        # Columns are the field names #
+        # ['name', 'length']
+        columns = rows[0].keys()
+        fields = ','.join(['"' + field + '"' + ' ' + sql_field_types.get(field, 'text') for field in columns])
+        self._cursor.execute('CREATE table "chrNames" (' + fields + ')')
         for r in sorted(rows, key=lambda x: natural_sort(x['name'])):
             question_marks = '(' + ','.join(['?' for x in r.keys()]) + ')'
             column_names   = '(' + ','.join(['"' + k + '"' for k in r.keys()]) + ')'

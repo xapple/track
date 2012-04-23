@@ -24,6 +24,7 @@ sql_field_types = {'start':        'integer',
                    'attributes':   'text',
                    'source':       'text',
                    'frame':        'integer',
+                   'length':       'integer',
                    'attributes':   'text',}
 
 py_field_types  = {'start':        int,
@@ -40,6 +41,7 @@ py_field_types  = {'start':        int,
                    'attributes':   str,
                    'source':       str,
                    'frame':        int,
+                   'length':       int,
                    'attributes':   str,}
 
 format_synonyms = {'db': 'sql',

@@ -23,7 +23,7 @@ class ParserSGA(Parser):
             for number, line in enumerate(f):
                 items = line.split('\t')
                 chrom = items.pop(0)
-                if len(items) != 4: self.handler.error("The track%s doesn't have five columns", self.path, number)
+                if len(items) < 4: self.handler.error("The track%s doesn't have five columns", self.path, number)
                 # Name field #
                 name = items[0]
                 # Start field #

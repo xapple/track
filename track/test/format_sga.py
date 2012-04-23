@@ -27,11 +27,29 @@ class TestConversion(unittest.TestCase):
             orig_sga_path = info['sga']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            # From BED to SQL #
+            # From SGA to SQL #
             track.convert(orig_sga_path, test_sql_path, assembly='hg19')
             self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
             # Clean up #
             os.remove(test_sql_path)
+
+class TestRoundtrip(unittest.TestCase):
+    def runTest(self):
+        for num, info in sorted(samples['small_signals'].items()):
+            # Prepare paths #
+            orig_sga_path = info['sga']
+            orig_sql_path = info['sql']
+            test_sql_path = temporary_path('.sql')
+            test_sga_path = temporary_path('.sga')
+            # From WIG to SGA #
+            track.convert(orig_sga_path, test_sql_path, assembly='hg19')
+            self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
+            # From SGA to WIG #
+            track.convert(test_sql_path, test_sga_path)
+            self.assertTrue(assert_file_equal(orig_sga_path, test_sga_path))
+            # Clean up #
+            os.remove(test_sql_path)
+            os.remove(test_sga_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

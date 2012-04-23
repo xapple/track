@@ -47,7 +47,7 @@ class Assembly(object):
             >>> print a.chrmeta
             {u'c': {'length': 154478}, u'm': {'length': 366924}, u'1': {'length': 30427671}, u'3': {'length': 23459830}, u'2': {'length': 19698289}, u'5': {'length': 26975502}, u'4': {'length': 18585056}}
         """
-        return dict([(chrom['label'], dict([('length', chrom['length'])])) for chrom in self.chromosomes])
+        return dict([(chrom['label'], dict([('length', chrom['length']), ('refseq', chrom['refseq_locus'])])) for chrom in self.chromosomes])
 
     def guess_chromosome_name(self, chromosome_name):
         """Searches the assembly for chromosome synonym names, and returns the canonical name of the chromosome.
