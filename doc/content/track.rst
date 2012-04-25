@@ -31,6 +31,7 @@ Track methods
 .. automethod:: track.Track.rename
 .. automethod:: track.Track.search
 .. automethod:: track.Track.count
+.. automethod:: track.Track.delete_fields
 .. automethod:: track.Track.load_chr_file
 .. automethod:: track.Track.export_chr_file
 .. automethod:: track.Track.get_score_vector
