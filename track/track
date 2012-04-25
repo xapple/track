@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+
+"""
+====================
+``track`` executable
+====================
+
+Parses the command line options using optparse and
+calls a function from the track library.
+"""
+
+# Built-in modules #
+import os, sys, optparse
+
+# We might be missing track #
+try:
+    import track
+except ImportError:
+    print 'You do not seem to have the "track" package installed.' \
+          ' Either you never installed it or your PYTHON_PATH is not set correctly.' \
+          ' For more instructions see the README.txt file.'
+    sys.exit()
+
+# The long description #
+description = """
+A script to access functionality from the track library.
+An example usage is the following:
+"track convert data.sga data.sql hg19"
+More documentation is available at:
+http://bbcf.epfl.ch/track
+"""
+
+# Optparse is deprecated as of 2.7 #
+parameters = {
+    'usage'   : '%prog COMMAND_NAME [options]',
+    'version' : track.__version__,
+    'epilog'  : 'Using version %s from %s' % (track.__version__, __file__),
+    'description' : description,
+}
+parser = optparse.OptionParser(**parameters)
+options, args = parser.parse_args()
+
+# Check the positional arguments we got #
+if len(args) < 2 or args[0] != 'convert':
+    parser.error("Here is an example of a valid syntax: '$ track convert data.sql data.sga'")
+
+# Send the arguments we got to the function #
+track.convert(*args[1:])
+
+#-----------------------------------#
+# This code was written by the BBCF #
+# http://bbcf.epfl.ch/              #
+# webmaster.bbcf@epfl.ch            #
+#-----------------------------------#

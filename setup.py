@@ -17,5 +17,6 @@ setup(
                               'track.manips',
                              ],
         package_data     = {'track': ['genomes.db']},
-        ext_modules      = [Extension('track.pyrow', ['src/pyrow.c'])]
+        ext_modules      = [Extension('track.pyrow', ['src/pyrow.c'])],
+        scripts          = ['track/track'],
     )
