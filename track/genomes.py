@@ -18,11 +18,13 @@ assemblies = [x[0] for x in cursor if x[0] != 'assemblies']
 class Assembly(object):
     """The only object provided by the library.
 
-       :param assembly: A valid assembly name.
+       :param assembly: A valid assembly name such as 'sacCer2'.
        :type  assembly: string
     """
 
     def __init__(self, assembly):
+        # Record the name #
+        self.name = assembly
         # Check the input type #
         if not isinstance(assembly, basestring):
             raise TypeError('The assembly paramater needs to be a string such as "sacCer2".')
@@ -35,6 +37,8 @@ class Assembly(object):
         # Cut the synonyms #
         for chrom in self.chromosomes:
             chrom['synonyms'] = chrom['synonyms'].split(',') if chrom['synonyms'] else []
+
+    def __repr__(self): return '<%s object "%s">' % (self.__class__.__name__, self.name)
 
     @property
     def chrmeta(self):
@@ -54,7 +58,6 @@ class Assembly(object):
             chrom_info['refseq'] = '%s.%s' % (chrom['refseq_locus'], chrom['refseq_version'])
             result[chrom['label']] = chrom_info
         return result
-        return dict([(chrom['label'], dict([('length', chrom['length']), ('refseq', chrom['refseq_locus'])])) for chrom in self.chromosomes])
 
     def guess_chromosome_name(self, chromosome_name):
         """Searches the assembly for chromosome synonym names, and returns the canonical name of the chromosome.

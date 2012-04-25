@@ -76,7 +76,8 @@ class Serializer(object):
         self.chrmeta = chrmeta
 
     def defineAssembly(self, assembly):
-        self.defineChrmeta(Assembly(assembly).chrmeta)
+        self.assembly = Assembly(assembly)
+        self.defineChrmeta(self.assembly.chrmeta)
 
     def newTrack(self, info=None, name=None):
         pass
