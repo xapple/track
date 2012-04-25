@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
         orig_path = samples['small_features'][2]['sql']
         test_path = temporary_path('.sql')
         shutil.copy(orig_path, test_path)
-        with track.load(path) as t:
+        with track.load(test_path) as t:
             t.delete_fields(['name','strand'])
             got = list(t.read())
         expected = [('chrI',  10,  20, 0.1),
