@@ -1,4 +1,4 @@
-track 1.0.0
+track 1.1.0
 ===========
 
 Copyright 2011 EPFL BBCF <webmaster.bbcf@epfl.ch>

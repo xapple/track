@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 
 setup(
         name             =   'track',
-        version          =   '1.0.0',
+        version          =   '1.1.0',
         description      =   'Python package for reading and writing genomic data',
         long_description =   open('README.md').read(),
         license          =   'GNU General Public License 3.0',
