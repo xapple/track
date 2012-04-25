@@ -910,7 +910,7 @@ class Track(object):
 
             import track
             with track.new('tmp/track.sql') as t:
-                scores = t.get_score_vector('chr1')
+                scores = t.get_partial_score_vector('chr1', 100, 200)
         """
         # Check chromosome existence #
         if chromosome not in self: return

@@ -34,7 +34,8 @@ Track methods
 .. automethod:: track.Track.delete_fields
 .. automethod:: track.Track.load_chr_file
 .. automethod:: track.Track.export_chr_file
-.. automethod:: track.Track.get_score_vector
+.. automethod:: track.Track.get_full_score_vector
+.. automethod:: track.Track.get_partial_score_vector
 .. automethod:: track.Track.ucsc_to_ensembl
 .. automethod:: track.Track.ensembl_to_ucsc
 .. automethod:: track.Track.roman_to_integer
