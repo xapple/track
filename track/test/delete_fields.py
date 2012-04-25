@@ -3,7 +3,7 @@ Contains tests for ``t.delete_fields()``.
 """
 
 # Built-in modules #
-import os
+import os, shutil
 
 # Internal modules #
 import track
@@ -22,9 +22,10 @@ __test__ = True
 ###################################################################################
 class Test(unittest.TestCase):
     def runTest(self):
-        self.maxDiff = None
-        path = samples['small_features'][2]['sql']
-        with track.load(path, readonly=True) as t:
+        orig_path = samples['small_features'][2]['sql']
+        test_path = temporary_path('.sql')
+        shutil.copy(orig_path, test_path)
+        with track.load(path) as t:
             t.delete_fields(['name','strand'])
             got = list(t.read())
         expected = [('chrI',  10,  20, 0.1),
@@ -42,6 +43,8 @@ class Test(unittest.TestCase):
                     ('chrI', 270, 280, 0.0),
                     ('chrI', 290, 300, 0.7)]
         self.assertEqual(got, expected)
+        # Clean up #
+        os.remove(test_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

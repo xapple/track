@@ -661,6 +661,9 @@ class Track(object):
                 t.delete_fields(['score','strand'])
                 print t.fields
         """
+        # Check track attributes #
+        self._modified = True
+        if self.readonly: return
         # SQLite doesn't support dropping columns directly #
         sql_script = '''CREATE TABLE "%(chrom)s_tmp" (%(types)s);
         INSERT INTO "%(chrom)s_tmp" SELECT %(names)s FROM "%(chrom)s";
