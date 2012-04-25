@@ -32,7 +32,6 @@ class TestRoundtrip(unittest.TestCase):
             track.convert(orig_bigwig_path, test_sql_path, assembly='sacCer2')
             self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
             # From SQL to bigwig #
-            with track.load(test_sql_path) as t: t.roman_to_integer()
             track.convert(test_sql_path, test_bigwig_path)
             self.assertTrue(assert_file_equal(orig_bigwig_path, test_bigwig_path, start_a=1, start_b=1))
             # Clean up #
