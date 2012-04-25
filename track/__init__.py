@@ -8,7 +8,7 @@ __all__ = ['load', 'new', 'convert']
 formats = ('sql', 'bed', 'wig', 'gff', 'gtf', 'bedgraph', 'bigwig', 'gzip', 'sga')
 
 # Built-in modules #
-import os, re, sqlite3
+import os, re, sqlite3, json
 from itertools import imap
 
 # Internal modules #
@@ -175,7 +175,7 @@ class Track(object):
     """
 
     def __init__(self, path, readonly=False, autosave=True, orig_path=None, orig_format=None):
-        """The track package is designed to be accesed via the 'load()' and 'new()'
+        """The track package is designed to be accessed via the 'load()' and 'new()'
            functions in order to create Track objects.
            Usually, the constructor is not called directly."""
         # Passed attributes #
@@ -231,16 +231,20 @@ class Track(object):
         if isinstance(key,int): return self.chromosomes[key]
         else: return self.read(key)
 
+    def __repr__(self):
+        """Called when evaluating ``print t``."""
+        return '<%s object on "%s">' % (self.__class__.__name__, self.path)
+
     #-----------------------------------------------------------------------------#
     @property
     def modified(self):
-        """*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True."""
+        """A boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True."""
         if self._modified or self.info.modified or self.chrmeta.modified: return True
         return False
 
     @property
     def fields(self):
-        """*fields* is a list the value types that each feature in the track will contain. For instance:
+        """A list the value types that each feature in the track will contain. For instance:
 
                ``['start', 'end', 'name', 'score', 'strand']``
 
@@ -259,13 +263,13 @@ class Track(object):
 
     @property
     def tables(self):
-        """Returns the complete list of SQL tables."""
+        """The complete list of SQL tables."""
         self._cursor.execute("select name from sqlite_master where type='table'")
         return [x[0].encode('ascii') for x in self._cursor.fetchall()]
 
     @property
     def chromosomes(self):
-        """*chromosomes* is a list of all available chromosome. For instance:
+        """A list of all available chromosome. For instance:
 
                ``['chr1, 'chr2', 'chr3', 'chr4', 'chr5', 'chrC', 'chrM']``
 
@@ -276,7 +280,7 @@ class Track(object):
         return chroms
 
     def _get_fields_of_table(self, chrom):
-        """Returns the list of fields for a particular table by querying the SQL for the complete list of column names"""
+        """Return the list of fields for a particular table by querying the SQL for the complete list of column names"""
         # Check the table exists #
         if not chrom in self.tables: return []
         # A pragma statement will implicitly issue a commit, don't use #
@@ -287,7 +291,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def cursor(self):
-        """*cursor* will create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the `sqlite3 documentation pages <http://docs.python.org/library/sqlite3.html>`_.
+        """Create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the `sqlite3 documentation pages <http://docs.python.org/library/sqlite3.html>`_.
 
         :returns: A new sqlite3 cursor object
 
@@ -305,7 +309,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def save(self):
-        """Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling ``rollback`` will revert all changes to the track since the last call to ``save()``. By default, when the track is closed, all changes are saved.
+        """Store the changes that were applied to the track on the disk. If the track was loaded from a text file such as 'bed', the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling ``rollback`` will revert all changes to the track since the last call to ``save()``. By default, when the track is closed, all changes are saved.
 
         :returns: None
 
@@ -342,7 +346,7 @@ class Track(object):
             raise Exception(message % (self.path, err))
 
     def _make_missing_tables(self):
-        """Makes sure every chromosome referenced in the chrNames table exists as a table in the database. Will create empty tables."""
+        """Make sure every chromosome referenced in the 'chrNames' table exists as a table in the database. Will create empty tables."""
         fields = self.fields or minimum_fields
         fields = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in fields])
         for chrom_name in sorted(self.chrmeta, key=natural_sort):
@@ -350,7 +354,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def rollback(self):
-        """Reverts all changes to the track since the last call to ``save()``.
+        """Revert all changes to the track since the last call to ``save()``.
 
         :returns: None
 
@@ -381,7 +385,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def close(self):
-        """Closes the current track. This method is useful when for some special reason you are not using the 'with ... as' form for loading tracks.
+        """Close the current track. This method is useful when for some special reason you are not using the ``with ... as``` form for loading tracks.
 
         :returns: None
 
@@ -408,7 +412,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def export(self, path, format=None):
-        """Exports the current track to a given format. A new file is created at the specified path. The current track object is unchanged
+        """Export the current track to a given format. A new file is created at the specified path. The current track object is unchanged
 
         :param path: is the path to track file to create.
         :type  path: string
@@ -437,7 +441,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def read(self, selection=None, fields=None, order='start,end'):
-        """Reads data from the track.
+        """Read data from the track.
 
         :param selection: A chromosome name, or a dictionary specifying a region, see below.
         :param fields: is an optional list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the *track.fields* attribute is set, that will be used.
@@ -515,7 +519,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def write(self, chromosome, data, fields=None):
-        """Writes data to a genomic file. Will write many feature at once into a given chromosome.
+        """Write data to a genomic file. Will write many feature at once into a given chromosome.
 
         :param chromosome: is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.
         :type  chromosome: string
@@ -595,7 +599,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def insert(self, chromosome, feature):
-        """Inserts one feature into an existing chromosome.
+        """Insert one feature into an existing chromosome.
 
         :param chromosome: is the name of the chromosome into which one wants to insert.
         :type  chromosome: string
@@ -615,7 +619,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def remove(self, chromosome):
-        """Removes data from a given chromosome.
+        """Remove data from a given chromosome.
 
         :param chromosome: is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.
         :type  chromosome: string
@@ -641,8 +645,47 @@ class Track(object):
             if chromosome in self.chrmeta: self.chrmeta.pop(chromosome)
 
     #-----------------------------------------------------------------------------#
+    def delete_fields(self, fields):
+        """Remove the given fields from all chromosomes. This is equivalent to dropping full columns in the database.
+
+        :param fields: A list of fields such as ``['score','strand']``.
+        :type  fields: list
+
+        :returns: None.
+
+        ::
+
+            import track
+            with track.load('tracks/example.sql') as t:
+                print t.fields
+                t.delete_fields(['score','strand'])
+                print t.fields
+        """
+        # SQLite doesn't support dropping columns directly #
+        sql_script = '''CREATE TABLE "%(chrom)s_tmp" (%(types)s);
+        INSERT INTO "%(chrom)s_tmp" SELECT %(names)s FROM "%(chrom)s";
+        DROP TABLE "%(chrom)s";
+        ALTER TABLE "%(chrom)s_tmp" RENAME TO "%(chrom)s";'''
+        # Loop on chromosomes #
+        for chrom in self:
+            current_fields = self._get_fields_of_table(chrom)
+            # Should anything change ? #
+            if not set(fields) & set(current_fields): continue
+            # What will be the fields now ? #
+            new_fields = [f for f in current_fields if f not in fields]
+            # Do we have anything left ? #
+            if not new_fields:
+                self.remove(chrom)
+                return
+            # Drop all the columns #
+            names = ','.join(['"' + f + '"' for f in new_fields])
+            types = ','.join(['"' + f + '"' + ' ' + sql_field_types.get(f, 'text') for f in new_fields])
+            custom_sql_script= sql_script % dict(chrom=chrom, names=names, types=types)
+            self._cursor.executescript(custom_sql_script)
+
+    #-----------------------------------------------------------------------------#
     def rename(self, previous_name, new_name):
-        """Renames a chromosome from *previous_name* to *new_name*
+        """Rename a chromosome from *previous_name* to *new_name*
 
         :param previous_name: is the name of the chromosome that one wishes to rename.
         :type  previous_name: string
@@ -689,7 +732,8 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def search(self, query_dict, fields=None, chromosome=None, exact_match=False):
-        """Searches for parameters inside your tracks. You can specify several parameters.
+        """Search for parameters inside your track. You can specify several parameters.
+
         :param selection: list of the fields you want to have in the result (to insure that all result will have the same number of columns)
         :param query_dict: A dictionary specifying keys and values to search for. See examples.
         :type  query_dict: dict
@@ -725,16 +769,21 @@ class Track(object):
         return cursor.execute(query_str)
 
     #-----------------------------------------------------------------------------#
-        :param table_name: specify a specific table to search on.
-        ::
+    def find_column_name(self, synonyms, table_name=None):
         """Search for a field name in the database. This can be useful when a specific field name has several synonyms and you don't know which one your data source is using. If several names match, will only return the first match.
-        :param synonyms: Several names commonly used for the same thing.
 
+        :param synonyms: Several names commonly used for the same thing.
+        :type  synonyms: list
+        :param table_name: Optionally, a specific chromosome to search on.
+        :type  table_name: list
+
+        :returns: An element of **synonyms** or an empty string if no match is found.
 
         ::
             with track.load('tracks/rp_genes.bed') as t:
                 name = t.find_column_name(['name', 'gene_name', 'gname', 'gene name'])
                 > gene_name
+        """
         if table_name is not None: fields = self.fields
         else:                      fields = self._get_fields_of_table(table_name)
         for name in synonyms:
@@ -743,7 +792,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def count(self, selection=None):
-        """Counts the number of features or entries in a given selection.
+        """Count the number of features or entries in a given selection.
 
         :param selection: is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method. If left empty, will count every feature in a track
 
@@ -780,7 +829,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def ucsc_to_ensembl(self):
-        """Converts all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.
+        """Convert all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.
 
         :returns: None.
 
@@ -807,7 +856,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def get_full_score_vector(self, chromosome):
-        """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
+        """Create an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
         :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
         :type  chromosome: string
@@ -843,7 +892,7 @@ class Track(object):
 
     #-----------------------------------------------------------------------------#
     def get_partial_score_vector(self, chromosome, start, end):
-        """Returns an iterable with as many elements as there are base pairs in the interval between *start* and *end*. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
+        """Create an iterable with as many elements as there are base pairs in the interval between *start* and *end*. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
 
         :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
         :type  chromosome: string
@@ -886,59 +935,8 @@ class Track(object):
         for i in xrange(x[1], end): yield 0.0
 
     #-----------------------------------------------------------------------------#
-    def get_score_vector(self, chromosome, start=0, end=None):
-        """Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Or if a *start* and *end* are given, an iterable of just the length of that interval. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.
-
-        :param chromosome: is the name of the chromosome on which one wants to create a score vector from.
-        :type  chromosome: string
-        :param start: Optionally, the base pair position where scores will start being read from. Defaults to 0.
-        :type  start: int
-        :param end: Optionally, the base pair position where scores will stop being read from. Defaults to the length of the chromosome.
-        :type  end: int
-
-        :returns: an iterable yielding floats.
-
-        ::
-
-            import track
-            with track.new('tmp/track.sql') as t:
-                scores = t.get_score_vector('chr1')
-        """
-        # Check chromosome existence #
-        if chromosome not in self: return
-        # Check chromosome end #
-        chr_length = self.chrmeta[chromosome]['length'] if chromosome in self.chrmeta else None
-        if not end: end = chr_length
-        # Selection #
-        if not end: selection = {'chr': chromosome, 'start': start}
-        else: selection = {'chr': chromosome, 'start': start, 'end': end}
-        # Fields #
-        fields = ['start','end','score'] if 'score' in self.fields else ['start','end']
-        # Call read #
-        data = self.read(selection, fields)
-        # Special function for tracks without score #
-        add_ones = lambda X: (tuple(x) + (1.0,) for x in X)
-        if 'score' not in self.fields: data = add_ones(data)
-        # Core loop #
-        x = (start, start)
-        for x in data:
-            if start >= x[1]: continue
-            if start < x[0]:
-                for i in xrange(start, x[0]): yield 0.0
-                start = x[0]
-            if end and end <= x[1]:
-                for i in xrange(start, end): yield x[2]
-                break
-            else:
-                for i in xrange(start,  x[1]): yield x[2]
-                start = x[1]
-        # End piece #
-        if end or chr_length:
-            for i in xrange(x[1], end or chr_length): yield 0.0
-
-    #-----------------------------------------------------------------------------#
     def roman_to_integer(self, names=None):
-        """Converts the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, 'chrI' will become 'chr1' while 'chrII' will become 'chr2', etc.
+        """Convert the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, 'chrI' will become 'chr1' while 'chrII' will become 'chr2', etc.
 
         :param names: an optional dictionary specifying how to translate particular cases. Example: ``{'chrM':'chrQ', '2micron':'chrR'}``
         :type  names: dict
@@ -960,7 +958,7 @@ class Track(object):
         for chrom in self: self.rename(chrom, convert(chrom))
 
     def integer_to_roman(self, names=None):
-        """Converts the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, 'chr1' will become 'chrI' while 'chr2' will become 'chrII', etc.
+        """Convert the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, 'chr1' will become 'chrI' while 'chr2' will become 'chrII', etc.
 
         :param names: an optional dictionary specifying how to translate particular cases. Example: ``{'chrQ':'chrM', 'chrR':'2micron'}``
         :type  names: dict
@@ -984,7 +982,7 @@ class Track(object):
     #--------------------------------------------------------------------------#
     @property
     def info(self):
-        """*info* is a dictionary of meta data associated to the track (information like the source, etc). For instance:
+        """A dictionary of meta data associated to the track (information like the source, etc). For instance:
 
               ``{'datatype': 'signal', 'source': 'SGD', 'orig_name': 'splice_sites.bed'}``
         """
@@ -995,7 +993,7 @@ class Track(object):
         self._info.overwrite(value)
 
     def _info_read(self):
-        """Populates the *self.info* attribute with information found in the 'attributes' table."""
+        """Populate the *self.info* attribute with information found in the 'attributes' table."""
         if not 'attributes' in self.tables: return
         # Make a dictionary directly from the table #
         query = self._cursor.execute('SELECT key, value from "attributes"')
@@ -1004,7 +1002,7 @@ class Track(object):
         self.info.modified = False
 
     def _info_write(self):
-        """Rewrites the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
+        """Rewrite the 'attributes' table so that it reflects the contents of the *self.info* attribute."""
         if self.readonly: return
         self._cursor.execute('DROP table IF EXISTS "attributes"')
         if not self.info: return
@@ -1033,7 +1031,7 @@ class Track(object):
 
     @property
     def name(self):
-        """Giving a name to your track is optional. The default name is ``Unnamed``. This attribute is stored inside the *info* dictionary."""
+        """Giving a name to your track is optional. The default name is the filename. This attribute is stored inside the *info* dictionary."""
         return self.info.get('name', os.path.basename(self.path))
 
     @name.setter
@@ -1043,7 +1041,7 @@ class Track(object):
     #-----------------------------------------------------------------------------#
     @property
     def chrmeta(self):
-        """*chrmeta* is an attribute containing extra chromosomal meta data such chromosome length information. *chrmeta* is a dictionary where each key is a chromosome names. For instance:
+        """Contains extra chromosomal meta data such as chromosome length information. *chrmeta* is a dictionary where each key is a chromosome names. For instance:
 
              ``{'chr1': {'length': 197195432}, 'chr2': {'length': 129993255}}``
 
@@ -1061,7 +1059,7 @@ class Track(object):
         self._chrmeta.overwrite(value)
 
     def _chrmeta_read(self):
-        """Populates the self.chrmeta attribute with information found in the 'chrNames' table."""
+        """Populate the self.chrmeta attribute with information found in the 'chrNames' table."""
         # If the table doesn't exist, just use the names
         if not 'chrNames' in self.tables:
             dictionary = dict([(chrom, dict()) for chrom in self])
@@ -1081,7 +1079,7 @@ class Track(object):
         self.chrmeta.modified = False
 
     def _chrmeta_write(self):
-        """Rewrites the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
+        """Rewrite the 'chrNames' table so that it reflects the contents of the self.chrmeta attribute."""
         if self.readonly: return
         self._cursor.execute('DROP table IF EXISTS "chrNames"')
         if not self.chrmeta: return
@@ -1150,11 +1148,16 @@ class Track(object):
     def aggregated_read(self, selection, base_fields, order_by=None):
         """
         Read the track with the *base_fields*, and aggregate all supplementary fields
-        found in a string.
+        found in a single string.
 
-        :param selection: the selection you want to read
-        :param base_fields: the columns you want to read.
-        :returns: a generator.
+        :param selection: The **selection** argument is passed to the **read** function.
+        :type selection: list
+        :param base_fields: the columns you don't want to aggregate.
+        :type base_fields: list
+        :param order_by: The **order_by** argument is passed to the **read** function.
+        :type order_by: list
+
+        :returns: a generator object yielding rows.
 
         ::
 
@@ -1172,7 +1175,6 @@ class Track(object):
             [1,  10, 3.4, "{name :'tc36', type:'transcript', strand:'-'}"]
             [11, 12, 3.4, "{name :'tc37', type:'transcript', strand:'+'}"]
         """
-        import json
         base_fields = tuple(base_fields)
         track_fields = self.fields
         supplementary_fields = tuple(set(track_fields) - set(base_fields))
