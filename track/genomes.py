@@ -27,7 +27,7 @@ class Assembly(object):
         self.name = assembly
         # Check the input type #
         if not isinstance(assembly, basestring):
-            raise TypeError('The assembly paramater needs to be a string such as "sacCer2".')
+            raise TypeError('The assembly parameter needs to be a string such as "sacCer2".')
         if not assembly in assemblies:
             raise TypeError('The assembly "%s" was not found in the database.' % assembly)
         # Load the chromosome data #
