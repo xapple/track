@@ -1,5 +1,5 @@
 """
-Usefull stuff for the track package.
+Useful stuff for the track package.
 """
 
 # Built-in modules #

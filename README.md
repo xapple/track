@@ -1,7 +1,8 @@
-track 1.1.0
+track 1.2.0
 ===========
 
 Copyright 2011 EPFL BBCF <webmaster.bbcf@epfl.ch>
+
 Written by <lucas.sinclair@me.com>
 
 track is a python module for reading and writing genomic data.
