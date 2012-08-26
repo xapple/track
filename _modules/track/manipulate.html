@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>track.manipulate</title>
+    
+    <link rel="stylesheet" href="../../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/logo.png"/>
+    <link rel="top" title="None" href="../../index.html" />
+    <link rel="up" title="track" href="../track.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">track v1.2.0</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../track.html" accesskey="U">track</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for track.manipulate</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">All manipulations</span>
+<span class="sd">-----------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># Built-in modules #</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">types</span><span class="o">,</span> <span class="nn">pkgutil</span><span class="o">,</span> <span class="nn">sqlite3</span>
+
+<span class="c"># Internal modules #</span>
+<span class="kn">import</span> <span class="nn">track</span>
+<span class="kn">from</span> <span class="nn">track</span> <span class="kn">import</span> <span class="n">manips</span><span class="p">,</span> <span class="n">Track</span><span class="p">,</span> <span class="n">FeatureStream</span>
+<span class="kn">from</span> <span class="nn">track.extras</span> <span class="kn">import</span> <span class="n">TrackCollection</span><span class="p">,</span> <span class="n">VirtualTrack</span>
+<span class="kn">from</span> <span class="nn">track.common</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">collapse</span><span class="p">,</span> <span class="n">andify_strings</span>
+
+<span class="c"># Constants #</span>
+<span class="n">base_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="s">&#39;short_name&#39;</span><span class="p">,</span> <span class="s">&#39;long_name&#39;</span><span class="p">,</span> <span class="s">&#39;input_tracks&#39;</span><span class="p">,</span> <span class="s">&#39;input_args&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;input_meta&#39;</span><span class="p">,</span> <span class="s">&#39;output_tracks&#39;</span><span class="p">,</span> <span class="s">&#39;tracks_collapse&#39;</span><span class="p">,</span> <span class="s">&#39;chroms_collapse&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;fields_collapse&#39;</span><span class="p">,</span> <span class="s">&#39;tooltip&#39;</span><span class="p">,</span> <span class="s">&#39;numeric_example&#39;</span><span class="p">,</span> <span class="s">&#39;visual_example&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;tests&#39;</span><span class="p">]</span>
+<span class="n">base_functions</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;generate&#39;</span><span class="p">]</span>
+
+<span class="c"># Conveniance functions #</span>
+<span class="n">is_gen</span>   <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Cursor</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">FeatureStream</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="nb">iter</span><span class="p">(())))</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="nb">iter</span><span class="p">([])))</span>
+<span class="n">is_list</span>  <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+<span class="n">is_track</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Track</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">TrackCollection</span><span class="p">)</span> <span class="ow">or</span> \
+                     <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">VirtualTrack</span><span class="p">)</span>
+
+<span class="c">################################################################################</span>
+<span class="k">class</span> <span class="nc">Manipulation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Taking the module object of a standard manipulation file</span>
+<span class="sd">            will build a callable instance satisfying the three</span>
+<span class="sd">            access methods:</span>
+
+<span class="sd">                1) overlap(&#39;tracks/pol2.sql&#39;, &#39;tracks/rap1.sql&#39;) # returns a virtual track</span>
+<span class="sd">                2) overlap(pol2,rap1) # returns a virtual track</span>
+<span class="sd">                3) overlap(pol2.read(chrom), rap1.read(chrom)) # returns a generator</span>
+
+<span class="sd">            Other special cases:</span>
+
+<span class="sd">                1) window_smoothing(pol2,rap1,L=100)</span>
+<span class="sd">                2) merge_scores([pol2,rap1,ifhl,fhl1])</span>
+<span class="sd">                3) overlap(pol2,rap1,ifhl,fhl1)</span>
+<span class="sd">                4) complement(pol2.read(chrom), l=pol2.chrmeta[chrom][&#39;length&#39;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Only one argument #</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># Module attributes become instance attributes #</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">base_attributes</span> <span class="o">+</span> <span class="n">base_functions</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="p">,</span><span class="n">attr</span><span class="p">))</span>
+        <span class="c"># Update the documentation #</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">documentation</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">documentation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate the sphinx docstring from the attributes of the manipulation.&quot;&quot;&quot;</span>
+        <span class="c"># The long title #</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_name</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span>
+        <span class="c"># The tool tip #</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tooltip</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># The input tracks #</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_tracks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span>
+                <span class="n">sub_msg</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">:param </span><span class="si">%s</span><span class="s">: An arbitrary number of tracks or paths to tracks.&quot;</span> \
+                          <span class="s">&quot; Eventually, generators yielding features.&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sub_msg</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">:param </span><span class="si">%s</span><span class="s">: A track or the path to a track. Eventually, a generator yielding features.&quot;</span>
+            <span class="n">sub_msg</span> <span class="o">=</span> <span class="n">sub_msg</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;fields&#39;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span><span class="o">==</span><span class="s">&#39;many&#39;</span><span class="p">:</span> <span class="n">sub_msg</span> <span class="o">+=</span> <span class="s">&quot; The fields read form these tracks will be: ``</span><span class="si">%s</span><span class="s">``&quot;</span>
+                <span class="k">else</span><span class="p">:</span>                     <span class="n">sub_msg</span> <span class="o">+=</span> <span class="s">&quot; The fields read form this track will be: ``</span><span class="si">%s</span><span class="s">``&quot;</span>
+                <span class="n">sub_msg</span> <span class="o">=</span> <span class="n">sub_msg</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s">&#39;...&#39;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]:</span> <span class="n">sub_msg</span> <span class="o">+=</span> <span class="s">&quot;, extra fields will be used.&quot;</span>
+                <span class="k">else</span><span class="p">:</span>                    <span class="n">sub_msg</span> <span class="o">+=</span> <span class="s">&quot;, extra fields will not be used.&quot;</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;no-overlap&#39;</span><span class="p">):</span> <span class="n">sub_msg</span> <span class="o">+=</span> <span class="s">&quot; The track is assumed to have no overlapping features.&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="n">sub_msg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;:type </span><span class="si">%s</span><span class="s">: list</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
+        <span class="c"># The arguments #</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_args</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;:param </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;doc&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;doc&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot; By default ``</span><span class="si">%s</span><span class="s">``.&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">:type </span><span class="si">%s</span><span class="s">: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># The special parameter #</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meta</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">:param </span><span class="si">%s</span><span class="s">:&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;kind&#39;</span> <span class="ow">in</span> <span class="n">p</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;kind&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;chrom_len&#39;</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot; The length of the current chromosome &quot;</span> \
+                       <span class="s">&quot;(only necessary when calling the manipulation with generators).</span><span class="se">\n</span><span class="s">&quot;</span> \
+                       <span class="s">&quot;:type </span><span class="si">%s</span><span class="s">: int&quot;</span> <span class="o">%</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># The output #</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_tracks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;fields&#39;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;:returns: A virtual track with the following fields: ``</span><span class="si">%s</span><span class="s">``.&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>             <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;:returns: A virtual track.&quot;</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+        <span class="c"># The numeric example #</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numeric_example</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">A numerical example::</span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numeric_example</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">     &#39;</span><span class="p">)</span>
+        <span class="c"># The viusal example #</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">visual_example</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">A visual example::</span><span class="se">\n</span><span class="s"> </span><span class="si">%s</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">visual_example</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">    &#39;</span><span class="p">)</span>
+        <span class="c"># Chromosomes collapse #</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms_collapse</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>\
+        <span class="s">&quot;If the list of chromosomes contained in the various tracks differ,&quot;</span> \
+        <span class="s">&quot; the conflict will be resolved by applying the &#39;</span><span class="si">%s</span><span class="s">&#39; principle.&quot;</span> \
+        <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms_collapse</span>
+        <span class="c"># Tracks collapse #</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracks_collapse</span><span class="p">:</span> <span class="n">msg</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>\
+        <span class="s">&quot;If the list of tracks supplied is more than the two authorized,&quot;</span> \
+        <span class="s">&quot; the conflict will be resolved by applying the &#39;</span><span class="si">%s</span><span class="s">&#39; principle.&quot;</span> \
+        <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">tracks_collapse</span>
+        <span class="c"># Return the message #</span>
+        <span class="k">return</span> <span class="n">msg</span>
+
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs all unittest. Yields *got* and *expected*&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tests</span><span class="p">:</span>
+            <span class="c"># Call the manipulation #</span>
+            <span class="n">final_args</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;tracks&#39;</span><span class="p">,{}),</span> <span class="n">test</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;args&#39;</span><span class="p">,{})):</span> <span class="n">final_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="o">**</span><span class="n">final_args</span><span class="p">)</span>
+            <span class="c"># In case we have a generator #</span>
+            <span class="k">if</span> <span class="n">is_gen</span><span class="p">(</span><span class="n">result</span><span class="p">):</span> <span class="n">got</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="c"># In case we have a track #</span>
+            <span class="k">if</span> <span class="n">is_track</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s">&#39;chromosome&#39;</span> <span class="ow">in</span> <span class="n">test</span><span class="p">:</span> <span class="n">got</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">&#39;chromosome&#39;</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>                    <span class="n">got</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="c"># Return two elements #</span>
+            <span class="n">got</span> <span class="o">=</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">got</span><span class="p">]</span>
+            <span class="k">yield</span> <span class="n">got</span><span class="p">,</span> <span class="n">test</span><span class="p">[</span><span class="s">&#39;expected&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check that all arguments are present</span>
+<span class="sd">           and load all tracks that are given as paths</span>
+<span class="sd">           instead of track objects. Also checks for</span>
+<span class="sd">           direct calls with generators.&quot;&quot;&quot;</span>
+        <span class="c"># Initialization #</span>
+        <span class="n">generator_call</span>   <span class="o">=</span> <span class="bp">False</span> <span class="c"># Special switch for direct generator calls</span>
+        <span class="n">found_args</span>       <span class="o">=</span> <span class="p">{}</span>    <span class="c"># Will contain a set of parameters extracted</span>
+        <span class="n">found_tracks</span>     <span class="o">=</span> <span class="p">{}</span>    <span class="c"># Will contain a set of track parameters extracted</span>
+        <span class="n">found_generators</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c"># Will contain a set of FeatureStream</span>
+        <span class="n">extra_args</span>       <span class="o">=</span> <span class="p">{}</span>    <span class="c"># Will contain a set of parameters computed</span>
+        <span class="n">all_tracks</span>       <span class="o">=</span> <span class="p">[]</span>    <span class="c"># Will contain all single tracks sent</span>
+        <span class="n">tracks_to_close</span>  <span class="o">=</span> <span class="p">[]</span>    <span class="c"># Will contain single tracks to close</span>
+        <span class="n">virtual_tracks</span>   <span class="o">=</span> <span class="p">[]</span>    <span class="c"># Will contain the results tracks</span>
+        <span class="n">rest_of_fields</span>   <span class="o">=</span> <span class="p">[]</span>    <span class="c"># Will contain variable output fields when required</span>
+        <span class="c">### Parse arguments ###</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;optional&#39;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The argument &#39;</span><span class="si">%s</span><span class="s">&#39; is missing for the manipulation &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> \
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">))</span>
+            <span class="c"># Cast it if it&#39;s not the right type #</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]):</span> <span class="n">value</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+            <span class="c"># Add it to the dict #</span>
+            <span class="n">found_args</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c">### Parse tracks ###</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_tracks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="n">t</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;optional&#39;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The argument &#39;</span><span class="si">%s</span><span class="s">&#39; is missing for the manipulation &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> \
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">))</span>
+            <span class="c"># Check is track collection #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_list</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;The track collection &#39;</span><span class="si">%s</span><span class="s">&#39; for the manipulation &#39;</span><span class="si">%s</span><span class="s">&#39; is not a list: </span><span class="si">%s</span><span class="s">&quot;</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">message</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="c"># Don&#39;t modify the input list #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:]</span>
+            <span class="c"># Check for generator case #</span>
+            <span class="k">if</span> <span class="n">is_gen</span><span class="p">(</span><span class="n">value</span><span class="p">):</span> <span class="n">generator_call</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span> <span class="ow">and</span> <span class="n">is_gen</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> <span class="n">generator_call</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="n">generator_call</span><span class="p">:</span>
+                <span class="n">found_tracks</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">continue</span>
+            <span class="c"># Check is path #</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">tracks_to_close</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">basestring</span><span class="p">):</span>
+                        <span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="n">tracks_to_close</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="c"># Add to the list of all tracks #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span> <span class="n">all_tracks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>                       <span class="n">all_tracks</span> <span class="o">+=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+            <span class="c"># Track collection must be combined #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;kind&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;many&#39;</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">TrackCollection</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_collapse</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms_collapse</span><span class="p">)</span>
+            <span class="c"># Variable fields case (track collection must collapse fields) #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;...&#39;</span><span class="p">:</span>
+                <span class="n">first_fields</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">rest_of_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">fields</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">first_fields</span><span class="p">]</span>
+                <span class="n">value</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">first_fields</span> <span class="o">+</span> <span class="n">rest_of_fields</span>
+            <span class="c"># Specific fields case #</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]</span>
+            <span class="c"># What about track SimpleTrack case #</span>
+            <span class="k">pass</span> <span class="c">#TODO</span>
+            <span class="c"># Add it to the dict #</span>
+            <span class="n">found_tracks</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c"># Check for generator case #</span>
+        <span class="k">if</span> <span class="n">generator_call</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_generator</span><span class="p">(</span><span class="n">found_tracks</span><span class="p">,</span> <span class="n">found_args</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="c"># Collapse chromosomes #</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chroms_collapse</span><span class="p">:</span> <span class="n">chromosomes</span> <span class="o">=</span> <span class="n">all_tracks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">chromosomes</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">chromosomes</span> <span class="o">=</span> <span class="n">collapse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chroms_collapse</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">chromosomes</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">all_tracks</span><span class="p">])</span>
+        <span class="c"># Multiple output tracks disabled #</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_tracks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c"># Make a new virtual track #</span>
+        <span class="n">vtrack</span> <span class="o">=</span> <span class="n">VirtualTrack</span><span class="p">()</span>
+        <span class="c"># Output chromosome metadata #</span>
+        <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">chromosomes</span><span class="p">:</span>
+            <span class="n">vtrack</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;length&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="s">&#39;length&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_tracks</span><span class="p">])}</span>
+        <span class="c"># Output attributes #</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;datatype&#39;</span><span class="p">):</span> <span class="n">vtrack</span><span class="o">.</span><span class="n">datatype</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;datatype&#39;</span><span class="p">]</span>
+        <span class="c"># Output name #</span>
+        <span class="n">vtrack</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">long_name</span> <span class="o">+</span> <span class="s">&#39; on &#39;</span> <span class="o">+</span> <span class="n">andify_strings</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_tracks</span><span class="p">])</span>
+        <span class="c">### Iterate on chromosomes ###</span>
+        <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">chromosomes</span><span class="p">:</span>
+            <span class="c"># Get special input arguments #</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meta</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;kind&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;chrom_len&#39;</span><span class="p">:</span>
+                    <span class="n">extra_args</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">vtrack</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chrom</span><span class="p">][</span><span class="s">&#39;length&#39;</span><span class="p">]</span>
+            <span class="c"># Call read on tracks #</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">input_track</span> <span class="ow">in</span> <span class="n">found_tracks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">is_list</span><span class="p">(</span><span class="n">input_track</span><span class="p">):</span> <span class="n">found_generators</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_track</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>                    <span class="n">found_generators</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_track</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
+            <span class="c"># What about track collapse and recursion #</span>
+            <span class="k">pass</span> <span class="c">#TODO</span>
+            <span class="c"># Final argument list #</span>
+            <span class="n">final_args</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">found_args</span><span class="p">,</span> <span class="n">found_generators</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">):</span> <span class="n">final_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="c"># Call generate #</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">final_args</span><span class="p">)</span>
+            <span class="c"># Variable fields case #</span>
+            <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;...&#39;</span><span class="p">:</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">rest_of_fields</span>
+            <span class="k">else</span><span class="p">:</span>                        <span class="n">fields</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]</span>
+            <span class="c"># Make a FeatureStream #</span>
+            <span class="n">stream</span> <span class="o">=</span> <span class="n">FeatureStream</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+            <span class="c"># Add it to the virtual track #</span>
+            <span class="n">vtrack</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
+        <span class="c"># Close tracks later #</span>
+        <span class="n">vtrack</span><span class="o">.</span><span class="n">tracks_to_close</span> <span class="o">=</span> <span class="n">tracks_to_close</span>
+        <span class="c"># Add it #</span>
+        <span class="n">virtual_tracks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vtrack</span><span class="p">)</span>
+        <span class="c"># Return one virutal track or list of virtual tracks #</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">virtual_tracks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">virtual_tracks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">virtual_tracks</span>
+
+    <span class="k">def</span> <span class="nf">from_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">found_generators</span><span class="p">,</span> <span class="n">found_args</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To be used when the manipulation is accessed</span>
+<span class="sd">        directly with generators&quot;&quot;&quot;</span>
+        <span class="c"># Initialization #</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c"># Parse special input arguments #</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_meta</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]:</span> <span class="n">value</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;position&#39;</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;default&#39;</span><span class="p">):</span> <span class="n">value</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;optional&#39;</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The special argument &#39;</span><span class="si">%s</span><span class="s">&#39; is missing for the generator &#39;</span><span class="si">%s</span><span class="s">&#39;.&quot;</span> \
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;kind&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span><span class="p">))</span>
+            <span class="c"># Cast it if it&#39;s not the right type #</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]):</span> <span class="n">value</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+            <span class="c"># Add it to the dict #</span>
+            <span class="n">extra_args</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;key&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="c"># Final argument list #</span>
+        <span class="n">final_args</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">found_args</span><span class="p">,</span> <span class="n">found_generators</span><span class="p">,</span> <span class="n">extra_args</span><span class="p">):</span> <span class="n">final_args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">final_args</span><span class="p">)</span>
+
+<span class="c">################################################################################</span>
+<span class="c"># This module #</span>
+<span class="n">self_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">__name__</span><span class="p">]</span>
+<span class="c"># Where are the all the manipulations #</span>
+<span class="n">manips_directory</span> <span class="o">=</span> <span class="n">manips</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c"># A list containing their names #</span>
+<span class="n">list_of_manip_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">loader</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ispkg</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">([</span><span class="n">manips_directory</span><span class="p">])]</span>
+<span class="c"># For every one make a callable function #</span>
+<span class="k">for</span> <span class="n">manip_name</span> <span class="ow">in</span> <span class="n">list_of_manip_names</span><span class="p">:</span>
+    <span class="n">manip_module</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s">&#39;track.manips.&#39;</span> <span class="o">+</span> <span class="n">manip_name</span><span class="p">)</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">self_module</span><span class="p">,</span> <span class="n">manip_name</span><span class="p">,</span> <span class="n">Manipulation</span><span class="p">(</span><span class="n">manip_module</span><span class="p">))</span>
+<span class="c"># Add the documentation for every one #</span>
+<span class="n">self_module</span><span class="o">.</span><span class="n">__doc__</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;.. autofunction:: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">list_of_manip_names</span><span class="p">])</span>
+
+<span class="c">#-----------------------------------#</span>
+<span class="c"># This code was written by the BBCF #</span>
+<span class="c"># http://bbcf.epfl.ch/              #</span>
+<span class="c"># webmaster.bbcf@epfl.ch            #</span>
+<span class="c">#-----------------------------------#</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">track v1.2.0</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../track.html" >track</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 26, 2012.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>

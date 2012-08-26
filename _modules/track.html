@@ -3,17 +3,20 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
     <title>track</title>
+    
     <link rel="stylesheet" href="../_static/rtd.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -36,7 +39,7 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">track v1.0.1</a> &raquo;</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
@@ -47,126 +50,14 @@
           <div class="body">
             
   <h1>Source code for track</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Provides easy read/write access to genomic tracks in a fashion that is independent from the underlying format. Requires Python 2.6 or higher.</span>
-<span class="sd">Currently the following formats are implemented:</span>
-
-<span class="sd">* `BioSQLite &lt;http://bbcf.epfl.ch/twiki/bin/view/BBCF/SqLite&gt;`_</span>
-<span class="sd">* `BED &lt;http://genome.ucsc.edu/FAQ/FAQformat.html#format1&gt;`_</span>
-<span class="sd">* `WIG &lt;http://genome.ucsc.edu/goldenPath/help/wiggle.html&gt;`_</span>
-<span class="sd">* `GFF &lt;http://genome.ucsc.edu/FAQ/FAQformat.html#format3&gt;`_</span>
-<span class="sd">* `GTF &lt;http://genome.ucsc.edu/FAQ/FAQformat.html#format4&gt;`_</span>
-<span class="sd">* `bedGraph &lt;http://genome.ucsc.edu/goldenPath/help/bedgraph.html&gt;`_</span>
-<span class="sd">* `bigWig &lt;http://genome.ucsc.edu/goldenPath/help/bigWig.html&gt;`_</span>
-
-<span class="sd">More formats can be added easily.</span>
-
-<span class="sd">############</span>
-<span class="sd">Installation</span>
-<span class="sd">############</span>
-
-<span class="sd">To install you can simply type::</span>
-
-<span class="sd">    $ sudo easy_install track</span>
-
-<span class="sd">If you don&#39;t have permission to install it like that, you can simply download the code, build the source in-place, and include the directory in your python path::</span>
-
-<span class="sd">    $ wget http://pypi.python.org/packages/source/t/track/track-1.0.0.tar.gz</span>
-<span class="sd">    $ tar -xzf track-1.0.0.tar.gz</span>
-<span class="sd">    $ cd track-1.0.0/</span>
-<span class="sd">    $ python setup.py build_ext --inplace</span>
-<span class="sd">    $ sed -i &quot;$ a\export PYTHONPATH=`pwd`/:\$PYTHONPATH&quot; ~/.bashrc</span>
-<span class="sd">    $ source ~/.bashrc</span>
-<span class="sd">    $ python -c &quot;import track; print track&quot;</span>
-
-<span class="sd">###########</span>
-<span class="sd">Quick start</span>
-<span class="sd">###########</span>
-
-<span class="sd">To get access to the information contained inside already existing genomic tracks, you would do the following whatever the format of the track is::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.load(&#39;tracks/rp_genes.bed&#39;) as rp:</span>
-<span class="sd">        data = rp.read(&#39;chr3&#39;)</span>
-
-<span class="sd">The ``data`` variable will now yield tuples containing genomic features on chromosome three. Typically, a feature consits of elements such as a start coordinate, a stop coordinate, a name, a score value, and a strand. Hence, when calling ``data.next()`` you will get objects looking something like this: ``(15, 20, &#39;Gene A&#39;, 3.0, 1)``.</span>
-
-<span class="sd">However, it is strongly advised to convert your tracks into the SQL format before working with them for better performance. If you do this, your text files will only be parsed once. The previous code becomes::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    track.convert(&#39;tracks/rp_genes.bed&#39;, &#39;tracks/rp_genes.sql&#39;)</span>
-<span class="sd">    with track.load(&#39;tracks/rp_genes.sql&#39;) as rp:</span>
-<span class="sd">        data = rp.read(&#39;chr3&#39;)</span>
-
-<span class="sd">Now, let&#39;s use our read query for computing something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.load(&#39;tracks/rp_genes.gff&#39;) as rp:</span>
-<span class="sd">        all_genes = rp.read(&#39;chr2&#39;)</span>
-<span class="sd">        base_coverage = sum([gene[1] - gene[0] for gene in all_genes])</span>
-<span class="sd">        # gene[1] is the end coordinate and gene[0] is the start coordinate</span>
-
-<span class="sd">Be sure to read the chapter about :ref:`convention` to understand the result.</span>
-
-<span class="sd">The results coming from the ``read`` function can also be referenced by field name. Hence this code works as well::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.load(&#39;tracks/rp_genes.gff&#39;) as rpgenes:</span>
-<span class="sd">        all_genes = rpgenes.read(&#39;chr2&#39;)</span>
-<span class="sd">        base_coverage = sum([gene[&#39;end&#39;] - gene[&#39;start&#39;] for gene in all_genes])</span>
-
-<span class="sd">To create a new track and then write to it, you should use the following::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.new(&#39;tracks/rap1_peaks.sql&#39;) as mypeaks:</span>
-<span class="sd">        mypeaks.write(&#39;chr1&#39;, [(10, 20, &#39;Peak A&#39;, 0.0, 1)])</span>
-
-<span class="sd">To duplicate a chromosome inside the same track, you can use the following::</span>
-
-<span class="sd">    with track.load(&#39;tracks/copychrs.sql&#39;) as t:</span>
-<span class="sd">        t.write(&#39;chrY&#39;, t.read(&#39;chrX&#39;))</span>
-
-<span class="sd">To make a new track from an old one, and invert the strand of every feature::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    def invert_strands(data):</span>
-<span class="sd">        for gene in data:</span>
-<span class="sd">            yield (gene[0], gene[1], gene[2], gene[3], gene[4] == 1 and -1 or 1)</span>
-<span class="sd">    with track.load(&#39;tracks/orig.sql&#39;) as orig:</span>
-<span class="sd">        with track.new(&#39;tracks/inverted.sql&#39;) as inverted:</span>
-<span class="sd">            for chrom in orig:</span>
-<span class="sd">                inverted.write(chrom, invert_strands(orig.read(chrom)))</span>
-
-<span class="sd">To convert a track from a format (e.g. BED) to an other format (e.g. GFF) you call the `track.convert` function::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    track.convert(&#39;tracks/rp_genes.bed&#39;, &#39;tracks/rp_genes.gff&#39;)</span>
-
-<span class="sd">If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.load(&#39;tracks/yeast_genes.sql&#39;) as t:</span>
-<span class="sd">        # Specify the assembly</span>
-<span class="sd">        t.assembly = &#39;hg19&#39;</span>
-<span class="sd">        # Or load a tab delimited file</span>
-<span class="sd">        t.load_chr_file(&#39;info/yeast.chr&#39;)</span>
-
-<span class="sd">To set the chromosome metadata or the track metadata you simply assign to that attribute::</span>
-
-<span class="sd">    import track</span>
-<span class="sd">    with track.load(&#39;tracks/scores.sql&#39;) as t:</span>
-<span class="sd">        t.chrmeta = ``{&#39;chr1&#39;: {&#39;length&#39;: 197195432}, &#39;chr2&#39;: {&#39;length&#39;: 129993255}}``</span>
-<span class="sd">        t.info = {&#39;datatype&#39;: &#39;signal&#39;, &#39;source&#39;: &#39;UCSC&#39;}</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 <span class="n">b</span><span class="s">&#39;This module needs Python 2.6 or later.&#39;</span>
 
 <span class="c"># Special variables #</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0.1&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.2.0&#39;</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;load&#39;</span><span class="p">,</span> <span class="s">&#39;new&#39;</span><span class="p">,</span> <span class="s">&#39;convert&#39;</span><span class="p">]</span>
 
 <span class="c"># Other variables #</span>
-<span class="n">formats</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;bed&#39;</span><span class="p">,</span> <span class="s">&#39;wig&#39;</span><span class="p">,</span> <span class="s">&#39;gff&#39;</span><span class="p">,</span> <span class="s">&#39;gtf&#39;</span><span class="p">,</span> <span class="s">&#39;bedGraph&#39;</span><span class="p">,</span> <span class="s">&#39;bigWig&#39;</span><span class="p">)</span>
+<span class="n">formats</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;sql&#39;</span><span class="p">,</span> <span class="s">&#39;bed&#39;</span><span class="p">,</span> <span class="s">&#39;wig&#39;</span><span class="p">,</span> <span class="s">&#39;gff&#39;</span><span class="p">,</span> <span class="s">&#39;gtf&#39;</span><span class="p">,</span> <span class="s">&#39;bedgraph&#39;</span><span class="p">,</span> <span class="s">&#39;bigwig&#39;</span><span class="p">,</span> <span class="s">&#39;gzip&#39;</span><span class="p">,</span> <span class="s">&#39;sga&#39;</span><span class="p">)</span>
 
 <span class="c"># Built-in modules #</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sqlite3</span>
@@ -182,10 +73,12 @@
 <span class="kn">from</span> <span class="nn">track.common</span> <span class="kn">import</span> <span class="n">JournaledDict</span><span class="p">,</span> <span class="n">natural_sort</span><span class="p">,</span> <span class="n">int_to_roman</span><span class="p">,</span> <span class="n">roman_to_int</span>
 <span class="kn">from</span> <span class="nn">track.common</span> <span class="kn">import</span> <span class="n">Color</span><span class="p">,</span> <span class="n">pick_iterator_elements</span><span class="p">,</span> <span class="n">get_next_item</span><span class="p">,</span> <span class="n">is_gzip</span>
 <span class="kn">from</span> <span class="nn">track.common</span> <span class="kn">import</span> <span class="n">if_url_then_get_url</span>
-<span class="kn">from</span> <span class="nn">track.genrep</span> <span class="kn">import</span> <span class="n">Assembly</span>
 
 <span class="c"># Compiled modules #</span>
 <span class="kn">from</span> <span class="nn">track.pyrow</span> <span class="kn">import</span> <span class="n">SuperRow</span>
+
+<span class="c"># Extra modules #</span>
+<span class="kn">from</span> <span class="nn">genomes</span> <span class="kn">import</span> <span class="n">Assembly</span>
 
 <span class="c"># Constants #</span>
 <span class="n">special_tables</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;attributes&#39;</span><span class="p">,</span> <span class="s">&#39;chrNames&#39;</span><span class="p">,</span> <span class="s">&#39;types&#39;</span><span class="p">)</span>
@@ -196,7 +89,7 @@
 <span class="n">relational_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;strand&#39;</span><span class="p">,</span> <span class="s">&#39;attributes&#39;</span><span class="p">,</span> <span class="s">&#39;group&#39;</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">)</span>
 
 <span class="c">################################################################################</span>
-<div class="viewcode-block" id="load"><a class="viewcode-back" href="../index.html#track.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../content/handeling.html#track.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Loads a track from disk, whatever the format is.</span>
 
 <span class="sd">       :param path: is the path to track file to load or an URL. If the path is an URL, the file will be downloaded automatically. If the path is a GZIP file, it will be decompressed automatically.</span>
@@ -235,7 +128,7 @@
         <span class="k">return</span> <span class="n">Track</span><span class="p">(</span><span class="n">sql_path</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="n">readonly</span><span class="p">,</span> <span class="n">orig_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">orig_format</span><span class="o">=</span><span class="n">format</span><span class="p">)</span>
 
 <span class="c">#---------------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="new"><a class="viewcode-back" href="../index.html#track.new">[docs]</a><span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="new"><a class="viewcode-back" href="../content/handeling.html#track.new">[docs]</a><span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates a new empty track in preparation for writing to it.</span>
 
 <span class="sd">       :param path: is the path to track file to create.</span>
@@ -269,14 +162,14 @@
         <span class="k">return</span> <span class="n">Track</span><span class="p">(</span><span class="n">sql_path</span><span class="p">,</span> <span class="n">orig_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">orig_format</span><span class="o">=</span><span class="n">format</span><span class="p">)</span>
 
 <span class="c">#---------------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../index.html#track.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">assembly</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../content/handeling.html#track.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">assembly</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Converts a track from one format to an other. The *source* file should have a different format from the *destination* file. If either the source or destination are missing a file extension, you can specify their formats using a tuple. See examples below.</span>
 
 <span class="sd">       :param source: is the path to the original track to load.</span>
 <span class="sd">       :type  source: string</span>
 <span class="sd">       :param destination: is the path to the track to be created.</span>
 <span class="sd">       :type  destination: string</span>
-<span class="sd">       :param assembly: an optional GenRep compatible assembly name or id. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</span>
+<span class="sd">       :param assembly: an optional compatible assembly name. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</span>
 <span class="sd">       :type  assembly: string</span>
 
 <span class="sd">       :returns: the path to the track created (or a list of track paths in the case of multi-track files).</span>
@@ -324,7 +217,7 @@
     <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span>
 
 <span class="c">################################################################################</span></div>
-<div class="viewcode-block" id="Track"><a class="viewcode-back" href="../index.html#track.Track">[docs]</a><span class="k">class</span> <span class="nc">Track</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Track"><a class="viewcode-back" href="../content/track.html#track.Track">[docs]</a><span class="k">class</span> <span class="nc">Track</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;The track object itself is iterable and will yield the name of all chromosomes.</span>
 <span class="sd">    ::</span>
 
@@ -336,7 +229,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">autosave</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">orig_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">orig_format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The track package is designed to be accesed via the &#39;load()&#39; and &#39;new()&#39;</span>
+        <span class="sd">&quot;&quot;&quot;The track package is designed to be accessed via the &#39;load()&#39; and &#39;new()&#39;</span>
 <span class="sd">           functions in order to create Track objects.</span>
 <span class="sd">           Usually, the constructor is not called directly.&quot;&quot;&quot;</span>
         <span class="c"># Passed attributes #</span>
@@ -392,16 +285,20 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called when evaluating ``print t``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&#39;&lt;</span><span class="si">%s</span><span class="s"> object on &quot;</span><span class="si">%s</span><span class="s">&quot;&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
     <span class="c">#-----------------------------------------------------------------------------#</span>
     <span class="nd">@property</span>
-<div class="viewcode-block" id="Track.modified"><a class="viewcode-back" href="../index.html#track.Track.modified">[docs]</a>    <span class="k">def</span> <span class="nf">modified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*modified* is a boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Track.modified"><a class="viewcode-back" href="../content/track.html#track.Track.modified">[docs]</a>    <span class="k">def</span> <span class="nf">modified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A boolean value which indicates if the track has been changed since it was opened. This value is set to False when you load a track and is set to True as soon, as you ``write``, ``rename`` or ``remove``. Changing the ``info`` or ``chrmeta`` attributes will also set this value to True.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modified</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">modified</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="o">.</span><span class="n">modified</span><span class="p">:</span> <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*fields* is a list the value types that each feature in the track will contain. For instance:</span>
+        <span class="sd">&quot;&quot;&quot;A list the value types that each feature in the track will contain. For instance:</span>
 
 <span class="sd">               ``[&#39;start&#39;, &#39;end&#39;, &#39;name&#39;, &#39;score&#39;, &#39;strand&#39;]``</span>
 
@@ -414,19 +311,19 @@
         <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
 
     <span class="nd">@fields.setter</span>
-<div class="viewcode-block" id="Track.fields"><a class="viewcode-back" href="../index.html#track.Track.fields">[docs]</a>    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.fields"><a class="viewcode-back" href="../content/track.html#track.Track.fields">[docs]</a>    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the fields globally for the track. This value is then used by read() and write() to get the fields in the right order.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fields</span> <span class="o">=</span> <span class="n">value</span>
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the complete list of SQL tables.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;The complete list of SQL tables.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;select name from sqlite_master where type=&#39;table&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;ascii&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
 
     <span class="nd">@property</span>
-<div class="viewcode-block" id="Track.chromosomes"><a class="viewcode-back" href="../index.html#track.Track.chromosomes">[docs]</a>    <span class="k">def</span> <span class="nf">chromosomes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*chromosomes* is a list of all available chromosome. For instance:</span>
+<div class="viewcode-block" id="Track.chromosomes"><a class="viewcode-back" href="../content/track.html#track.Track.chromosomes">[docs]</a>    <span class="k">def</span> <span class="nf">chromosomes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A list of all available chromosome. For instance:</span>
 
 <span class="sd">               ``[&#39;chr1, &#39;chr2&#39;, &#39;chr3&#39;, &#39;chr4&#39;, &#39;chr5&#39;, &#39;chrC&#39;, &#39;chrM&#39;]``</span>
 
@@ -437,7 +334,7 @@
         <span class="k">return</span> <span class="n">chroms</span>
 </div>
     <span class="k">def</span> <span class="nf">_get_fields_of_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chrom</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the list of fields for a particular table by querying the SQL for the complete list of column names&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of fields for a particular table by querying the SQL for the complete list of column names&quot;&quot;&quot;</span>
         <span class="c"># Check the table exists #</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
         <span class="c"># A pragma statement will implicitly issue a commit, don&#39;t use #</span>
@@ -447,8 +344,8 @@
         <span class="k">return</span> <span class="n">fields</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span>
-<div class="viewcode-block" id="Track.cursor"><a class="viewcode-back" href="../index.html#track.Track.cursor">[docs]</a>    <span class="k">def</span> <span class="nf">cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*cursor* will create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the `sqlite3 documentation pages &lt;http://docs.python.org/library/sqlite3.html&gt;`_.</span>
+<div class="viewcode-block" id="Track.cursor"><a class="viewcode-back" href="../content/track.html#track.Track.cursor">[docs]</a>    <span class="k">def</span> <span class="nf">cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new sqlite3 cursor object connected to the track database. You can use this attribute to make your own SQL queries and fetch the results. More information is available on the `sqlite3 documentation pages &lt;http://docs.python.org/library/sqlite3.html&gt;`_.</span>
 
 <span class="sd">        :returns: A new sqlite3 cursor object</span>
 
@@ -465,8 +362,8 @@
         <span class="k">return</span> <span class="n">new_cursor</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.save"><a class="viewcode-back" href="../index.html#track.Track.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stores the changes that were applied to the track on the disk. If the track was loaded from a text file such as &#39;bed&#39;, the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling ``rollback`` will revert all changes to the track since the last call to ``save()``. By default, when the track is closed, all changes are saved.</span>
+<div class="viewcode-block" id="Track.save"><a class="viewcode-back" href="../content/track.html#track.Track.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Store the changes that were applied to the track on the disk. If the track was loaded from a text file such as &#39;bed&#39;, the file is rewritten with the changes included. If the track was loaded as an SQL file, the changes are committed to the database. Calling ``rollback`` will revert all changes to the track since the last call to ``save()``. By default, when the track is closed, all changes are saved.</span>
 
 <span class="sd">        :returns: None</span>
 
@@ -497,21 +394,21 @@
                 <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_of_table</span><span class="p">(</span><span class="n">ch</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;CREATE INDEX if not exists &#39;&quot;</span> <span class="o">+</span> <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;_score_idx&#39; on &#39;&quot;</span> <span class="o">+</span> <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;&#39; (score)&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_of_table</span><span class="p">(</span><span class="n">ch</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;CREATE INDEX if not exists &#39;&quot;</span> <span class="o">+</span> <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;_name_idx&#39; on &#39;&quot;</span> <span class="o">+</span>  <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;&#39; (name)&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;CREATE INDEX if not exists &#39;&quot;</span> <span class="o">+</span> <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;_name_idx&#39; on &#39;&quot;</span> <span class="o">+</span> <span class="n">ch</span> <span class="o">+</span> <span class="s">&quot;&#39; (name)&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;The index creation on the track &#39;</span><span class="si">%s</span><span class="s">&#39; failed with the following error: </span><span class="si">%s</span><span class="s">&quot;</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">message</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_make_missing_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Makes sure every chromsome referenced in the chrNames table exists as a table in the database. Will create empty tables.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Make sure every chromosome referenced in the &#39;chrNames&#39; table exists as a table in the database. Will create empty tables.&quot;&quot;&quot;</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="ow">or</span> <span class="n">minimum_fields</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">sql_field_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">chrom_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">natural_sort</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;CREATE table if not exists &quot;&#39;</span> <span class="o">+</span> <span class="n">chrom_name</span> <span class="o">+</span> <span class="s">&#39;&quot; (&#39;</span> <span class="o">+</span> <span class="n">fields</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span>
-<div class="viewcode-block" id="Track.rollback"><a class="viewcode-back" href="../index.html#track.Track.rollback">[docs]</a>    <span class="k">def</span> <span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reverts all changes to the track since the last call to ``save()``.</span>
+<div class="viewcode-block" id="Track.rollback"><a class="viewcode-back" href="../content/track.html#track.Track.rollback">[docs]</a>    <span class="k">def</span> <span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Revert all changes to the track since the last call to ``save()``.</span>
 
 <span class="sd">        :returns: None</span>
 
@@ -526,7 +423,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_connection</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.vacuum"><a class="viewcode-back" href="../index.html#track.Track.vacuum">[docs]</a>    <span class="k">def</span> <span class="nf">vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.vacuum"><a class="viewcode-back" href="../content/track.html#track.Track.vacuum">[docs]</a>    <span class="k">def</span> <span class="nf">vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Rebuilds the database making it shrink in file size. This method is useful when, after having executed many inserts, updates, and deletes, the SQLite file is fragmented and full of empty space.</span>
 
 <span class="sd">        :returns: None</span>
@@ -541,8 +438,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;VACUUM&quot;</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.close"><a class="viewcode-back" href="../index.html#track.Track.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Closes the current track. This method is useful when for some special reason you are not using the &#39;with ... as&#39; form for loading tracks.</span>
+<div class="viewcode-block" id="Track.close"><a class="viewcode-back" href="../content/track.html#track.Track.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the current track. This method is useful when for some special reason you are not using the ``with ... as``` form for loading tracks.</span>
 
 <span class="sd">        :returns: None</span>
 
@@ -568,8 +465,8 @@
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.export"><a class="viewcode-back" href="../index.html#track.Track.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Exports the current track to a given format. A new file is created at the specified path. The current track object is unchanged</span>
+<div class="viewcode-block" id="Track.export"><a class="viewcode-back" href="../content/track.html#track.Track.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export the current track to a given format. A new file is created at the specified path. The current track object is unchanged</span>
 
 <span class="sd">        :param path: is the path to track file to create.</span>
 <span class="sd">        :type  path: string</span>
@@ -597,8 +494,8 @@
         <span class="k">return</span> <span class="n">parser</span><span class="p">(</span><span class="n">serializer</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.read"><a class="viewcode-back" href="../index.html#track.Track.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;start,end&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reads data from the track.</span>
+<div class="viewcode-block" id="Track.read"><a class="viewcode-back" href="../content/track.html#track.Track.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s">&#39;start,end&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read data from the track.</span>
 
 <span class="sd">        :param selection: A chromosome name, or a dictionary specifying a region, see below.</span>
 <span class="sd">        :param fields: is an optional list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the *track.fields* attribute is set, that will be used.</span>
@@ -655,7 +552,7 @@
             <span class="c"># Columns names in the table #</span>
             <span class="n">available_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_of_table</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
             <span class="c"># Fields attribute is set or not #</span>
-            <span class="n">query_fields</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span> <span class="ow">in</span> <span class="n">available_fields</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">or</span> <span class="n">py_field_types</span><span class="p">[</span><span class="n">f</span><span class="p">]()</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span> <span class="ow">and</span> <span class="n">fields</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fields</span><span class="p">])</span>
+            <span class="n">query_fields</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span> <span class="ow">in</span> <span class="n">available_fields</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">or</span> <span class="n">py_field_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">str</span><span class="p">)()</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span> <span class="ow">and</span> <span class="n">fields</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fields</span><span class="p">])</span>
         <span class="c">##### QUERY #####</span>
         <span class="n">sql_command</span> <span class="o">=</span> <span class="s">&quot;SELECT &quot;</span> <span class="o">+</span> <span class="n">query_fields</span> <span class="o">+</span> <span class="s">&quot; from &#39;&quot;</span> <span class="o">+</span> <span class="n">chrom</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span>
         <span class="c"># Add the where case #</span>
@@ -675,8 +572,8 @@
         <span class="k">return</span> <span class="n">FeatureStream</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.write"><a class="viewcode-back" href="../index.html#track.Track.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Writes data to a genomic file. Will write many feature at once into a given chromosome.</span>
+<div class="viewcode-block" id="Track.write"><a class="viewcode-back" href="../content/track.html#track.Track.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write data to a genomic file. Will write many feature at once into a given chromosome.</span>
 
 <span class="sd">        :param chromosome: is the name of the chromosome on which one wants to write. For instance, if one is using the BED format this will become the first column, while if one is using the SQL format this will become the name of the table to be created.</span>
 <span class="sd">        :type  chromosome: string</span>
@@ -756,7 +653,7 @@
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
     <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">feature</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Inserts one feature into an existing chromosome.</span>
+        <span class="sd">&quot;&quot;&quot;Insert one feature into an existing chromosome.</span>
 
 <span class="sd">        :param chromosome: is the name of the chromosome into which one wants to insert.</span>
 <span class="sd">        :type  chromosome: string</span>
@@ -775,8 +672,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_write_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;insert into &quot;&#39;</span> <span class="o">+</span> <span class="n">chromosome</span> <span class="o">+</span> <span class="s">&#39;&quot; values &#39;</span> <span class="o">+</span> <span class="n">question_marks</span><span class="p">,</span> <span class="n">feature</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span>
-<div class="viewcode-block" id="Track.remove"><a class="viewcode-back" href="../index.html#track.Track.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Removes data from a given chromosome.</span>
+<div class="viewcode-block" id="Track.remove"><a class="viewcode-back" href="../content/track.html#track.Track.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove data from a given chromosome.</span>
 
 <span class="sd">        :param chromosome: is the name of the chromosome that one wishes to delete or a list of chromosomes to delete.</span>
 <span class="sd">        :type  chromosome: string</span>
@@ -802,8 +699,50 @@
             <span class="k">if</span> <span class="n">chromosome</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">chromosome</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.rename"><a class="viewcode-back" href="../index.html#track.Track.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">previous_name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Renames a chromosome from *previous_name* to *new_name*</span>
+<div class="viewcode-block" id="Track.delete_fields"><a class="viewcode-back" href="../content/track.html#track.Track.delete_fields">[docs]</a>    <span class="k">def</span> <span class="nf">delete_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the given fields from all chromosomes. This is equivalent to dropping full columns in the database.</span>
+
+<span class="sd">        :param fields: A list of fields such as ``[&#39;score&#39;,&#39;strand&#39;]``.</span>
+<span class="sd">        :type  fields: list</span>
+
+<span class="sd">        :returns: None.</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            import track</span>
+<span class="sd">            with track.load(&#39;tracks/example.sql&#39;) as t:</span>
+<span class="sd">                print t.fields</span>
+<span class="sd">                t.delete_fields([&#39;score&#39;,&#39;strand&#39;])</span>
+<span class="sd">                print t.fields</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Check track attributes #</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modified</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">readonly</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c"># SQLite doesn&#39;t support dropping columns directly #</span>
+        <span class="n">sql_script</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;CREATE TABLE &quot;</span><span class="si">%(chrom)s</span><span class="s">_tmp&quot; (</span><span class="si">%(types)s</span><span class="s">);</span>
+<span class="s">        INSERT INTO &quot;</span><span class="si">%(chrom)s</span><span class="s">_tmp&quot; SELECT </span><span class="si">%(names)s</span><span class="s"> FROM &quot;</span><span class="si">%(chrom)s</span><span class="s">&quot;;</span>
+<span class="s">        DROP TABLE &quot;</span><span class="si">%(chrom)s</span><span class="s">&quot;;</span>
+<span class="s">        ALTER TABLE &quot;</span><span class="si">%(chrom)s</span><span class="s">_tmp&quot; RENAME TO &quot;</span><span class="si">%(chrom)s</span><span class="s">&quot;;&#39;&#39;&#39;</span>
+        <span class="c"># Loop on chromosomes #</span>
+        <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">current_fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_of_table</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
+            <span class="c"># Should anything change ? #</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">current_fields</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="c"># What will be the fields now ? #</span>
+            <span class="n">new_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">current_fields</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">]</span>
+            <span class="c"># Do we have anything left ? #</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">new_fields</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">chrom</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="c"># Drop all the columns #</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">new_fields</span><span class="p">])</span>
+            <span class="n">types</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">sql_field_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">new_fields</span><span class="p">])</span>
+            <span class="n">custom_sql_script</span> <span class="o">=</span> <span class="n">sql_script</span> <span class="o">%</span> <span class="nb">dict</span><span class="p">(</span><span class="n">chrom</span><span class="o">=</span><span class="n">chrom</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="n">types</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">custom_sql_script</span><span class="p">)</span>
+
+    <span class="c">#-----------------------------------------------------------------------------#</span></div>
+<div class="viewcode-block" id="Track.rename"><a class="viewcode-back" href="../content/track.html#track.Track.rename">[docs]</a>    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">previous_name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename a chromosome from *previous_name* to *new_name*</span>
 
 <span class="sd">        :param previous_name: is the name of the chromosome that one wishes to rename.</span>
 <span class="sd">        :type  previous_name: string</span>
@@ -849,8 +788,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">previous_name</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.search"><a class="viewcode-back" href="../index.html#track.Track.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">chromosome</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exact_match</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Searches for parameters inside your tracks. You can specify several parameters.</span>
+<div class="viewcode-block" id="Track.search"><a class="viewcode-back" href="../content/track.html#track.Track.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">chromosome</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">exact_match</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Search for parameters inside your track. You can specify several parameters.</span>
+
 <span class="sd">        :param selection: list of the fields you want to have in the result (to insure that all result will have the same number of columns)</span>
 <span class="sd">        :param query_dict: A dictionary specifying keys and values to search for. See examples.</span>
 <span class="sd">        :type  query_dict: dict</span>
@@ -871,7 +811,7 @@
         <span class="c"># A example final SQL string generated by this function is:</span>
         <span class="c"># SELECT * from (&quot;chrI&quot;,&quot;chrII&quot;,&quot;chrIII&quot;) WHERE gene_id like &#39;%3%&#39; AND gene_name like &#39;%YCCA3%&#39;</span>
         <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="bp">None</span> <span class="p">:</span>
+        <span class="k">if</span> <span class="n">fields</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span>
         <span class="c"># Generate condition #</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">query_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -886,8 +826,30 @@
         <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query_str</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.count"><a class="viewcode-back" href="../index.html#track.Track.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Counts the number of features or entries in a given selection.</span>
+    <span class="k">def</span> <span class="nf">find_column_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">synonyms</span><span class="p">,</span> <span class="n">table_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Search for a field name in the database. This can be useful when a specific field name has several synonyms and you don&#39;t know which one your data source is using. If several names match, will only return the first match.</span>
+
+<span class="sd">        :param synonyms: Several names commonly used for the same thing.</span>
+<span class="sd">        :type  synonyms: list</span>
+<span class="sd">        :param table_name: Optionally, a specific chromosome to search on.</span>
+<span class="sd">        :type  table_name: list</span>
+
+<span class="sd">        :returns: An element of **synonyms** or an empty string if no match is found.</span>
+
+<span class="sd">        ::</span>
+<span class="sd">            with track.load(&#39;tracks/rp_genes.bed&#39;) as t:</span>
+<span class="sd">                name = t.find_column_name([&#39;name&#39;, &#39;gene_name&#39;, &#39;gname&#39;, &#39;gene name&#39;])</span>
+<span class="sd">                &gt; gene_name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">table_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span>
+        <span class="k">else</span><span class="p">:</span>                      <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_of_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">synonyms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span> <span class="k">return</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span>
+
+    <span class="c">#-----------------------------------------------------------------------------#</span>
+<div class="viewcode-block" id="Track.count"><a class="viewcode-back" href="../content/track.html#track.Track.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Count the number of features or entries in a given selection.</span>
 
 <span class="sd">        :param selection: is the name of a chromosome, a list of chromosomes, a particular span or a list of spans. In other words, a value similar to the *selection* parameter of the *read* method. If left empty, will count every feature in a track</span>
 
@@ -923,8 +885,8 @@
         <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_request</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.ucsc_to_ensembl"><a class="viewcode-back" href="../index.html#track.Track.ucsc_to_ensembl">[docs]</a>    <span class="k">def</span> <span class="nf">ucsc_to_ensembl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converts all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.</span>
+<div class="viewcode-block" id="Track.ucsc_to_ensembl"><a class="viewcode-back" href="../content/track.html#track.Track.ucsc_to_ensembl">[docs]</a>    <span class="k">def</span> <span class="nf">ucsc_to_ensembl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert all entries of a track from the UCSC standard to the Ensembl standard effectively adding one to every start position.</span>
 
 <span class="sd">        :returns: None.</span>
 
@@ -936,7 +898,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;update &#39;&quot;</span> <span class="o">+</span> <span class="n">chrom</span> <span class="o">+</span> <span class="s">&quot;&#39; set start=start+1&quot;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="Track.ensembl_to_ucsc"><a class="viewcode-back" href="../index.html#track.Track.ensembl_to_ucsc">[docs]</a>    <span class="k">def</span> <span class="nf">ensembl_to_ucsc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.ensembl_to_ucsc"><a class="viewcode-back" href="../content/track.html#track.Track.ensembl_to_ucsc">[docs]</a>    <span class="k">def</span> <span class="nf">ensembl_to_ucsc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Converts all entries of a track from the Ensembl standard to the UCSC standard effectively subtracting one from every start position.</span>
 
 <span class="sd">        :returns: None.</span>
@@ -950,8 +912,8 @@
         <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;update &#39;&quot;</span> <span class="o">+</span> <span class="n">chrom</span> <span class="o">+</span> <span class="s">&quot;&#39; set start=start-1&quot;</span><span class="p">)</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.get_score_vector"><a class="viewcode-back" href="../index.html#track.Track.get_score_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_score_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.</span>
+<div class="viewcode-block" id="Track.get_full_score_vector"><a class="viewcode-back" href="../content/track.html#track.Track.get_full_score_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_score_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an iterable with as many elements as there are base pairs in the chromosomes specified by the *chromosome* parameter. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.</span>
 
 <span class="sd">        :param chromosome: is the name of the chromosome on which one wants to create a score vector from.</span>
 <span class="sd">        :type  chromosome: string</span>
@@ -962,15 +924,17 @@
 
 <span class="sd">            import track</span>
 <span class="sd">            with track.new(&#39;tmp/track.sql&#39;) as t:</span>
-<span class="sd">                scores = t.get_score_vector(&#39;chr1&#39;)</span>
+<span class="sd">                scores = t.get_full_score_vector(&#39;chr1&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Conditions #</span>
-        <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">add_ones</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">:</span> <span class="k">yield</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,)</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">add_ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">]))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">,</span><span class="s">&#39;score&#39;</span><span class="p">])</span>
+        <span class="c"># Check chromosome existence #</span>
+        <span class="k">if</span> <span class="n">chromosome</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">chr_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chromosome</span><span class="p">][</span><span class="s">&#39;length&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">chromosome</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span> <span class="k">else</span> <span class="bp">None</span>
+        <span class="c"># Call read #</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">,</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="k">else</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+        <span class="c"># Special function for tracks without score #</span>
+        <span class="n">add_ones</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span> <span class="n">data</span> <span class="o">=</span> <span class="n">add_ones</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="c"># Initialization #</span>
         <span class="n">last_end</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
@@ -980,12 +944,56 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>     <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span> <span class="k">yield</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
             <span class="n">last_end</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c"># End piece #</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chromosome</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chromosome</span><span class="p">][</span><span class="s">&#39;length&#39;</span><span class="p">]):</span> <span class="k">yield</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">chr_length</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">chr_length</span><span class="p">):</span> <span class="k">yield</span> <span class="mf">0.0</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
-<div class="viewcode-block" id="Track.roman_to_integer"><a class="viewcode-back" href="../index.html#track.Track.roman_to_integer">[docs]</a>    <span class="k">def</span> <span class="nf">roman_to_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converts the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, &#39;chrI&#39; will become &#39;chr1&#39; while &#39;chrII&#39; will become &#39;chr2&#39;, etc.</span>
+<div class="viewcode-block" id="Track.get_partial_score_vector"><a class="viewcode-back" href="../content/track.html#track.Track.get_partial_score_vector">[docs]</a>    <span class="k">def</span> <span class="nf">get_partial_score_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an iterable with as many elements as there are base pairs in the interval between *start* and *end*. Every element of the iterable is a float indicating the score at that position. If the track has no score associated, ones are inserted where features are present.</span>
+
+<span class="sd">        :param chromosome: is the name of the chromosome on which one wants to create a score vector from.</span>
+<span class="sd">        :type  chromosome: string</span>
+<span class="sd">        :param start: The base pair position where scores will start being read from. Defaults to 0.</span>
+<span class="sd">        :type  start: int</span>
+<span class="sd">        :param end: The base pair position where scores will stop being read from. Defaults to the length of the chromosome.</span>
+<span class="sd">        :type  end: int</span>
+
+<span class="sd">        :returns: an iterable yielding floats.</span>
+
+<span class="sd">        ::</span>
+
+<span class="sd">            import track</span>
+<span class="sd">            with track.new(&#39;tmp/track.sql&#39;) as t:</span>
+<span class="sd">                scores = t.get_partial_score_vector(&#39;chr1&#39;, 100, 200)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Check chromosome existence #</span>
+        <span class="k">if</span> <span class="n">chromosome</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c"># Call read #</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;chr&#39;</span><span class="p">:</span> <span class="n">chromosome</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">:</span> <span class="n">end</span><span class="p">}</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">,</span><span class="s">&#39;score&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="k">else</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span><span class="s">&#39;end&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+        <span class="c"># Special function for tracks without score #</span>
+        <span class="n">add_ones</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&#39;score&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span> <span class="n">data</span> <span class="o">=</span> <span class="n">add_ones</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="c"># Core loop #</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> <span class="k">yield</span> <span class="mf">0.0</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span> <span class="k">yield</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span>  <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span> <span class="k">yield</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c"># End piece #</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end</span><span class="p">):</span> <span class="k">yield</span> <span class="mf">0.0</span>
+
+    <span class="c">#-----------------------------------------------------------------------------#</span></div>
+<div class="viewcode-block" id="Track.roman_to_integer"><a class="viewcode-back" href="../content/track.html#track.Track.roman_to_integer">[docs]</a>    <span class="k">def</span> <span class="nf">roman_to_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the name of all chromosomes from the roman numeral standard to the arabic numeral standard. For instance, &#39;chrI&#39; will become &#39;chr1&#39; while &#39;chrII&#39; will become &#39;chr2&#39;, etc.</span>
 
 <span class="sd">        :param names: an optional dictionary specifying how to translate particular cases. Example: ``{&#39;chrM&#39;:&#39;chrQ&#39;, &#39;2micron&#39;:&#39;chrR&#39;}``</span>
 <span class="sd">        :type  names: dict</span>
@@ -1006,8 +1014,8 @@
             <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">chrom</span>
         <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">convert</span><span class="p">(</span><span class="n">chrom</span><span class="p">))</span>
 </div>
-<div class="viewcode-block" id="Track.integer_to_roman"><a class="viewcode-back" href="../index.html#track.Track.integer_to_roman">[docs]</a>    <span class="k">def</span> <span class="nf">integer_to_roman</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converts the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, &#39;chr1&#39; will become &#39;chrI&#39; while &#39;chr2&#39; will become &#39;chrII&#39;, etc.</span>
+<div class="viewcode-block" id="Track.integer_to_roman"><a class="viewcode-back" href="../content/track.html#track.Track.integer_to_roman">[docs]</a>    <span class="k">def</span> <span class="nf">integer_to_roman</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the name of all chromosomes from the arabic numeral standard to the roman numeral standard. For instance, &#39;chr1&#39; will become &#39;chrI&#39; while &#39;chr2&#39; will become &#39;chrII&#39;, etc.</span>
 
 <span class="sd">        :param names: an optional dictionary specifying how to translate particular cases. Example: ``{&#39;chrQ&#39;:&#39;chrM&#39;, &#39;chrR&#39;:&#39;2micron&#39;}``</span>
 <span class="sd">        :type  names: dict</span>
@@ -1031,18 +1039,18 @@
     <span class="c">#--------------------------------------------------------------------------#</span></div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*info* is a dictionary of meta data associated to the track (information like the source, etc). For instance:</span>
+        <span class="sd">&quot;&quot;&quot;A dictionary of meta data associated to the track (information like the source, etc). For instance:</span>
 
 <span class="sd">              ``{&#39;datatype&#39;: &#39;signal&#39;, &#39;source&#39;: &#39;SGD&#39;, &#39;orig_name&#39;: &#39;splice_sites.bed&#39;}``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info</span>
 
     <span class="nd">@info.setter</span>
-<div class="viewcode-block" id="Track.info"><a class="viewcode-back" href="../index.html#track.Track.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.info"><a class="viewcode-back" href="../content/track.html#track.Track.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">_info_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Populates the *self.info* attribute with information found in the &#39;attributes&#39; table.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Populate the *self.info* attribute with information found in the &#39;attributes&#39; table.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span> <span class="k">return</span>
         <span class="c"># Make a dictionary directly from the table #</span>
         <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT key, value from &quot;attributes&quot;&#39;</span><span class="p">)</span>
@@ -1051,7 +1059,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">_info_write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Rewrites the &#39;attributes&#39; table so that it reflects the contents of the *self.info* attribute.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Rewrite the &#39;attributes&#39; table so that it reflects the contents of the *self.info* attribute.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">readonly</span><span class="p">:</span> <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;DROP table IF EXISTS &quot;attributes&quot;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">:</span> <span class="k">return</span>
@@ -1073,24 +1081,24 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;datatype&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
 
     <span class="nd">@datatype.setter</span>
-<div class="viewcode-block" id="Track.datatype"><a class="viewcode-back" href="../index.html#track.Track.datatype">[docs]</a>    <span class="k">def</span> <span class="nf">datatype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.datatype"><a class="viewcode-back" href="../content/track.html#track.Track.datatype">[docs]</a>    <span class="k">def</span> <span class="nf">datatype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;features&#39;</span><span class="p">,</span> <span class="s">&#39;signal&#39;</span><span class="p">,</span> <span class="s">&#39;relational&#39;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;The datatype you are trying to use is invalid: &#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;datatype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Giving a name to your track is optional. The default name is ``Unnamed``. This attribute is stored inside the *info* dictionary.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Giving a name to your track is optional. The default name is the filename. This attribute is stored inside the *info* dictionary.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
 
     <span class="nd">@name.setter</span>
-<div class="viewcode-block" id="Track.name"><a class="viewcode-back" href="../index.html#track.Track.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.name"><a class="viewcode-back" href="../content/track.html#track.Track.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="c">#-----------------------------------------------------------------------------#</span></div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">chrmeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;*chrmeta* is an attribute containing extra chromosomal meta data such chromosome length information. *chrmeta* is a dictionary where each key is a chromosome names. For instance:</span>
+        <span class="sd">&quot;&quot;&quot;Contains extra chromosomal meta data such as chromosome length information. *chrmeta* is a dictionary where each key is a chromosome names. For instance:</span>
 
 <span class="sd">             ``{&#39;chr1&#39;: {&#39;length&#39;: 197195432}, &#39;chr2&#39;: {&#39;length&#39;: 129993255}}``</span>
 
@@ -1104,11 +1112,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chrmeta</span>
 
     <span class="nd">@chrmeta.setter</span>
-<div class="viewcode-block" id="Track.chrmeta"><a class="viewcode-back" href="../index.html#track.Track.chrmeta">[docs]</a>    <span class="k">def</span> <span class="nf">chrmeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.chrmeta"><a class="viewcode-back" href="../content/track.html#track.Track.chrmeta">[docs]</a>    <span class="k">def</span> <span class="nf">chrmeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_chrmeta</span><span class="o">.</span><span class="n">overwrite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">_chrmeta_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Populates the self.chrmeta attribute with information found in the &#39;chrNames&#39; table.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Populate the self.chrmeta attribute with information found in the &#39;chrNames&#39; table.&quot;&quot;&quot;</span>
         <span class="c"># If the table doesn&#39;t exist, just use the names</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;chrNames&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
             <span class="n">dictionary</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">chrom</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span> <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span>
@@ -1128,21 +1136,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">_chrmeta_write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Rewrites the &#39;chrNames&#39; table so that it reflects the contents of the self.chrmeta attribute.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Rewrite the &#39;chrNames&#39; table so that it reflects the contents of the self.chrmeta attribute.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">readonly</span><span class="p">:</span> <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;DROP table IF EXISTS &quot;chrNames&quot;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">:</span> <span class="k">return</span>
         <span class="c"># Rows are the chromosome names #</span>
         <span class="c"># [{&#39;name&#39;: &#39;chr1&#39;, &#39;length&#39;: 1000}, {&#39;name&#39;: &#39;chr2&#39;, &#39;length&#39;: 2000}]</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="nb">dict</span><span class="p">([(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">chrom</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">[</span><span class="n">chrom</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span> <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;CREATE table &quot;chrNames&quot; (&quot;name&quot; text, &quot;length&quot; integer)&#39;</span><span class="p">)</span>
+        <span class="c"># Columns are the field names #</span>
+        <span class="c"># [&#39;name&#39;, &#39;length&#39;]</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">field</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">sql_field_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s">&#39;text&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;CREATE table &quot;chrNames&quot; (&#39;</span> <span class="o">+</span> <span class="n">fields</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">natural_sort</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">])):</span>
             <span class="n">question_marks</span> <span class="o">=</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;?&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
             <span class="n">column_names</span>   <span class="o">=</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
             <span class="n">cell_values</span>    <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;INSERT into &quot;chrNames&quot; &#39;</span> <span class="o">+</span> <span class="n">column_names</span> <span class="o">+</span> <span class="s">&#39; values &#39;</span> <span class="o">+</span> <span class="n">question_marks</span><span class="p">,</span> <span class="n">cell_values</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Track.load_chr_file"><a class="viewcode-back" href="../index.html#track.Track.load_chr_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_chr_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.load_chr_file"><a class="viewcode-back" href="../content/track.html#track.Track.load_chr_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_chr_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the *chrmeta* attribute of the track by loading a chromosome file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer.</span>
 
 <span class="sd">        :param path: is the file path to the chromosome file to load.</span>
@@ -1152,7 +1164,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span> <span class="o">=</span> <span class="n">parse_chr_file</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="Track.export_chr_file"><a class="viewcode-back" href="../index.html#track.Track.export_chr_file">[docs]</a>    <span class="k">def</span> <span class="nf">export_chr_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.export_chr_file"><a class="viewcode-back" href="../content/track.html#track.Track.export_chr_file">[docs]</a>    <span class="k">def</span> <span class="nf">export_chr_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Output the information contained in the *chrmeta* attribute into a plain text file. The chromosome file is structured as tab-separated text file containing two columns: the first specifies a chromosomes name and the second its length as an integer</span>
 
 <span class="sd">        :param path: is the file path to the chromosome file to create.</span>
@@ -1164,7 +1176,7 @@
 </div>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assembly</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Giving an assembly to your track is optional. However, if you set this variable for your track, you should input with a GenRep compatible assembly name or id. Doing so, will download the relevant information from GenRep, set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.</span>
+        <span class="sd">&quot;&quot;&quot;Giving an assembly to your track is optional. However, if you set this variable for your track, you should input a valid assembly name such as &#39;sacCer2&#39;. Doing so will set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. This attribute is also stored inside the *info* dictionary.</span>
 
 <span class="sd">        ::</span>
 
@@ -1176,11 +1188,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;assembly&#39;</span><span class="p">,</span> <span class="s">&#39;Unnamed&#39;</span><span class="p">)</span>
 
     <span class="nd">@assembly.setter</span>
-<div class="viewcode-block" id="Track.assembly"><a class="viewcode-back" href="../index.html#track.Track.assembly">[docs]</a>    <span class="k">def</span> <span class="nf">assembly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="Track.assembly"><a class="viewcode-back" href="../content/track.html#track.Track.assembly">[docs]</a>    <span class="k">def</span> <span class="nf">assembly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="c"># Get the assembly #</span>
         <span class="n">assembly</span> <span class="o">=</span> <span class="n">Assembly</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="c"># Check that it is valid #</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">assembly</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="k">return</span>
+        <span class="c"># Add the attribute #</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;assembly&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="c"># Check if the tables need renaming or deleting #</span>
         <span class="k">for</span> <span class="n">orig_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chromosomes</span><span class="p">:</span>
             <span class="n">cannonical_name</span> <span class="o">=</span> <span class="n">assembly</span><span class="o">.</span><span class="n">guess_chromosome_name</span><span class="p">(</span><span class="n">orig_name</span><span class="p">)</span>
@@ -1188,8 +1200,6 @@
             <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">orig_name</span><span class="p">)</span>
         <span class="c"># Add the chrmeta #</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chrmeta</span> <span class="o">=</span> <span class="n">assembly</span><span class="o">.</span><span class="n">chrmeta</span>
-        <span class="c"># Add the attribute #</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s">&#39;assembly&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">assembly</span><span class="o">.</span><span class="n">name</span>
 
 <span class="c">################################################################################</span></div></div>
 <span class="k">class</span> <span class="nc">FeatureStream</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1234,7 +1244,7 @@
 <div id="searchbox" style="display: none">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" size="18" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
@@ -1257,12 +1267,12 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">track v1.0.1</a> &raquo;</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li>
           <li><a href="index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Last updated on Feb 14, 2012.
+      Last updated on Aug 26, 2012.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>

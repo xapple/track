@@ -1,0 +1,657 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Manipulating tracks</title>
+    
+    <link rel="stylesheet" href="../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.png"/>
+    <link rel="top" title="None" href="../index.html" />
+    <link rel="next" title="Loading into memory" href="memory.html" />
+    <link rel="prev" title="Using the Track object" href="track.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="memory.html" title="Loading into memory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="track.html" title="Using the Track object"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="manipulating-tracks">
+<h1>Manipulating tracks<a class="headerlink" href="#manipulating-tracks" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="using-only-file-paths">
+<h2>Using only file paths<a class="headerlink" href="#using-only-file-paths" title="Permalink to this headline">¶</a></h2>
+<p>Here is a short example where a new track is created containing the <tt class="docutils literal"><span class="pre">mean_score_by_feature</span></tt> computed on two other tracks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">gMiner.genomic_manip</span> <span class="kn">import</span> <span class="n">mean_score_by_feature</span>
+<span class="n">virtual_track</span> <span class="o">=</span> <span class="n">mean_score_by_feature</span><span class="p">(</span><span class="s">&#39;/tracks/pol2.sql&#39;</span><span class="p">,</span> <span class="s">&#39;/tracks/rib_prot.sql&#39;</span><span class="p">)</span>
+<span class="n">virtual_track</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s">&#39;/tmp/result.sql&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-track-objects">
+<h2>Using track objects<a class="headerlink" href="#using-track-objects" title="Permalink to this headline">¶</a></h2>
+<p>You can also do the same thing by inputing track objects directly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="kn">from</span> <span class="nn">track.manipulate</span> <span class="kn">import</span> <span class="n">mean_score_by_feature</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/scratch/tracks/pol2.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pol2</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/scratch/tracks/ribosome_proteins.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+        <span class="n">virtual_track</span> <span class="o">=</span> <span class="n">mean_score_by_feature</span><span class="p">(</span><span class="n">pol2</span><span class="p">,</span><span class="n">rpgenes</span><span class="p">)</span>
+        <span class="n">virtual_track</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s">&#39;/tmp/result.sql&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="chaining-manipulations">
+<h2>Chaining manipulations<a class="headerlink" href="#chaining-manipulations" title="Permalink to this headline">¶</a></h2>
+<p>The beautiful thing about this is that operations can be chained one to an other without having to compute intermediary states. The following also works:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="kn">from</span> <span class="nn">track.manipulate</span> <span class="kn">import</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">complement</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/scratch/genomic/tracks/pol2.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pol2</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/scratch/genomic/tracks/rap1.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rap1</span><span class="p">:</span>
+        <span class="n">virtual_track</span> <span class="o">=</span> <span class="n">complement</span><span class="p">(</span><span class="n">overlap</span><span class="p">(</span><span class="n">pol2</span><span class="p">,</span><span class="n">rap1</span><span class="p">))</span>
+        <span class="n">virtual_track</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s">&#39;/tmp/result.sql&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<span class="target" id="module-track.manipulate"></span><div class="section" id="all-manipulations">
+<h3>All manipulations<a class="headerlink" href="#all-manipulations" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="track.manipulate.closest_features">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">closest_features</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.closest_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the closest features from one track in an other track.</p>
+<p>For instance, the <tt class="docutils literal"><span class="pre">closest_features</span></tt> manipulation can identify
+the most relevant(s) gene(s) associated to each peak.</p>
+<ul class="simple">
+<li>In cases where the peak is isolated, <tt class="docutils literal"><span class="pre">min_length</span></tt> indicates maximal allowed length between peak and closest gene. Beyond this distance, the peak will not be attributed to any gene. This defaults to <tt class="docutils literal"><span class="pre">100000</span></tt>.</li>
+<li>In cases where the peak is near two promoters (one on each strand), <tt class="docutils literal"><span class="pre">utr_cutoff</span></tt> indicates the threshold above which the peak isn&#8217;t attributed to any gene. Below this threshold, the peak will be attributed to both genes. This defaults to <tt class="docutils literal"><span class="pre">2000</span></tt>.</li>
+<li>In cases where the peak is between two genes on the same strand, <tt class="docutils literal"><span class="pre">prom_cutoff</span></tt> indicates the percentage of the distance between the two genes below which the peak is attributed to the 3&#8217;UTR of the preceding gene rather than to the promoter of the following gene. This defaults to <tt class="docutils literal"><span class="pre">10</span></tt>.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name']</span></tt>, extra fields will not be used.</li>
+<li><strong>Y</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'strand']</span></tt>, extra fields will not be used.</li>
+<li><strong>min_length</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Minimal distance for attribution. By default <tt class="docutils literal"><span class="pre">100000</span></tt>.</li>
+<li><strong>utr_cutoff</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Distance below which the gene is attributed to both. By default <tt class="docutils literal"><span class="pre">2000</span></tt>.</li>
+<li><strong>prom_cutoff</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Distance percentage below which attribution is to preceding gene. By default <tt class="docutils literal"><span class="pre">10</span></tt>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'id',</span> <span class="pre">'type',</span> <span class="pre">'location']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>                             peak
+      ______  min_length    ------       min_length  ______
+-----|______|------...------------------...---------|______|-----
+      gene 1                                         gene 2
+
+          --&gt;                          --&gt;
+         |______  10%        90%      |______
+---------|______|-----|---------------|______|-------------------
+          gene 1      prom_cutoff      gene 2</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;first&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.complement">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">complement</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.complement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Complement (boolean NOT).</p>
+<p>The <tt class="docutils literal"><span class="pre">complement</span></tt> manipulation takes only one track
+for input. The output consists of all intervals that
+were not covered by a feature in the input track.
+This corresponds to the boolean NOT operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>, extra fields will not be used.</li>
+<li><strong>l</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The length of the current chromosome (only necessary when calling the manipulation with generators).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (10,20) (30,40)
+R [start,end]: ( 0,10) (20,30) (40,1000)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
+R: ▤▤▤▤▤▤─────▤▤▤▤▤▤▤▤▤─────▤▤▤▤▤▤</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.concatenate">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">concatenate</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.concatenate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Concatenate N tracks together.</p>
+<p>The <tt class="docutils literal"><span class="pre">concatenate</span></tt> manipulation takes only one track
+for input. The output consists of all intervals that
+were not covered by a feature in the input track.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n_tracks</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; An arbitrary number of tracks or paths to tracks. Eventually, generators yielding features. The fields read form these tracks will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (0,20)
+Y [start,end]: (10,30)
+R [start,end]: (0,20) (10,30)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
+R: ───▤▤▤▤▤▤▤▤▤───▤▤▤▤▤────▤▤▤▤▤▤▤──────
+         ▤▤▤▤▤</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.custom_boolean">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">custom_boolean</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.custom_boolean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute a custom boolean.</p>
+<p>The <tt class="docutils literal"><span class="pre">custom_boolean</span></tt> manipulation takes several tracks <em>t_1</em>,..,*t_n* and a
+boolean function <em>fn</em> as input, and returns one track that is <em>fn(t_1,..,t_n)</em>.
+The window size <em>win_size</em> determines how many basepairs of each track are
+loaded in memory at a time (default: 1000).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n_tracks</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; An arbitrary number of tracks or paths to tracks. Eventually, generators yielding features. The fields read form these tracks will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand']</span></tt>, extra fields will not be used.</li>
+<li><strong>fn</strong> (<em>function</em>) &#8211; A function that takes a vector and returns a boolean.</li>
+<li><strong>win_size</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The number of basepairs loaded in memory at each iteration (default: 1000). By default <tt class="docutils literal"><span class="pre">1000</span></tt>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X1 [start,end]: [(4,5),(7,9),(10,12)]
+X2 [start,end]: [(1,3),(4,5),(11,14)]
+X3 [start,end]: [(9,13)]
+fn: not(X1) and (X2 or X3)
+R               [(1,3),(9,10),(12,14)]</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X1: ───▤▤▤▤▤▤▤▤─────────────────────
+X2: ─▤▤▤▤▤▤─────────────────────────
+X3: ─────▤▤▤▤▤▤▤▤▤──────────────────
+fn: X1 and X2 and X3
+R:  ─────▤▤─────────────────────────</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.difference">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">difference</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.difference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Difference (boolean XOR).</p>
+<p>Concatenates two tracks together and subsequently performs
+the fusion manipulation on the result. Form this are removed
+any regions that were present in both of the original tracks.
+This is equivalent to the boolean <cite>XOR</cite> operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>, extra fields will not be used.</li>
+<li><strong>Y</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>, extra fields will not be used.</li>
+<li><strong>l</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The length of the current chromosome (only necessary when calling the manipulation with generators).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (0,40) (50,60)
+Y [start,end]: (10,20)
+R [start,end]: (0,10) (20,40) (50,60)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
+R: ───▤▤──────▤───▤▤▤▤▤────▤▤▤▤▤▤▤──────</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.filter">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">filter</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter features in a track by using a second track.</p>
+<p>The <tt class="docutils literal"><span class="pre">filter</span></tt> manipulation computes the overlap of
+the first track against the second stream returning only
+complete features from the first track.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+<li><strong>Y</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end']</span></tt>, extra fields will not be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (10,20) (30,40)
+Y [start,end]: (10,12) (17,22)
+R [start,end]: (10,20) (30,40)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
+R: ───▤▤▤▤▤▤▤▤▤─────────────────────────</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;first&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.fusion">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">fusion</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.fusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fuses features that are adjacent or overlapping in a track.</p>
+<p>The <tt class="docutils literal"><span class="pre">fusion</span></tt> manipulation will combine any features in a track that
+are adjacent to one another or overlapping each other into a single
+feature. The strand attribute will be conserved only if all features
+that are being merged have the same strand. The score attribute will
+be the sum of all the scores.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand']</span></tt>, extra fields will not be used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand']</span></tt>.</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X1 [start,end]: (10,20) (20,30)
+R  [start,end]: (10,30)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
+           ▤▤▤▤▤▤▤▤▤
+R: ──────▤▤▤▤▤▤▤▤▤▤▤───▤▤▤▤▤──────</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.mean_score_by_feature">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">mean_score_by_feature</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.mean_score_by_feature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean score of the signal in every feature.</p>
+<p>Given a signal track <tt class="docutils literal"><span class="pre">X</span></tt> and a feature track <tt class="docutils literal"><span class="pre">Y</span></tt>,
+the <tt class="docutils literal"><span class="pre">mean_score_by_feature</span></tt> manipulation computes the mean of scores
+of every of <tt class="docutils literal"><span class="pre">Y</span></tt>&#8216;s features in <tt class="docutils literal"><span class="pre">X</span></tt>. The output consists of a feature track
+similar to <tt class="docutils literal"><span class="pre">Y</span></tt> but with a new score value property for every feature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score']</span></tt>, extra fields will not be used. The track is assumed to have no overlapping features.</li>
+<li><strong>Y</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score',</span> <span class="pre">'...']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end,score]: (10,20,999)   (30,40,9999)
+Y [start,end,score]: (10,12,5)     (17,22,500)
+R [start,end,score]: (10,20,151)   (30,40,0)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ──────▤▤▤▤▤▤▤▤▤▤──────────────▤▤▤▤▤▤▤▤▤▤──────
+Y: ▁▁▁▁▁▁▁▁▁▁▁█████████▁▁▁▁▁▁▁▁▁▁██████████▁▁▁▁▁▁
+R: ▁▁▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁██████████▁▁▁▁▁▁</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;last&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.merge_scores">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">merge_scores</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.merge_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge scores of all signals together.</p>
+<p>The <tt class="docutils literal"><span class="pre">merge_scores</span></tt> manipulation merges N signals
+using some average function. If the boolean value <tt class="docutils literal"><span class="pre">geometric</span></tt>
+is true, the geometric mean is used, otherwise the arithmetic
+mean is used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n_tracks</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; An arbitrary number of tracks or paths to tracks. Eventually, generators yielding features. The fields read form these tracks will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score']</span></tt>, extra fields will not be used. The track is assumed to have no overlapping features.</li>
+<li><strong>geometric</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Use the geometric mean instead of the arithmetic mean. By default <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X1 [start,end,score]: (10,20,50) (30,40,100)
+X2 [start,end,score]: (10,12,20)
+R  [start,end,score]: (10,20,40) (12,20,25) (30,40,50)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X1: ▁▁▁▁▁▁▁▁▁▁█████████▁▁▁▁▁▁
+X2: ▁▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁
+R:  ▁▁▁▁▁▂▂▂▂▂▇▇▇▇▇▅▅▅▅▁▁▁▁▁▁</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.neighborhood">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">neighborhood</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.neighborhood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute neighborhood regions upstream and downstream of features..</p>
+<p>Given a stream of features and four integers <tt class="docutils literal"><span class="pre">before_start</span></tt>, <tt class="docutils literal"><span class="pre">after_end</span></tt>,
+<tt class="docutils literal"><span class="pre">after_start</span></tt> and <tt class="docutils literal"><span class="pre">before_end</span></tt>, this manipulation will output,
+for every feature in the input stream, one or two features
+in the neighborhood of the original feature.</p>
+<blockquote>
+<div><ul>
+<li><p class="first">Only <tt class="docutils literal"><span class="pre">before_start</span></tt> and <tt class="docutils literal"><span class="pre">after_end</span></tt> are given:</p>
+<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, end+after_end, ...)</pre>
+</div>
+</li>
+<li><p class="first">Only <tt class="docutils literal"><span class="pre">before_start</span></tt> and <tt class="docutils literal"><span class="pre">after_start</span></tt> are given:</p>
+<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)</pre>
+</div>
+</li>
+<li><p class="first">Only <tt class="docutils literal"><span class="pre">after_end</span></tt> and <tt class="docutils literal"><span class="pre">before_end</span></tt> are given:</p>
+<div class="highlight-python"><pre>(start, end, ...) -&gt; (end+before_end, end+after_end, ...)</pre>
+</div>
+</li>
+<li><p class="first">If all four parameters are given, a pair of features is outputted:</p>
+<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)
+                     (end+before_end, end+after_end, ...)</pre>
+</div>
+</li>
+<li><p class="first">If the boolean parameter <tt class="docutils literal"><span class="pre">on_strand</span></tt> is set to True,
+features on the negative strand are inverted as such:</p>
+<div class="highlight-python"><pre>(start, end, ...) -&gt; (start-after_end, start-before_end, ...)
+                     (end-after_start, end-before_start, ...)</pre>
+</div>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+<li><strong>before_start</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Base pairs before the feature start. By default <tt class="docutils literal"><span class="pre">0</span></tt>.</li>
+<li><strong>after_end</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Base pairs after the feature end. By default <tt class="docutils literal"><span class="pre">0</span></tt>.</li>
+<li><strong>after_start</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Base pairs after the feature start. By default <tt class="docutils literal"><span class="pre">0</span></tt>.</li>
+<li><strong>before_end</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Base pairs before the feature end. By default <tt class="docutils literal"><span class="pre">0</span></tt>.</li>
+<li><strong>on_strand</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Features on the negative strand can be inverted. By default <tt class="docutils literal"><span class="pre">False</span></tt>.</li>
+<li><strong>l</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The length of the current chromosome (only necessary when calling the manipulation with generators).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'...']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (10,20)
+R [start,end]: (5,8) (22,25)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ──────────▤▤▤▤▤▤▤▤▤──────────────
+R: ────▤▤▤▤─────────────▤▤▤▤────────</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.overlap">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">overlap</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pieces of overlap between two tracks (boolean AND).</p>
+<p>The <tt class="docutils literal"><span class="pre">overlap</span></tt> manipulation computes the overlap between two tracks
+returning new features that exactly match the overlapping zones.
+This is equivalent to the boolean <cite>AND</cite> operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+<li><strong>Y</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+<li><strong>l</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The length of the current chromosome (only necessary when calling the manipulation with generators).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'name',</span> <span class="pre">'score',</span> <span class="pre">'strand',</span> <span class="pre">'...']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end]: (0,20)
+Y [start,end]: (10,30)
+R [start,end]: (10,20)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤─────────────────▤▤▤▤▤▤▤──────
+Y: ─────────▤▤▤▤▤▤▤────▤▤▤▤▤─────────────────
+R: ─────────▤▤▤──────────────────────────────</pre>
+</div>
+<p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;intersection&#8217; principle.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.threshold">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">threshold</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a score threshold.</p>
+<p>Given a track <tt class="docutils literal"><span class="pre">X</span></tt> and a real number <tt class="docutils literal"><span class="pre">s</span></tt>, the <tt class="docutils literal"><span class="pre">threshold</span></tt>
+manipulation will remove any features with a score below the <tt class="docutils literal"><span class="pre">s</span></tt> value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score',</span> <span class="pre">'...']</span></tt>, extra fields will be used.</li>
+<li><strong>s</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Score threshold.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score',</span> <span class="pre">'...']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A numerical example:</p>
+<div class="highlight-python"><pre>X [start,end,score]: (10,20,10) (30,40,5)
+s: 8
+R [start,end,score]: (10,20,10)</pre>
+</div>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▂▂▂▂▂▂▂▂▂▂▁▁▁▁█████████▁▁
+R: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████████▁▁</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="track.manipulate.window_smoothing">
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">window_smoothing</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.window_smoothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth scores with a moving window.</p>
+<p>Given a signal track and a window size in base pairs,
+the <tt class="docutils literal"><span class="pre">windows_smoothing</span></tt> manipulation will output a new signal
+track with, at each position p, the mean of the scores
+in the window [p-L, p+L]. Border cases are handled by zero padding
+and the signal&#8217;s support is invariant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> &#8211; A track or the path to a track. Eventually, a generator yielding features. The fields read form this track will be: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score']</span></tt>, extra fields will not be used. The track is assumed to have no overlapping features.</li>
+<li><strong>L</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The window radius. By default <tt class="docutils literal"><span class="pre">200</span></tt>.</li>
+<li><strong>l</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; The length of the current chromosome (only necessary when calling the manipulation with generators).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A virtual track with the following fields: <tt class="docutils literal"><span class="pre">['start',</span> <span class="pre">'end',</span> <span class="pre">'score']</span></tt>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>A visual example:</p>
+<div class="highlight-python"><pre>X: ▁▁▁▁▁▁▁▁▁▁████████████▁▁▁▁▁▁▁▁▁▁▁▁
+R: ▁▁▁▁▁▁▂▄▅▇████████████▇▅▄▂▁▁▁▁▁▁▁▁</pre>
+</div>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Manipulating tracks</a><ul>
+<li><a class="reference internal" href="#using-only-file-paths">Using only file paths</a></li>
+<li><a class="reference internal" href="#using-track-objects">Using track objects</a></li>
+<li><a class="reference internal" href="#chaining-manipulations">Chaining manipulations</a><ul>
+<li><a class="reference internal" href="#all-manipulations">All manipulations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="track.html"
+                        title="previous chapter">Using the Track object</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="memory.html"
+                        title="next chapter">Loading into memory</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/content/manipulate.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="memory.html" title="Loading into memory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="track.html" title="Using the Track object"
+             >previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 26, 2012.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>

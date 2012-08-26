@@ -1,0 +1,133 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Numbering convention</title>
+    
+    <link rel="stylesheet" href="../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.png"/>
+    <link rel="top" title="None" href="../index.html" />
+    <link rel="next" title="Reporting bugs" href="bugs.html" />
+    <link rel="prev" title="Loading into memory" href="memory.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting bugs"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="memory.html" title="Loading into memory"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="numbering-convention">
+<span id="convention"></span><h1>Numbering convention<a class="headerlink" href="#numbering-convention" title="Permalink to this headline">¶</a></h1>
+<p>It is important to note that the general numbering convention of features on a chromosome varies depending on the source of the data. For instance, UCSC and Ensembl differ in this point such that an interval labeled <cite>(start=4,end=8)</cite> will span four base pairs according to UCSC but will span five base pairs according to Ensembl.</p>
+<p>A numbering convention for describing continuous intervals of base pairs on a chromosome can be defined by three characteristics:</p>
+<ol class="arabic simple">
+<li><strong>Do we start at zero or one ?</strong> In <cite>track</cite>, the smallest authorized number is 0. A feature labeled <cite>(start=0,end=4)</cite> is legal.</li>
+<li><strong>Are the start and end included ?</strong> In <cite>track</cite>, the start is included and the end is included. A feature labeled <cite>(start=X,end=Y)</cite> spans Y-X nucleotides.</li>
+<li><strong>Are we counting on the nucleotides or between the nucleotides ?</strong> In <cite>track</cite>, we number between the nucleotides. Two features labeled <cite>(start=0,end=4)</cite> and <cite>(start=4,end=8)</cite> have no overlap.</li>
+</ol>
+<p>In the following visual examples, we use a feature labeled <cite>(start=4,end=8)</cite>. Both images are considered to be zero-based, start inclusive and end inclusive. However, the image on the left numbers the sugar groups while the image on the right numbers the phosphate groups. This produces different results. This packages sticks to standard depicted on the image labeled &#8220;Correct&#8221;.</p>
+<img alt="../_images/convention_wrong.png" src="../_images/convention_wrong.png" />
+<img alt="../_images/convention_correct.png" src="../_images/convention_correct.png" />
+<p><em>TL;DR</em>: This package uses the UCSC standard for all its representations.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="memory.html"
+                        title="previous chapter">Loading into memory</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="bugs.html"
+                        title="next chapter">Reporting bugs</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/content/numbering.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting bugs"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="memory.html" title="Loading into memory"
+             >previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 26, 2012.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>

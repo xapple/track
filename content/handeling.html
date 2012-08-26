@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Loading a track</title>
+    
+    <link rel="stylesheet" href="../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.png"/>
+    <link rel="top" title="None" href="../index.html" />
+    <link rel="next" title="Using the Track object" href="track.html" />
+    <link rel="prev" title="Quick start" href="quick_start.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="track.html" title="Using the Track object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick start"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="loading-a-track">
+<h1>Loading a track<a class="headerlink" href="#loading-a-track" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="track.load">
+<tt class="descclassname">track.</tt><tt class="descname">load</tt><big>(</big><em>path</em>, <em>format=None</em>, <em>readonly=False</em><big>)</big><a class="reference internal" href="../_modules/track.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a track from disk, whatever the format is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to load or an URL. If the path is an URL, the file will be downloaded automatically. If the path is a GZIP file, it will be decompressed automatically.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to load when it cannot be guessed from the file extension.</li>
+<li><strong>readonly</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; is an optional parameter that defaults to <tt class="docutils literal"><span class="pre">False</span></tt>. When set to <tt class="docutils literal"><span class="pre">True</span></tt>, any operation attempting to write to the track will silently be ignored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Track instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;/tmp/ae456f0&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/repeats.bed&#39;</span><span class="p">,</span> <span class="n">readonly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">repeats</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">repeats</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;http://example.com/genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">genes</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">genes</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="creating-a-new-track">
+<h1>Creating a new track<a class="headerlink" href="#creating-a-new-track" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="track.new">
+<tt class="descclassname">track.</tt><tt class="descname">new</tt><big>(</big><em>path</em>, <em>format=None</em><big>)</big><a class="reference internal" href="../_modules/track.html#new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new empty track in preparation for writing to it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to track file to create.</li>
+<li><strong>format</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is an optional parameter specifying the format of the track to create when it cannot be guessed from the file extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Track instance</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tmp/track.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;Gene A&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">set_chrmeta</span><span class="p">(</span><span class="s">&#39;hg19&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/peaks.sql&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">]</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr5&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1200</span><span class="p">,</span> <span class="s">&#39;Peak1&#39;</span><span class="p">,</span> <span class="mf">11.3</span><span class="p">)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="converting-tracks">
+<h1>Converting tracks<a class="headerlink" href="#converting-tracks" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="track.convert">
+<tt class="descclassname">track.</tt><tt class="descname">convert</tt><big>(</big><em>source</em>, <em>destination</em>, <em>assembly=None</em><big>)</big><a class="reference internal" href="../_modules/track.html#convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#track.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a track from one format to an other. The <em>source</em> file should have a different format from the <em>destination</em> file. If either the source or destination are missing a file extension, you can specify their formats using a tuple. See examples below.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>source</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the original track to load.</li>
+<li><strong>destination</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; is the path to the track to be created.</li>
+<li><strong>assembly</strong> (<a class="reference external" href="http://docs.python.org/library/string.html#string" title="(in Python v2.7)"><em>string</em></a>) &#8211; an optional compatible assembly name. Useful when the destination format needs to contain chromosome meta data and this is not available in the source file.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the path to the track created (or a list of track paths in the case of multi-track files).</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/genes.bigWig&#39;</span><span class="p">,</span> <span class="n">assembly</span><span class="o">=</span><span class="s">&#39;hg19&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tracks/no_extension&#39;</span><span class="p">,</span> <span class="s">&#39;gff&#39;</span><span class="p">),</span> <span class="s">&#39;tracks/genes.sql&#39;</span><span class="p">)</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">((</span><span class="s">&#39;tmp/4afb0edf&#39;</span><span class="p">,</span> <span class="s">&#39;bed&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;tmp/converted&#39;</span><span class="p">,</span> <span class="s">&#39;wig&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Loading a track</a></li>
+<li><a class="reference internal" href="#creating-a-new-track">Creating a new track</a></li>
+<li><a class="reference internal" href="#converting-tracks">Converting tracks</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="quick_start.html"
+                        title="previous chapter">Quick start</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="track.html"
+                        title="next chapter">Using the Track object</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/content/handeling.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="track.html" title="Using the Track object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="quick_start.html" title="Quick start"
+             >previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 26, 2012.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,195 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quick start</title>
+    
+    <link rel="stylesheet" href="../_static/rtd.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.png"/>
+    <link rel="top" title="None" href="../index.html" />
+    <link rel="next" title="Loading a track" href="handeling.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="handeling.html" title="Loading a track"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="quick-start">
+<h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>To get access to the information contained inside already existing genomic tracks, you would do the following whatever the format of the track is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">data</span></tt> variable will now yield tuples containing genomic features on chromosome three. Typically, a feature consits of elements such as a start coordinate, a stop coordinate, a name, a score value, and a strand. Hence, when calling <tt class="docutils literal"><span class="pre">data.next()</span></tt> you will get objects looking something like this: <tt class="docutils literal"><span class="pre">(15,</span> <span class="pre">20,</span> <span class="pre">'Gene</span> <span class="pre">A',</span> <span class="pre">3.0,</span> <span class="pre">1)</span></tt>.</p>
+<p>However, it is strongly advised to convert your tracks into the SQL format before working with them for better performance. If you do this, your text files will only be parsed once. The previous code becomes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr3&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, let&#8217;s use our read query for computing something. For instance, the cumulative base coverage of all features on chromosome two can be calculated like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rp</span><span class="p">:</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
+    <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
+    <span class="c"># gene[1] is the end coordinate and gene[0] is the start coordinate</span>
+</pre></div>
+</div>
+<p>Be sure to read the chapter about <a class="reference internal" href="numbering.html#convention"><em>Numbering convention</em></a> to understand the result.</p>
+<p>The results coming from the <tt class="docutils literal"><span class="pre">read</span></tt> function can also be referenced by field name. Hence this code works as well:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">rpgenes</span><span class="p">:</span>
+    <span class="n">all_genes</span> <span class="o">=</span> <span class="n">rpgenes</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chr2&#39;</span><span class="p">)</span>
+    <span class="n">base_coverage</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">gene</span><span class="p">[</span><span class="s">&#39;end&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">gene</span><span class="p">[</span><span class="s">&#39;start&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">all_genes</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To create a new track and then write to it, you should use the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/rap1_peaks.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mypeaks</span><span class="p">:</span>
+    <span class="n">mypeaks</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chr1&#39;</span><span class="p">,</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s">&#39;Peak A&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>To duplicate a chromosome inside the same track, you can use the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/copychrs.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;chrY&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s">&#39;chrX&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To make a new track from an old one, and invert the strand of every feature:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">def</span> <span class="nf">invert_strands</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">gene</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">gene</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/orig.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">orig</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s">&#39;tracks/inverted.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inverted</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">chrom</span> <span class="ow">in</span> <span class="n">orig</span><span class="p">:</span>
+            <span class="n">inverted</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chrom</span><span class="p">,</span> <span class="n">invert_strands</span><span class="p">(</span><span class="n">orig</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">chrom</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>To convert a track from a format (e.g. BED) to an other format (e.g. GFF) you call the <cite>track.convert</cite> function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="n">track</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;tracks/rp_genes.bed&#39;</span><span class="p">,</span> <span class="s">&#39;tracks/rp_genes.gff&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If your track is in a format that is missing chromosome information (such as the length of every chromosome), you can supply an assembly name or a chromosome file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/yeast_genes.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="c"># Specify the assembly</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">assembly</span> <span class="o">=</span> <span class="s">&#39;hg19&#39;</span>
+    <span class="c"># Or load a tab delimited file</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">load_chr_file</span><span class="p">(</span><span class="s">&#39;info/yeast.chr&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To set the chromosome metadata or the track metadata you simply assign to that attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">track</span>
+<span class="k">with</span> <span class="n">track</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s">&#39;tracks/scores.sql&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">t</span><span class="p">:</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">chrmeta</span> <span class="o">=</span> <span class="sb">``</span><span class="p">{</span><span class="s">&#39;chr1&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;length&#39;</span><span class="p">:</span> <span class="mi">197195432</span><span class="p">},</span> <span class="s">&#39;chr2&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;length&#39;</span><span class="p">:</span> <span class="mi">129993255</span><span class="p">}}</span><span class="sb">``</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;datatype&#39;</span><span class="p">:</span> <span class="s">&#39;signal&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">:</span> <span class="s">&#39;UCSC&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="handeling.html"
+                        title="next chapter">Loading a track</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/content/quick_start.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="handeling.html" title="Loading a track"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      Last updated on Aug 26, 2012.
+    <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
+    </div>
+  </body>
+</html>
