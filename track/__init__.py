@@ -8,7 +8,7 @@ __all__ = ['load', 'new', 'convert']
 formats = ('sql', 'bed', 'wig', 'gff', 'gtf', 'bedgraph', 'bigwig', 'gzip', 'sga')
 
 # Built-in modules #
-import os, re, sqlite3, json
+import os, re, sqlite3
 from itertools import imap
 
 # Internal modules #
@@ -342,7 +342,7 @@ class Track(object):
                 if 'score' in self._get_fields_of_table(ch):
                     self._cursor.execute("CREATE INDEX if not exists '" + ch + "_score_idx' on '" + ch + "' (score)")
                 if 'name' in self._get_fields_of_table(ch):
-                    self._cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx'  on '" + ch + "' (name)")
+                    self._cursor.execute("CREATE INDEX if not exists '" + ch + "_name_idx' on '" + ch + "' (name)")
         except sqlite3.OperationalError as err:
             message = "The index creation on the track '%s' failed with the following error: %s"
             raise Exception(message % (self.path, err))
@@ -1124,7 +1124,7 @@ class Track(object):
 
     @property
     def assembly(self):
-        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input a valid assembly name such as 'sacCer2'. Doing so will set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. You can also call ``guess_assembly()``. This attribute is also stored inside the *info* dictionary.
+        """Giving an assembly to your track is optional. However, if you set this variable for your track, you should input a valid assembly name such as 'sacCer2'. Doing so will set the *chrmeta* attribute and rename all the chromosome to their canonical names if a correspondence is found. This attribute is also stored inside the *info* dictionary.
 
         ::
 
@@ -1148,46 +1148,6 @@ class Track(object):
             else: self.remove(orig_name)
         # Add the chrmeta #
         self.chrmeta = assembly.chrmeta
-
-    #-----------------------------------------------------------------------------#
-    def aggregated_read(self, selection, base_fields, order_by=None):
-        """
-        Read the track with the *base_fields*, and aggregate all supplementary fields
-        found in a single string.
-
-        :param selection: The **selection** argument is passed to the **read** function.
-        :type selection: list
-        :param base_fields: the columns you don't want to aggregate.
-        :type base_fields: list
-        :param order_by: The **order_by** argument is passed to the **read** function.
-        :type order_by: list
-
-        :returns: a generator object yielding rows.
-
-        ::
-
-            >> import track
-            >> t = track.load('tmp/track.sql')
-            >> t.fields
-            ['start', 'stop', 'score', 'name', 'type', 'strand']
-            >> for feature in t.read('chr1'): print feature
-            [1,  10, 2.2, 'tc36', 'transcript', '+']
-            [1,  10, 3.4, 'tc36', 'transcript', '-']
-            [11, 12, 3.4, 'tc37', 'transcript', '+']
-            >> data = t.aggregated_read('chr1', ('start', 'stop', 'score'))
-            >> for feature in data: print feature
-            [1,  10, 2.2, "{name :'tc36', type:'transcript', strand:'+'}"]
-            [1,  10, 3.4, "{name :'tc36', type:'transcript', strand:'-'}"]
-            [11, 12, 3.4, "{name :'tc37', type:'transcript', strand:'+'}"]
-        """
-        base_fields = tuple(base_fields)
-        track_fields = self.fields
-        supplementary_fields = tuple(set(track_fields) - set(base_fields))
-        blen = len(base_fields)
-        ll = range(blen)
-        for feature in self.read(selection, base_fields + supplementary_fields, order=order_by):
-            d = [{field: feature[field]} for field in supplementary_fields if field in feature.keys()]
-            yield [feature[i] for i in ll] + [json.dumps(d)]
 
 ################################################################################
 class FeatureStream(object):
