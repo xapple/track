@@ -91,8 +91,10 @@ def gzip_inner_format(path):
     """Try to guess the format of a file inside a
        compressed gzip archive. Returns a three
        letter extension"""
+    # Remove trailing .gz or .gzip #
+    if path.endswith('.gz') or path.endswith('.gzip'): path, ext = os.path.splitext(path)
     # Get the extension #
-    ext = os.path.splitext(path.strip('.gz').strip('.gzip'))[1][1:]
+    ext = os.path.splitext(path)[1][1:]
     # An extension is provided #
     if ext: return format_synonyms.get(ext, ext)
     # Try our own sniffing now #
