@@ -2,19 +2,11 @@
 Installation
 ############
 
-To install you should download the latest source code from GitHub, either by going to::
+To install you can simply type::
 
-    http://github.com/bbcf/track
+    $ sudo easy_install empty
 
-and clicking on "Downloads", or by cloning the git repository with::
+That's it. However, if that doesn't work because you don't have sufficient permissions, you can simply install it somewhere else (for instance in your home)::
 
-    $ git clone https://github.com/bbcf/track.git
-
-Once you have the source code, run::
-
-    $ cd track
-    $ sudo python setup.py install
-
-to install it. If you don't have permission to install it in the default directory, you can simply build the source in-place and use the package from the git repository::
-
-    $  python setup.py build_ext --inplace
+    $ cd ~
+    $ pip install -e git+https://github.com/xapple/track

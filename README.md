@@ -2,6 +2,7 @@ track 1.1.0
 ===========
 
 Copyright 2011 EPFL BBCF <webmaster.bbcf@epfl.ch>
+Written by <lucas.sinclair@me.com>
 
 track is a python module for reading and writing genomic data.
 
@@ -14,4 +15,4 @@ of this license is in the LICENSE.txt file.
 Full documentation
 ==================
 
-The full documentation can be found [on our website](http://bbcf.epfl.ch/track).
+The full documentation can be found [on the website](http://xapple.github.com/track/).

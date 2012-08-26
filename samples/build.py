@@ -32,6 +32,6 @@ def create_tracks():
         for track_name, track_info in sorted(samples[collection].items()):
             print Color.ylw + "Creating track '" + track_info['name'] + "'" + Color.end
             from_path = track_info[conversion_info['from']]
-            to_path =   track_info[conversion_info['to']]
+            to_path   = track_info[conversion_info['to']]
             if os.path.exists(to_path): os.remove(to_path)
             track.convert(from_path, to_path, assembly = conversion_info['assembly'])

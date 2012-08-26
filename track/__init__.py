@@ -21,10 +21,12 @@ from track.common import check_path, check_file, empty_file, empty_sql_file, tem
 from track.common import JournaledDict, natural_sort, int_to_roman, roman_to_int
 from track.common import Color, pick_iterator_elements, get_next_item, is_gzip
 from track.common import if_url_then_get_url
-from track.genomes import Assembly
 
 # Compiled modules #
 from track.pyrow import SuperRow
+
+# Extra modules #
+from genomes import Assembly
 
 # Constants #
 special_tables = ('attributes', 'chrNames', 'types')
@@ -790,7 +792,7 @@ class Track(object):
         if table_name is not None: fields = self.fields
         else:                      fields = self._get_fields_of_table(table_name)
         for name in synonyms:
-            if name in self.fields: return name
+            if name in fields: return name
         return ''
 
     #-----------------------------------------------------------------------------#

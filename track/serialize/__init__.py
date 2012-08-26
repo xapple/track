@@ -6,7 +6,7 @@ This subpackage contains one python source file per format implemented for seria
 import sys
 
 # Other modules #
-from track.genomes import Assembly
+from genomes import Assembly
 
 # Variables #
 serializers = {
