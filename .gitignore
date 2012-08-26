@@ -15,8 +15,12 @@
 /MANIFEST
 
 # Build directories #
+_build/
 /build/
 /dist/
 
 # Git files #
 /.gitattributes
+
+# Compiled libraries #
+*.so
