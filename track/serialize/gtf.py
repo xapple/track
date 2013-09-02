@@ -31,6 +31,9 @@ class SerializerGTF(Serializer):
         for f in all_fields:
             try: self.indices.append(fields.index(f))
             except ValueError: self.indices.append(-1)
+        # Store non-mandatory fields (everything after "transcript_id") #
+        for idx_extra in range(9, len(fields)):
+            self.indices.append(idx_extra)
 
     def newTrack(self, info=None, name=None):
         if not info: info = {}
