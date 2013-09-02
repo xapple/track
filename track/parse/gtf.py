@@ -74,9 +74,15 @@ class ParserGTF(Parser):
                     self.handler.error("The track%s has non integers as frame value", self.path, number)
             # The last special column #
             attr = shlex.split(items.pop())
-            attr = dict([(attr[i],attr[i+1].strip(';')) for i in xrange(0,len(attr),2)])
-            self.handler.defineFields(all_fields + attr.keys())
-            items += attr.values()
+            attr = [(attr[i],attr[i+1].strip(';')) for i in xrange(0,len(attr),2)]
+            # Not using dict to preserve annotation order #
+            keys, values = [x[0] for x in attr], [x[1] for x in attr]
+            # GTF attribute column must have annotations starting with "gene_id" and "transcript_id" #
+            assert ["gene_id", "transcript_id"] == keys[:2], "Invalid " \
+                    "attribute column: %r. Valid attributes begin with " \
+                    "\"gene_id\" and \"transcript_id\""
+            self.handler.defineFields(all_fields + keys)
+            items += values
             # Yield it #
             self.handler.newFeature(chrom, items)
 
