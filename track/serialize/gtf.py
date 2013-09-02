@@ -8,7 +8,7 @@ from track.common import format_float
 from track.util import int_to_strand
 
 # Constants #
-all_fields = ['source', 'name', 'start', 'end', 'score', 'strand', 'frame', 'attributes']
+all_fields = ['source', 'feature', 'start', 'end', 'score', 'strand', 'frame', 'attributes']
 defaults   = ['.', '.', -1, -1, 0.0, '.', '.', '.']
 
 ################################################################################
