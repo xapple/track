@@ -483,7 +483,7 @@ class Track(object):
         if not selection: selection = self.chromosomes
         # Case list of things #
         if isinstance(selection, (list, tuple)):
-            return join_read_queries(self, selection, fields)
+            return join_read_queries(self, selection, fields, order)
         # Case selection dictionary #
         elif isinstance(selection, dict):
             chrom = selection['chr']
