@@ -57,12 +57,6 @@ class ParserGTF(Parser):
                 items[3] = int(items[3])
             except ValueError:
                 self.handler.error("The track%s has non integers as interval bounds", self.path, number)
-            # Score field #
-            if items[4] == '.' or items[4] == '': items[4] = 0.0
-            try:
-                items[4] = float(items[4])
-            except ValueError:
-                self.handler.error("The track%s has non floats as score values", self.path, number)
             # Strand field #
             items[5] = strand_to_int(items[5])
             # Frame field #

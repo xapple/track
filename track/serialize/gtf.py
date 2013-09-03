@@ -4,7 +4,6 @@ This module implements the GTF serialization.
 
 # Internal modules #
 from track.serialize import Serializer
-from track.common import format_float
 from track.util import int_to_strand
 
 # Constants #
@@ -77,8 +76,6 @@ class SerializerGTF(Serializer):
                     attr = attribute_str(self.fields[n], feature[i])
                     line[7] = '%s %s' % (line[7], attr)
 
-        # Convert the score #
-        line[4] = format_float(line[4])
         # Convert the strand #
         line[5] = int_to_strand(line[5])
         # Convert the frame #
