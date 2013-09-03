@@ -1,0 +1,6 @@
+chr1	ucsc_ensGene	CDS	1132818	1133224	.	+	2	gene_id "ENSG00000162571"; transcript_id "ENST00000379290"; exon_number "16"; exon_id "ENST00000379290.16"; gene_name "ENSG00000162571";
+chr1	ucsc_ensGene	3UTR	1133228	1133315	0.0	+	.	gene_id "ENSG00000162571"; transcript_id "ENST00000379290"; exon_number "16"; exon_id "ENST00000379290.16"; gene_name "ENSG00000162571";
+chr1	ucsc_ensGene	start_codon	1114596	1114598	.	+	0	gene_id "ENSG00000162571"; transcript_id "ENST00000379290"; exon_number "1"; exon_id "ENST00000379290.1"; gene_name "ENSG00000162571";
+chr1	ucsc_ensGene	stop_codon	1133225	1133227	.	+	0	gene_id "ENSG00000162571"; transcript_id "ENST00000379290"; exon_number "1"; exon_id "ENST00000379290.1"; gene_name "ENSG00000162571";
+chr1	ucsc_ensGene	exon	1109286	1109306	.	+	.	gene_id "ENSG00000162571"; transcript_id "ENST00000379289"; exon_number "1"; exon_id "ENST00000379289.1"; gene_name "ENSG00000162571";
+chr1	ucsc_ensGene	5UTR	1109286	1109306	0.0	+	.	gene_id "ENSG00000162571"; transcript_id "ENST00000379289"; exon_number "1"; exon_id "ENST00000379289.1"; gene_name "ENSG00000162571";

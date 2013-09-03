@@ -30,11 +30,30 @@ class TestConversion(unittest.TestCase):
             orig_gtf_path = info['gtf']
             orig_sql_path = info['sql']
             test_sql_path = temporary_path('.sql')
-            # From BED to SQL #
-            track.convert(orig_gtf_path, test_sql_path, assembly='sacCer2')
+            # From GTF to SQL #
+            track.convert(orig_gtf_path, test_sql_path)
             self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
             # Clean up #
             os.remove(test_sql_path)
+
+class TestRoundTrip(unittest.TestCase):
+    def runTest(self):
+        for num, info in sorted(samples['gtf_tracks'].items()):
+            if num == 'GenRep': continue
+            orig_gtf_path = info['gtf']
+            orig_sql_path = info['sql']
+            test_sql_path = temporary_path('.sql')
+            test_gtf_path = temporary_path('.gtf')
+            # From GTF to SQL #
+            track.convert(orig_gtf_path, test_sql_path)
+            self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
+            # From SQL to GTF #
+            # Use Track() instead. #
+            track.convert(test_sql_path, test_gtf_path)
+            self.assertTrue(assert_file_equal(orig_gtf_path, test_gtf_path, start_b=1))
+            # Clean up #
+            os.remove(test_sql_path)
+            os.remove(test_gtf_path)
 
 #-----------------------------------#
 # This code was written by the BBCF #

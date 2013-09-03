@@ -78,6 +78,7 @@ samples = {
   'gtf_tracks': {
     1:            {'name':'WUSTL GTF example',     'filename': 'gtf_test1'},
     'GenRep':     {'name':'GenRep saccer GTF',     'filename': 'gtf_saccer'},
+    2:            {'name':'UCSC-based example',    'filename': 'gtf_test2'},
   },
   'gzip_tracks': {
     1:            {'name':'Validation features 1', 'filename': 'features1.bed'},

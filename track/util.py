@@ -166,10 +166,10 @@ def add_chromsome_prefix(sel, data):
     for f in data: yield chrom + tuple(f)
 
 ################################################################################
-def join_read_queries(track, selections, fields):
+def join_read_queries(track, selections, fields, order):
     """Join read results when selection is a list"""
     for sel in selections:
-        for f in add_chromsome_prefix(sel, track.read(sel, fields)): yield f
+        for f in add_chromsome_prefix(sel, track.read(sel, fields, order)): yield f
 
 ################################################################################
 def make_cond_from_sel(selection):
