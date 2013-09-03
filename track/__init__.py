@@ -442,14 +442,14 @@ class Track(object):
         return parser(serializer)
 
     #-----------------------------------------------------------------------------#
-    def read(self, selection=None, fields=None, order='start,end'):
+    def read(self, selection=None, fields=None, order=''):
         """Read data from the track.
 
         :param selection: A chromosome name, or a dictionary specifying a region, see below.
         :param fields: is an optional list of fields which will influence the length of the tuples returned and the way in which the information is returned. The default is to read every field available for the given chromosome. If the *track.fields* attribute is set, that will be used.
         :type  fields: list of strings
-        :param order: is am optional sublist of *fields* which will influence the order in which the tuples are yielded. By default results are sorted by ``start`` and, secondly, by ``end``.
-        :type  order: list of strings
+        :param order: is an optional sublist of *fields* which will influence the order in which the tuples are yielded. By default results are not sorted.
+        :type  order: comma-separated string
 
         :returns: a generator object yielding rows. A row can be referenced like a tuple or like a dictionary.
 
