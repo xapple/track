@@ -5,9 +5,12 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, Extension
 
+from track import __version__
+
+
 setup(
         name             =   'track',
-        version          =   '1.2.0',
+        version          =   __version__,
         description      =   'Python package for reading and writing genomic data',
         long_description =   open('README.md').read(),
         license          =   'GNU General Public License 3.0',
