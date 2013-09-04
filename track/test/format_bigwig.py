@@ -4,10 +4,11 @@ Contains tests for the bigwig format.
 
 # Built-in modules #
 import os
+import sys
 
 # Internal modules #
 import track
-from track.common import temporary_path, assert_file_equal
+from track.common import MissingExecutableError, temporary_path, assert_file_equal
 from track.test import samples
 
 # Unittesting module #
@@ -29,11 +30,21 @@ class TestRoundtrip(unittest.TestCase):
             test_sql_path = temporary_path('.sql')
             test_bigwig_path = temporary_path('.bigwig')
             # From bigwig to SQL #
-            track.convert(orig_bigwig_path, test_sql_path, assembly='sacCer2')
-            self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
+            try:
+                track.convert(orig_bigwig_path, test_sql_path, assembly='sacCer2')
+            except MissingExecutableError as err:
+                sys.stderr.write("skipping: {0} ".format(err.message))
+                break
+            else:
+                self.assertTrue(assert_file_equal(orig_sql_path, test_sql_path))
             # From SQL to bigwig #
-            track.convert(test_sql_path, test_bigwig_path)
-            self.assertTrue(assert_file_equal(orig_bigwig_path, test_bigwig_path, start_a=1, start_b=1))
+            try:
+                track.convert(test_sql_path, test_bigwig_path)
+            except MissingExecutableError as err:
+                sys.stderr.write("skipping: {0} ".format(err.message))
+                break
+            else:
+                self.assertTrue(assert_file_equal(orig_bigwig_path, test_bigwig_path, start_a=1, start_b=1))
             # Clean up #
             os.remove(test_sql_path)
             os.remove(test_bigwig_path)
