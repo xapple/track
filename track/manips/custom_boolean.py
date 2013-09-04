@@ -85,14 +85,14 @@ tests = [
 
 ############################### Implementation #################################
 def generate(**kwargs):
-    from gMiner.manipulate import fusion
-    for f in fusion(meta_generate(**kwargs)): yield f
+    import fusion
+    for f in fusion.generate(meta_generate(**kwargs)): yield f
 
 def meta_generate(n_tracks, fn, win_size):
-    from gMiner.manipulate import fusion
+    import fusion
     tracks = n_tracks
     sentinel = (sys.maxint, sys.maxint, 0.0)
-    tracks = [fusion(t) for t in tracks]
+    tracks = [fusion.generate(t) for t in tracks]
     tracks = [common.sentinelize(t, sentinel) for t in tracks]
 
     N = len(tracks)
