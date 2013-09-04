@@ -8,8 +8,11 @@ install:
     - "python setup.py install"
     - "pip install nose"
 
+before_script:
+    - "cd track"
+
 script:
-    - nosetests --with-doctest -v
+    - nosetests --with-doctest -v .
 
 notifications:
     email: false
