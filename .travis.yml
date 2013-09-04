@@ -4,6 +4,7 @@ python:
     - "2.7"
 
 install:
+    - "pip install genomes"
     - "python setup.py install"
     - "pip install nose"
 
