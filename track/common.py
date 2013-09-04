@@ -2,6 +2,12 @@
 Common stuff for python projects.
 """
 
+
+class MissingExecutableError(Exception):
+    """Exception for missing executable."""
+    pass
+
+
 ########################### FILES FUNCTIONS ###################################
 def iterate_lines(path, comment_char="#", linebreak_char="\\"):
     """
@@ -79,7 +85,7 @@ def check_executable(tool_name):
     try:
         subprocess.Popen([tool_name], stderr=subprocess.PIPE)
     except OSError:
-        raise Exception("The executable '" + tool_name + "' cannot be found")
+        raise MissingExecutableError("The executable '" + tool_name + "' cannot be found.")
 
 #------------------------------------------------------------------------------#
 def run_tool(tool_name, args):
