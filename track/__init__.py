@@ -1,7 +1,11 @@
 b'This module needs Python 2.6 or later.'
 
 # Special variables #
-__version__ = '1.2.0'
+RELEASE = False
+__version_info__ = ('1', '3', '0')
+__version__ = '.'.join(__version_info__)
+__version__ += '-dev' if not RELEASE else ''
+
 __all__ = ['load', 'new', 'convert']
 
 # Other variables #
