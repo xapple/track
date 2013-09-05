@@ -5,13 +5,10 @@ python:
 
 install:
     - "pip install genomes"
-    - "python setup.py install"
-
-before_script:
-    - "export TRACK_TEST_DIR=build/lib.*"
+    - "python setup.py develop"
 
 script:
-    - nosetests --with-doctest -v $TRACK_TEST_DIR
+    - nosetests --with-doctest -v .
 
 notifications:
     email: false
