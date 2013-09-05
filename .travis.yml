@@ -6,13 +6,12 @@ python:
 install:
     - "pip install genomes"
     - "python setup.py install"
-    - "pip install nose"
 
 before_script:
-    - "cd track"
+    - "export TRACK_TEST_DIR=build/lib.*"
 
 script:
-    - nosetests --with-doctest -v .
+    - nosetests --with-doctest -v $TRACK_TEST_DIR
 
 notifications:
     email: false
