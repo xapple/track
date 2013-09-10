@@ -56,7 +56,7 @@ class Parser(object):
     def __call__(self, handler=None):
         # Default handler #
         if not handler:
-            from track.seralize.memory import SerializerMemory
+            from track.serialize.memory import SerializerMemory
             handler = SerializerMemory()
         # Enter the handler #
         with handler as self.handler: self.parse()
