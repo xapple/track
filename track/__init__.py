@@ -157,7 +157,9 @@ def convert(source, destination, assembly=None):
     # Check it is not empty #
     check_file(source_path)
     # Check for compressed files #
-    if is_gzip(source_path): source_format = gzip_inner_format(source_path)
+    if not isinstance(source, tuple):
+        if is_gzip(source_path):
+            source_format = gzip_inner_format(source_path)
     # Get a parser #
     parser = get_parser(source_path, source_format)
     # Get a serializer #
