@@ -140,7 +140,11 @@ def convert(source, destination, assembly=None):
         source_format = source[1]
     else:
         source_path   = if_url_then_get_url(source)
-        source_format = determine_format(source_path)
+        # Check for compressed files #
+        if is_gzip(source_path):
+            source_format = gzip_inner_format(source_path)
+        else:
+            source_format = determine_format(source_path)
     # Parse the destination parameter #
     if isinstance(destination, tuple):
         destination_path   = destination[0]
@@ -156,8 +160,6 @@ def convert(source, destination, assembly=None):
         source_format = 'sql'
     # Check it is not empty #
     check_file(source_path)
-    # Check for compressed files #
-    if is_gzip(source_path): source_format = gzip_inner_format(source_path)
     # Get a parser #
     parser = get_parser(source_path, source_format)
     # Get a serializer #
