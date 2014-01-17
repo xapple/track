@@ -109,7 +109,7 @@ def gzip_inner_format(path):
     return format_synonyms.get(file_format, file_format)
 
 ###############################################################################
-def parse_chr_file(self, path):
+def parse_chr_file(path):
     """Read a chromsome file and return a dictionary"""
     chrmeta = {}
     for number, line in iterate_lines(path):
