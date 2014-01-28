@@ -82,7 +82,7 @@ class ParserWIG(Parser):
                     self.handler.error("The track%s has non floats as score values.", self.path, number)
                 chrom   = params['chrom']
                 feature = [params['start'], params['start'] + params['span'], line]
-                params['start'] += params['span'] + params['step'] - 1
+                params['start'] += params['step']
             # Variable #
             elif params['mode'] == 'variableStep':
                 line = line.split('\t')
