@@ -2,11 +2,12 @@
 Installation
 ############
 
-To install you can simply type::
+To install you the track package, you don't need any administrator privileges or special permissions, you can simply download it somewhere in your home (for instance in a directory for repositories) and tell python where it is:
 
-    $ sudo easy_install empty
-
-That's it. However, if that doesn't work because you don't have sufficient permissions, you can simply install it somewhere else (for instance in your home)::
-
-    $ cd ~
-    $ pip install -e git+https://github.com/xapple/track
+	$ cd ~
+	$ mkdir repos
+	$ cd repos
+    $ git clone https://github.com/xapple/track.git
+	$ export PYTHONPATH="$HOME/repos/track/":$PYTHONPATH
+	
+That last line should go into to your `.bash_profile` file so that python always knows where to find the track package.

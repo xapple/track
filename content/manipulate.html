@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.2.0',
+        VERSION:     '1.3.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -46,7 +44,7 @@
         <li class="right" >
           <a href="track.html" title="Using the Track object"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+        <li><a href="../index.html">track v1.3.0-dev</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -93,7 +91,7 @@
 <h3>All manipulations<a class="headerlink" href="#all-manipulations" title="Permalink to this headline">¶</a></h3>
 <dl class="function">
 <dt id="track.manipulate.closest_features">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">closest_features</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.closest_features" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">closest_features</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.closest_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the closest features from one track in an other track.</p>
 <p>For instance, the <tt class="docutils literal"><span class="pre">closest_features</span></tt> manipulation can identify
 the most relevant(s) gene(s) associated to each peak.</p>
@@ -121,7 +119,7 @@ the most relevant(s) gene(s) associated to each peak.</p>
 </tbody>
 </table>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>                             peak
+<div class="highlight-python"><div class="highlight"><pre>                             peak
       ______  min_length    ------       min_length  ______
 -----|______|------...------------------...---------|______|-----
       gene 1                                         gene 2
@@ -129,14 +127,15 @@ the most relevant(s) gene(s) associated to each peak.</p>
           --&gt;                          --&gt;
          |______  10%        90%      |______
 ---------|______|-----|---------------|______|-------------------
-          gene 1      prom_cutoff      gene 2</pre>
+          gene 1      prom_cutoff      gene 2
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;first&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.complement">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">complement</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.complement" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">complement</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.complement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Complement (boolean NOT).</p>
 <p>The <tt class="docutils literal"><span class="pre">complement</span></tt> manipulation takes only one track
 for input. The output consists of all intervals that
@@ -158,18 +157,20 @@ This corresponds to the boolean NOT operation.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (10,20) (30,40)
-R [start,end]: ( 0,10) (20,30) (40,1000)</pre>
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (10,20) (30,40)
+R [start,end]: ( 0,10) (20,30) (40,1000)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
-R: ▤▤▤▤▤▤─────▤▤▤▤▤▤▤▤▤─────▤▤▤▤▤▤</pre>
+<div class="highlight-python"><div class="highlight"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
+R: ▤▤▤▤▤▤─────▤▤▤▤▤▤▤▤▤─────▤▤▤▤▤▤
+</pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.concatenate">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">concatenate</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.concatenate" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">concatenate</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.concatenate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Concatenate N tracks together.</p>
 <p>The <tt class="docutils literal"><span class="pre">concatenate</span></tt> manipulation takes only one track
 for input. The output consists of all intervals that
@@ -185,22 +186,24 @@ were not covered by a feature in the input track.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (0,20)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (0,20)
 Y [start,end]: (10,30)
-R [start,end]: (0,20) (10,30)</pre>
+R [start,end]: (0,20) (10,30)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
 Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
 R: ───▤▤▤▤▤▤▤▤▤───▤▤▤▤▤────▤▤▤▤▤▤▤──────
-         ▤▤▤▤▤</pre>
+         ▤▤▤▤▤
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.custom_boolean">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">custom_boolean</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.custom_boolean" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">custom_boolean</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.custom_boolean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a custom boolean.</p>
 <p>The <tt class="docutils literal"><span class="pre">custom_boolean</span></tt> manipulation takes several tracks <em>t_1</em>,..,*t_n* and a
 boolean function <em>fn</em> as input, and returns one track that is <em>fn(t_1,..,t_n)</em>.
@@ -223,25 +226,27 @@ loaded in memory at a time (default: 1000).</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X1 [start,end]: [(4,5),(7,9),(10,12)]
+<div class="highlight-python"><div class="highlight"><pre>X1 [start,end]: [(4,5),(7,9),(10,12)]
 X2 [start,end]: [(1,3),(4,5),(11,14)]
 X3 [start,end]: [(9,13)]
 fn: not(X1) and (X2 or X3)
-R               [(1,3),(9,10),(12,14)]</pre>
+R               [(1,3),(9,10),(12,14)]
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X1: ───▤▤▤▤▤▤▤▤─────────────────────
+<div class="highlight-python"><div class="highlight"><pre>X1: ───▤▤▤▤▤▤▤▤─────────────────────
 X2: ─▤▤▤▤▤▤─────────────────────────
 X3: ─────▤▤▤▤▤▤▤▤▤──────────────────
 fn: X1 and X2 and X3
-R:  ─────▤▤─────────────────────────</pre>
+R:  ─────▤▤─────────────────────────
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.difference">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">difference</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.difference" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">difference</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.difference" title="Permalink to this definition">¶</a></dt>
 <dd><p>Difference (boolean XOR).</p>
 <p>Concatenates two tracks together and subsequently performs
 the fusion manipulation on the result. Form this are removed
@@ -264,21 +269,23 @@ This is equivalent to the boolean <cite>XOR</cite> operation.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (0,40) (50,60)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (0,40) (50,60)
 Y [start,end]: (10,20)
-R [start,end]: (0,10) (20,40) (50,60)</pre>
+R [start,end]: (0,10) (20,40) (50,60)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
 Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
-R: ───▤▤──────▤───▤▤▤▤▤────▤▤▤▤▤▤▤──────</pre>
+R: ───▤▤──────▤───▤▤▤▤▤────▤▤▤▤▤▤▤──────
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.filter">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">filter</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.filter" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">filter</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter features in a track by using a second track.</p>
 <p>The <tt class="docutils literal"><span class="pre">filter</span></tt> manipulation computes the overlap of
 the first track against the second stream returning only
@@ -299,21 +306,23 @@ complete features from the first track.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (10,20) (30,40)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (10,20) (30,40)
 Y [start,end]: (10,12) (17,22)
-R [start,end]: (10,20) (30,40)</pre>
+R [start,end]: (10,20) (30,40)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ───▤▤▤▤▤▤▤▤▤────────────▤▤▤▤▤▤▤──────
 Y: ──────▤▤▤▤▤────▤▤▤▤▤─────────────────
-R: ───▤▤▤▤▤▤▤▤▤─────────────────────────</pre>
+R: ───▤▤▤▤▤▤▤▤▤─────────────────────────
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;first&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.fusion">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">fusion</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.fusion" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">fusion</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.fusion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fuses features that are adjacent or overlapping in a track.</p>
 <p>The <tt class="docutils literal"><span class="pre">fusion</span></tt> manipulation will combine any features in a track that
 are adjacent to one another or overlapping each other into a single
@@ -331,19 +340,21 @@ be the sum of all the scores.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X1 [start,end]: (10,20) (20,30)
-R  [start,end]: (10,30)</pre>
+<div class="highlight-python"><div class="highlight"><pre>X1 [start,end]: (10,20) (20,30)
+R  [start,end]: (10,30)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ──────▤▤▤▤▤─────────▤▤▤▤▤──────
            ▤▤▤▤▤▤▤▤▤
-R: ──────▤▤▤▤▤▤▤▤▤▤▤───▤▤▤▤▤──────</pre>
+R: ──────▤▤▤▤▤▤▤▤▤▤▤───▤▤▤▤▤──────
+</pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.mean_score_by_feature">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">mean_score_by_feature</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.mean_score_by_feature" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">mean_score_by_feature</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.mean_score_by_feature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mean score of the signal in every feature.</p>
 <p>Given a signal track <tt class="docutils literal"><span class="pre">X</span></tt> and a feature track <tt class="docutils literal"><span class="pre">Y</span></tt>,
 the <tt class="docutils literal"><span class="pre">mean_score_by_feature</span></tt> manipulation computes the mean of scores
@@ -365,21 +376,23 @@ similar to <tt class="docutils literal"><span class="pre">Y</span></tt> but with
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end,score]: (10,20,999)   (30,40,9999)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end,score]: (10,20,999)   (30,40,9999)
 Y [start,end,score]: (10,12,5)     (17,22,500)
-R [start,end,score]: (10,20,151)   (30,40,0)</pre>
+R [start,end,score]: (10,20,151)   (30,40,0)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ──────▤▤▤▤▤▤▤▤▤▤──────────────▤▤▤▤▤▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ──────▤▤▤▤▤▤▤▤▤▤──────────────▤▤▤▤▤▤▤▤▤▤──────
 Y: ▁▁▁▁▁▁▁▁▁▁▁█████████▁▁▁▁▁▁▁▁▁▁██████████▁▁▁▁▁▁
-R: ▁▁▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁██████████▁▁▁▁▁▁</pre>
+R: ▁▁▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁██████████▁▁▁▁▁▁
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;last&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.merge_scores">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">merge_scores</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.merge_scores" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">merge_scores</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.merge_scores" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge scores of all signals together.</p>
 <p>The <tt class="docutils literal"><span class="pre">merge_scores</span></tt> manipulation merges N signals
 using some average function. If the boolean value <tt class="docutils literal"><span class="pre">geometric</span></tt>
@@ -401,21 +414,23 @@ mean is used.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X1 [start,end,score]: (10,20,50) (30,40,100)
+<div class="highlight-python"><div class="highlight"><pre>X1 [start,end,score]: (10,20,50) (30,40,100)
 X2 [start,end,score]: (10,12,20)
-R  [start,end,score]: (10,20,40) (12,20,25) (30,40,50)</pre>
+R  [start,end,score]: (10,20,40) (12,20,25) (30,40,50)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X1: ▁▁▁▁▁▁▁▁▁▁█████████▁▁▁▁▁▁
+<div class="highlight-python"><div class="highlight"><pre>X1: ▁▁▁▁▁▁▁▁▁▁█████████▁▁▁▁▁▁
 X2: ▁▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁
-R:  ▁▁▁▁▁▂▂▂▂▂▇▇▇▇▇▅▅▅▅▁▁▁▁▁▁</pre>
+R:  ▁▁▁▁▁▂▂▂▂▂▇▇▇▇▇▅▅▅▅▁▁▁▁▁▁
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;union&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.neighborhood">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">neighborhood</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.neighborhood" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">neighborhood</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.neighborhood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute neighborhood regions upstream and downstream of features..</p>
 <p>Given a stream of features and four integers <tt class="docutils literal"><span class="pre">before_start</span></tt>, <tt class="docutils literal"><span class="pre">after_end</span></tt>,
 <tt class="docutils literal"><span class="pre">after_start</span></tt> and <tt class="docutils literal"><span class="pre">before_end</span></tt>, this manipulation will output,
@@ -424,26 +439,31 @@ in the neighborhood of the original feature.</p>
 <blockquote>
 <div><ul>
 <li><p class="first">Only <tt class="docutils literal"><span class="pre">before_start</span></tt> and <tt class="docutils literal"><span class="pre">after_end</span></tt> are given:</p>
-<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, end+after_end, ...)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(start, end, ...) -&gt; (start+before_start, end+after_end, ...)
+</pre></div>
 </div>
 </li>
 <li><p class="first">Only <tt class="docutils literal"><span class="pre">before_start</span></tt> and <tt class="docutils literal"><span class="pre">after_start</span></tt> are given:</p>
-<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)
+</pre></div>
 </div>
 </li>
 <li><p class="first">Only <tt class="docutils literal"><span class="pre">after_end</span></tt> and <tt class="docutils literal"><span class="pre">before_end</span></tt> are given:</p>
-<div class="highlight-python"><pre>(start, end, ...) -&gt; (end+before_end, end+after_end, ...)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(start, end, ...) -&gt; (end+before_end, end+after_end, ...)
+</pre></div>
 </div>
 </li>
 <li><p class="first">If all four parameters are given, a pair of features is outputted:</p>
-<div class="highlight-python"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)
-                     (end+before_end, end+after_end, ...)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(start, end, ...) -&gt; (start+before_start, start+after_start, ...)
+                     (end+before_end, end+after_end, ...)
+</pre></div>
 </div>
 </li>
 <li><p class="first">If the boolean parameter <tt class="docutils literal"><span class="pre">on_strand</span></tt> is set to True,
 features on the negative strand are inverted as such:</p>
-<div class="highlight-python"><pre>(start, end, ...) -&gt; (start-after_end, start-before_end, ...)
-                     (end-after_start, end-before_start, ...)</pre>
+<div class="highlight-python"><div class="highlight"><pre>(start, end, ...) -&gt; (start-after_end, start-before_end, ...)
+                     (end-after_start, end-before_start, ...)
+</pre></div>
 </div>
 </li>
 </ul>
@@ -469,18 +489,20 @@ features on the negative strand are inverted as such:</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (10,20)
-R [start,end]: (5,8) (22,25)</pre>
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (10,20)
+R [start,end]: (5,8) (22,25)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ──────────▤▤▤▤▤▤▤▤▤──────────────
-R: ────▤▤▤▤─────────────▤▤▤▤────────</pre>
+<div class="highlight-python"><div class="highlight"><pre>X: ──────────▤▤▤▤▤▤▤▤▤──────────────
+R: ────▤▤▤▤─────────────▤▤▤▤────────
+</pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.overlap">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">overlap</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.overlap" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">overlap</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.overlap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pieces of overlap between two tracks (boolean AND).</p>
 <p>The <tt class="docutils literal"><span class="pre">overlap</span></tt> manipulation computes the overlap between two tracks
 returning new features that exactly match the overlapping zones.
@@ -502,21 +524,23 @@ This is equivalent to the boolean <cite>AND</cite> operation.</p>
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end]: (0,20)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end]: (0,20)
 Y [start,end]: (10,30)
-R [start,end]: (10,20)</pre>
+R [start,end]: (10,20)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ───▤▤▤▤▤▤▤▤▤─────────────────▤▤▤▤▤▤▤──────
+<div class="highlight-python"><div class="highlight"><pre>X: ───▤▤▤▤▤▤▤▤▤─────────────────▤▤▤▤▤▤▤──────
 Y: ─────────▤▤▤▤▤▤▤────▤▤▤▤▤─────────────────
-R: ─────────▤▤▤──────────────────────────────</pre>
+R: ─────────▤▤▤──────────────────────────────
+</pre></div>
 </div>
 <p>If the list of chromosomes contained in the various tracks differ, the conflict will be resolved by applying the &#8216;intersection&#8217; principle.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.threshold">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">threshold</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.threshold" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">threshold</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a score threshold.</p>
 <p>Given a track <tt class="docutils literal"><span class="pre">X</span></tt> and a real number <tt class="docutils literal"><span class="pre">s</span></tt>, the <tt class="docutils literal"><span class="pre">threshold</span></tt>
 manipulation will remove any features with a score below the <tt class="docutils literal"><span class="pre">s</span></tt> value.</p>
@@ -536,19 +560,21 @@ manipulation will remove any features with a score below the <tt class="docutils
 </tbody>
 </table>
 <p>A numerical example:</p>
-<div class="highlight-python"><pre>X [start,end,score]: (10,20,10) (30,40,5)
+<div class="highlight-python"><div class="highlight"><pre>X [start,end,score]: (10,20,10) (30,40,5)
 s: 8
-R [start,end,score]: (10,20,10)</pre>
+R [start,end,score]: (10,20,10)
+</pre></div>
 </div>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▂▂▂▂▂▂▂▂▂▂▁▁▁▁█████████▁▁
-R: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████████▁▁</pre>
+<div class="highlight-python"><div class="highlight"><pre>X: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▂▂▂▂▂▂▂▂▂▂▁▁▁▁█████████▁▁
+R: ▁▁▁▁▅▅▅▅▅▅▅▅▅▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁█████████▁▁
+</pre></div>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="track.manipulate.window_smoothing">
-<tt class="descclassname">track.manipulate.</tt><tt class="descname">window_smoothing</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#track.manipulate.window_smoothing" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">track.manipulate.</tt><tt class="descname">window_smoothing</tt><big>(</big><big>)</big><a class="headerlink" href="#track.manipulate.window_smoothing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Smooth scores with a moving window.</p>
 <p>Given a signal track and a window size in base pairs,
 the <tt class="docutils literal"><span class="pre">windows_smoothing</span></tt> manipulation will output a new signal
@@ -572,8 +598,9 @@ and the signal&#8217;s support is invariant.</p>
 </tbody>
 </table>
 <p>A visual example:</p>
-<div class="highlight-python"><pre>X: ▁▁▁▁▁▁▁▁▁▁████████████▁▁▁▁▁▁▁▁▁▁▁▁
-R: ▁▁▁▁▁▁▂▄▅▇████████████▇▅▄▂▁▁▁▁▁▁▁▁</pre>
+<div class="highlight-python"><div class="highlight"><pre>X: ▁▁▁▁▁▁▁▁▁▁████████████▁▁▁▁▁▁▁▁▁▁▁▁
+R: ▁▁▁▁▁▁▂▄▅▇████████████▇▅▄▂▁▁▁▁▁▁▁▁
+</pre></div>
 </div>
 </dd></dl>
 
@@ -646,11 +673,11 @@ R: ▁▁▁▁▁▁▂▄▅▇████████████▇▅▄�
         <li class="right" >
           <a href="track.html" title="Using the Track object"
              >previous</a> |</li>
-        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+        <li><a href="../index.html">track v1.3.0-dev</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Last updated on Aug 26, 2012.
+      Last updated on Jan 21, 2015.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>

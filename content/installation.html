@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.2.0',
+        VERSION:     '1.3.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -46,7 +44,7 @@
         <li class="right" >
           <a href="../index.html" title="Package ‘track’ documentation"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+        <li><a href="../index.html">track v1.3.0-dev</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,13 +55,18 @@
             
   <div class="section" id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
-<p>To install you can simply type:</p>
-<div class="highlight-python"><pre>$ sudo easy_install empty</pre>
-</div>
-<p>That&#8217;s it. However, if that doesn&#8217;t work because you don&#8217;t have sufficient permissions, you can simply install it somewhere else (for instance in your home):</p>
-<div class="highlight-python"><pre>$ cd ~
-$ pip install -e git+https://github.com/xapple/track</pre>
-</div>
+<p>To install you the track package, you don&#8217;t need any administrator privileges or special permissions, you can simply download it somewhere in your home (for instance in a directory for repositories) and tell python where it is:</p>
+<blockquote>
+<div><blockquote>
+<div>$ cd ~
+$ mkdir repos
+$ cd repos</div></blockquote>
+<dl class="docutils">
+<dt>$ git clone <a class="reference external" href="https://github.com/xapple/track.git">https://github.com/xapple/track.git</a></dt>
+<dd>$ export PYTHONPATH=&#8221;$HOME/repos/track/&#8221;:$PYTHONPATH</dd>
+</dl>
+</div></blockquote>
+<p>That last line should go into to your <cite>.bash_profile</cite> file so that python always knows where to find the track package.</p>
 </div>
 
 
@@ -118,11 +121,11 @@ $ pip install -e git+https://github.com/xapple/track</pre>
         <li class="right" >
           <a href="../index.html" title="Package ‘track’ documentation"
              >previous</a> |</li>
-        <li><a href="../index.html">track v1.2.0</a> &raquo;</li> 
+        <li><a href="../index.html">track v1.3.0-dev</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      Last updated on Aug 26, 2012.
+      Last updated on Jan 21, 2015.
     <a href="http://www.gnu.org/licenses/gpl-3.0.txt"><p>GPL3 licensed</p></a>
     </div>
   </body>
