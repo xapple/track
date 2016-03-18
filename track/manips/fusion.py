@@ -74,7 +74,7 @@ def generate(X):
             # Name #
             if x[2] and y[2]: x[2] = x[2] + ' + ' + y[2]
             else: x[2] = x[2] or y[2]
-            # Score #
+            # Score #
             x[3] = x[3] + y[3]
             # Strand #
             x[4] = x[4] == y[4] and x[4] or 0
