@@ -62,7 +62,7 @@ class ParserGFF(Parser):
                 items[3] = int(items[3])
             except ValueError:
                 self.handler.error("The track%s has non integers as interval bounds", self.path, number)
-            if items[3] <= items[2]:
+            if items[3] < items[2]:
                 self.handler.error("The track%s has negative or null intervals", self.path, number)
             # Score field #
             if items[4] == '.' or items[4] == '': items[4] = 0.0
